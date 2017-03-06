@@ -44,7 +44,7 @@ class PostCommandRouteIT {
         context.stop()
     }
 
-    @Test
+//    @Test
     fun aTest() {
         assertThat(1).isEqualTo(1)
         Thread.sleep(4000000)
