@@ -16,7 +16,6 @@ import org.apache.camel.impl.DefaultCamelContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.mockito.MockitoAnnotations
 import java.util.*
 import java.util.function.Supplier
@@ -79,6 +78,7 @@ class PostCommandRouteIT {
     }
 }
 
+// https://github.com/rodolfodpk/myeslib2/blob/master/myeslib2-stack1/src/main/java/org/myeslib/stack1/infra/Stack1SnapshotReader.java
 class CaffeineSnapShotReader : SnapshotReader<String, Customer> {
 
     val supplier: Supplier<Customer> = Supplier { Customer() }
