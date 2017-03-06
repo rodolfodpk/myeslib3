@@ -4,9 +4,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import myeslib3.core.data.AggregateRoot;
 
-/**
- * Created by rodolfo on 05/03/17.
- */
 public class StringHelpers {
 
   public static String aggregateRootId(Class<? extends AggregateRoot> aggregateRootClass) {

@@ -53,6 +53,10 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
+            <artifactId>camel-hystrix</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
             <artifactId>camel-pgevent</artifactId>
         </dependency>
         <!-- trocar p/ hikari-->

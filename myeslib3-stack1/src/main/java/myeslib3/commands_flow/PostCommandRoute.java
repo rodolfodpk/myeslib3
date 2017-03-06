@@ -1,8 +1,8 @@
-package myeslib3.command_flow;
+package myeslib3.commands_flow;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.spencerwi.either.Result;
+import java.util.Arrays;
 import java.util.List;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
@@ -15,7 +15,6 @@ import static myeslib3.helpers.StringHelpers.aggregateRootId;
 import static myeslib3.helpers.StringHelpers.commandId;
 import myeslib3.persistence.SnapshotReader;
 import myeslib3.persistence.SnapshotReader.Snapshot;
-import net.dongliu.gson.GsonJava8TypeAdapterFactory;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
@@ -32,21 +31,25 @@ public class PostCommandRoute<A extends AggregateRoot, C extends Command> extend
   final StateTransitionFn<A, Event> stateTransitionFn;
   final DependencyInjectionFn<A> dependencyInjectionFn;
   final SnapshotReader<String, A> snapshotReader;
+  final Gson gson ;
 
-  final Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GsonJava8TypeAdapterFactory()).create();
+  //  Journal<String> journal;
+
 
   public PostCommandRoute(Class<A> aggregateRootClass,
                           List<Class<?>> commandsClasses,
                           CommandHandlerFn<A, C> handler,
                           StateTransitionFn<A, Event> stateTransitionFn,
                           DependencyInjectionFn<A> dependencyInjectionFn,
-                          SnapshotReader<String, A> snapshotReader) {
+                          SnapshotReader<String, A> snapshotReader,
+                          Gson gson) {
     this.aggregateRootClass = aggregateRootClass;
     this.commandsClasses = commandsClasses;
     this.handler = handler;
     this.stateTransitionFn = stateTransitionFn;
     this.dependencyInjectionFn = dependencyInjectionFn;
     this.snapshotReader = snapshotReader;
+    this.gson = gson;
   }
 
   @Override
@@ -71,34 +74,44 @@ public class PostCommandRoute<A extends AggregateRoot, C extends Command> extend
           .produces("application/json")
           .route()
           .routeId("put-" + commandId(commandClazz))
+          .streamCaching()
           .log("as json: ${body}")
           .doTry()
               .unmarshal(df)
               .log("as java: ${body}")
           .doCatch(Exception.class)
               .log("*** error ")
-              .setBody(constant(ErrorMessage.create("1", "json serialization error")))
+              .setBody(constant(Arrays.asList("json serialization error")))
               .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(400))
-              .marshal().json(JsonLibrary.Gson, ErrorMessage.class)
+              .marshal().json(JsonLibrary.Gson, List.class)
               .log("as json error: ${body}")
               .stop()
           .end()
-          .process(e -> {
-            final String aggreateRootId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
-            final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
-            final Command command = (Command) e.getIn().getBody(commandClazz);
-            final Snapshot<A> snapshot = snapshotReader.getSnapshot(aggreateRootId);
-            final Result<UnitOfWork> result = handler.handle(commandId, aggreateRootId,
-                    snapshot.getInstance(), snapshot.getVersion(), (C) command,
-                    stateTransitionFn, dependencyInjectionFn);
-            if (result.isOk()){
-              e.getOut().setBody(result.getResult(), UnitOfWork.class);
-              e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-            } else {
-              e.getOut().setBody(ErrorMessage.create("1", result.getException().getMessage()));
-              e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-            }
-          })
+          .hystrix()
+            .hystrixConfiguration()
+              .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
+            .end()
+            .process(e -> {
+              final String aggregateRootId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
+              final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
+              final Command command = e.getIn().getBody(Command.class);
+              final C _command = (C) command;
+              final Snapshot<A> snapshot = snapshotReader.getSnapshot(aggregateRootId);
+              final Result<UnitOfWork> result = handler.handle(commandId, aggregateRootId,
+                      snapshot.getInstance(), snapshot.getVersion(), _command,
+                      stateTransitionFn, dependencyInjectionFn);
+              if (result.isOk()){
+                // journal.append(aggreateRootId, result.getResult());
+                e.getOut().setBody(result.getResult(), UnitOfWork.class);
+                e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+              } else {
+                e.getOut().setBody(Arrays.asList(result.getException().getMessage()), List.class);
+                e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+              }
+            })
+          .onFallback()
+            .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
+          .end()
           .marshal(df)
           .log("as json result: ${body}")
         ;

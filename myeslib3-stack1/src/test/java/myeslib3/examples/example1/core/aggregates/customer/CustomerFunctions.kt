@@ -3,7 +3,10 @@ package myeslib3.examples.example1.core.aggregates.customer
 
 import com.spencerwi.either.Result
 import myeslib3.core.StateTransitionsTracker
-import myeslib3.core.data.*
+import myeslib3.core.data.AggregateRoot
+import myeslib3.core.data.Event
+import myeslib3.core.data.UnitOfWork
+import myeslib3.core.data.Version
 import myeslib3.core.functions.CommandHandlerFn
 import myeslib3.core.functions.StateTransitionFn
 import java.time.LocalDateTime
