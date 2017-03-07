@@ -1,4 +1,4 @@
-package myeslib3.commands_flow;
+package myeslib3.stack1.flows.commands;
 
 import com.google.gson.Gson;
 import com.spencerwi.either.Result;
@@ -11,10 +11,10 @@ import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
-import static myeslib3.helpers.StringHelpers.aggregateRootId;
-import static myeslib3.helpers.StringHelpers.commandId;
-import myeslib3.persistence.SnapshotReader;
-import myeslib3.persistence.SnapshotReader.Snapshot;
+import static myeslib3.stack1.utils.StringHelpers.aggregateRootId;
+import static myeslib3.stack1.utils.StringHelpers.commandId;
+import myeslib3.stack1.features.persistence.SnapshotReader;
+import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
@@ -97,8 +97,8 @@ public class PostCommandRoute<A extends AggregateRoot, C extends Command> extend
               final Command command = e.getIn().getBody(Command.class);
               final C _command = (C) command;
               final Snapshot<A> snapshot = snapshotReader.getSnapshot(aggregateRootId);
-              final Result<UnitOfWork> result = handler.handle(commandId, aggregateRootId,
-                      snapshot.getInstance(), snapshot.getVersion(), _command,
+              final Result<UnitOfWork> result = handler.handle(commandId, aggregateRootId, _command,
+                      snapshot.getInstance(), snapshot.getVersion(),
                       stateTransitionFn, dependencyInjectionFn);
               if (result.isOk()){
                 // journal.append(aggreateRootId, result.getResult());

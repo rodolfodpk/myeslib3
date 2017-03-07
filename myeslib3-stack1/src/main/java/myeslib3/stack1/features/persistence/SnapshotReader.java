@@ -1,4 +1,4 @@
-package myeslib3.persistence;
+package myeslib3.stack1.features.persistence;
 
 import java.util.List;
 import java.util.stream.Collectors;

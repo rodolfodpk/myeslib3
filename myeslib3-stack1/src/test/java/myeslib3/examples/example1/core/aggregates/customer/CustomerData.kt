@@ -25,9 +25,12 @@ data class CustomerCreated(val customerId: String, val name: String) : CustomerE
 
 data class CustomerActivated(val reason: String, val date: LocalDateTime) : CustomerEvent()
 
+// TODO scheduledCommand abaixo deve usar
+// https://github.com/steveloughran/jclouds/blob/843b10b88c6be373142e240ec1b62b6d2cbdd013/core/src/test/java/org/jclouds/json/internal/NullHackJsonLiteralAdapterTest.java
+
 data class DeactivatedCmdScheduled(val scheduledCommand: DeactivateCustomerCmd,
                                    val scheduledAt: LocalDateTime) : CustomerEvent(), CommandScheduling {
-    override fun scheduledCommand(): Command {
+    override fun scheduledCommand(): Command { // isso aqui nao ta serializando certo  (sem o attr type)
         return scheduledCommand
     }
     override fun scheduledAt(): LocalDateTime {

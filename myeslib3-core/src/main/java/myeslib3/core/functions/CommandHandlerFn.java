@@ -9,11 +9,8 @@ import myeslib3.core.data.Version;
 @FunctionalInterface
 public interface CommandHandlerFn<AggregateRoot, C extends Command> {
 
-  Result<UnitOfWork> handle(String commandId,
-                            String aggregateRootId,
-                            AggregateRoot aggregateRoot,
-                            Version version,
-                            C command,
+  Result<UnitOfWork> handle(String commandId, String aggregateRootId, C command,
+                            AggregateRoot aggregateRoot, Version version,
                             StateTransitionFn<AggregateRoot, Event> stateTransitionFn,
                             DependencyInjectionFn<AggregateRoot> dependencyInjectionFn);
 }

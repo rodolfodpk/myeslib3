@@ -66,7 +66,7 @@ val stateTransitionFn: StateTransitionFn<Customer, Event> = StateTransitionFn { 
 // commands routing and execution function
 
 val commandHandlerFn : CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
-    commandId, aggregateRootId, aggregateRoot, version, command, stateTransitionFn, injectionFn ->
+    commandId, aggregateRootId, command, aggregateRoot, version, stateTransitionFn, injectionFn ->
     Result.attempt {
         when (command) {
             is CreateCustomerCmd -> {
