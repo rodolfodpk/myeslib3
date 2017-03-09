@@ -53,7 +53,7 @@ data class Customer(val customerId: String? = null,
 
 // events routing and execution function
 
-val stateTransitionFn: StateTransitionFn<Customer, Event> = StateTransitionFn { event, state ->
+val stateTransitionFn: StateTransitionFn<Customer> = StateTransitionFn { event, state ->
     when (event) {
         is CustomerCreated -> state.copy(customerId = event.customerId)
         is CustomerActivated -> state.copy(active = true, activatedSince = event.date, reason = event.reason)
@@ -66,29 +66,29 @@ val stateTransitionFn: StateTransitionFn<Customer, Event> = StateTransitionFn { 
 // commands routing and execution function
 
 val commandHandlerFn : CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
-    commandId, aggregateRootId, command, aggregateRoot, version, stateTransitionFn, injectionFn ->
+    commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
     Result.attempt {
         when (command) {
             is CreateCustomerCmd -> {
-                require(version == Version.create(0), {"before create the instance must be version= 0"})
-                UnitOfWork.create(aggregateRootId, commandId, command, version.nextVersion(),
-                        aggregateRoot.create(aggregateRootId, command.name))
+                require(targetVersion == Version.create(0), {"before create the instance must be version= 0"})
+                UnitOfWork.create(targetId, commandId, command, targetVersion.nextVersion(),
+                        targetInstance.create(targetId, command.name))
             }
             is ActivateCustomerCmd ->
-                UnitOfWork.create(aggregateRootId, commandId, command, version.nextVersion(),
-                        aggregateRoot.activate(command.reason))
+                UnitOfWork.create(targetId, commandId, command, targetVersion.nextVersion(),
+                        targetInstance.activate(command.reason))
             is DeactivateCustomerCmd ->
-                UnitOfWork.create(aggregateRootId, commandId, command, version.nextVersion(),
-                        aggregateRoot.deactivate(command.reason))
+                UnitOfWork.create(targetId, commandId, command, targetVersion.nextVersion(),
+                        targetInstance.deactivate(command.reason))
             is CreateActivatedCustomerCmd -> {
 //                // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
-                val tracker : StateTransitionsTracker<Customer, Event> =
-                        StateTransitionsTracker(aggregateRoot, stateTransitionFn, injectionFn)
+                val tracker : StateTransitionsTracker<Customer> =
+                        StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
                 val events = tracker
-                        .applyEvents(aggregateRoot.create(aggregateRootId, command.name))
+                        .applyEvents(targetInstance.create(targetId, command.name))
                         .applyEvents(tracker.currentState().activate(command.reason))
                         .collectedEvents()
-                UnitOfWork.create(aggregateRootId, commandId, command, version.nextVersion(), events)
+                UnitOfWork.create(targetId, commandId, command, targetVersion.nextVersion(), events)
             }
             else -> {
                 throw IllegalArgumentException("invalid command")

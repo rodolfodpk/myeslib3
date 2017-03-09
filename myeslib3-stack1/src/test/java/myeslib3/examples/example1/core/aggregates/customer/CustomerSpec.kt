@@ -26,8 +26,8 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(0)
             When("a createCommand is issued") {
                 val cmd = CreateCustomerCmd(name = "customer 1")
-                val operation = commandHandlerFn.handle(commandId, customerId, cmd,
-                        customer, version,
+                val operation = commandHandlerFn.handle(commandId, cmd,
+                        customerId, customer, version,
                         stateTransitionFn, dependencyInjectionFn)
                 val uow: UnitOfWork = operation.result
                 Then("a proper UnitOfWork is generated") {
@@ -53,8 +53,8 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             When("an activateCommand is issued") {
                 val cmd = ActivateCustomerCmd("because I want it")
-                val operation = commandHandlerFn.handle(commandId, customerId, cmd,
-                        customer, version,
+                val operation = commandHandlerFn.handle(commandId, cmd,
+                        customerId, customer, version,
                         stateTransitionFn, dependencyInjectionFn)
                 val uow: UnitOfWork = operation.result
                 Then("a proper UnitOfWork is generated") {
@@ -84,11 +84,11 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             When("a createCommand with same customerId is issued") {
                 val cmd = CreateCustomerCmd(name = "customer1")
-                val result = commandHandlerFn.handle(commandId, customerId, cmd,
-                        customer, version,
+                val operation = commandHandlerFn.handle(commandId, cmd,
+                        customerId, customer, version,
                         stateTransitionFn, dependencyInjectionFn)
                 Then("result must be an error with an IllegalArgumentException") {
-                    val exception = result.exception
+                    val exception = operation.exception
                     assertEquals(exception?.localizedMessage, "before create the instance must be version= 0")
                     assertEquals(exception!!.javaClass.name, IllegalArgumentException::class.java.name)
                 }
@@ -102,11 +102,11 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             val cmd = CreateCustomerCmd(name = "customer1")
             When("a createCommand is issued") {
-                val result = commandHandlerFn.handle(commandId, customerId, cmd,
-                        customer, version,
+                val operation = commandHandlerFn.handle(commandId, cmd,
+                        customerId, customer, version,
                         stateTransitionFn, dependencyInjectionFn)
                 Then("result must be an error with an IllegalArgumentException") {
-                    val exception = result.exception
+                    val exception = operation.exception
                     assertEquals(exception?.localizedMessage, "before create the instance must be version= 0")
                     assertEquals(exception!!.javaClass.name, IllegalArgumentException::class.java.name)
                 }

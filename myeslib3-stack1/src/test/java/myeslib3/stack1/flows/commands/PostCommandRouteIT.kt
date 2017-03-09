@@ -7,7 +7,7 @@ import myeslib3.core.data.Event
 import myeslib3.core.data.Version
 import myeslib3.dependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
-import myeslib3.stack1.utils.RuntimeTypeAdapterFactory
+import myeslib3.stack1.features.json.RuntimeTypeAdapterFactory
 import myeslib3.stack1.features.persistence.SnapshotReader
 import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot
 import net.dongliu.gson.GsonJava8TypeAdapterFactory

@@ -8,7 +8,7 @@ import myeslib3.core.data.UnitOfWork
 import myeslib3.core.data.Version
 import myeslib3.core.functions.DependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
-import myeslib3.stack1.utils.RuntimeTypeAdapterFactory
+import myeslib3.stack1.features.json.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -44,14 +44,14 @@ fun uow1(): UnitOfWork {
     val cmd: CreateCustomerCmd = CreateCustomerCmd("customer1")
     val customer = dependencyInjectionFn.inject(Customer())
     val version = Version.create(0)
-    return commandHandlerFn.handle(commandId, customerId, cmd, customer, version, stateTransitionFn, dependencyInjectionFn).result
+    return commandHandlerFn.handle(commandId, cmd, customerId, customer, version, stateTransitionFn, dependencyInjectionFn).result
 }
 
 fun uow2(): UnitOfWork {
     val cmd = CreateActivatedCustomerCmd("customer1", "because I want it")
     val customer = dependencyInjectionFn.inject(Customer())
     val version = Version.create(0)
-    return commandHandlerFn.handle(commandId, customerId, cmd, customer, version, stateTransitionFn, dependencyInjectionFn).result
+    return commandHandlerFn.handle(commandId, cmd, customerId, customer, version, stateTransitionFn, dependencyInjectionFn).result
 }
 
 fun gson(): Gson {

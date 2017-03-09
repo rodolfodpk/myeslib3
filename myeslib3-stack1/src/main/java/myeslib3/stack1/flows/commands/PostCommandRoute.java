@@ -6,15 +6,14 @@ import java.util.Arrays;
 import java.util.List;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
-import myeslib3.core.data.Event;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
-import static myeslib3.stack1.utils.StringHelpers.aggregateRootId;
-import static myeslib3.stack1.utils.StringHelpers.commandId;
 import myeslib3.stack1.features.persistence.SnapshotReader;
 import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot;
+import static myeslib3.stack1.utils.StringHelpers.aggregateRootId;
+import static myeslib3.stack1.utils.StringHelpers.commandId;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
@@ -23,12 +22,13 @@ import org.apache.camel.model.rest.RestBindingMode;
 
 public class PostCommandRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
-  public static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
-  public static final String COMMAND_ID = "command_id";
+  private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
+  private static final String COMMAND_ID = "command_id";
+
   final Class<A> aggregateRootClass;
   final List<Class<?>> commandsClasses;
   final CommandHandlerFn<A, C> handler;
-  final StateTransitionFn<A, Event> stateTransitionFn;
+  final StateTransitionFn<A> stateTransitionFn;
   final DependencyInjectionFn<A> dependencyInjectionFn;
   final SnapshotReader<String, A> snapshotReader;
   final Gson gson ;
@@ -39,7 +39,7 @@ public class PostCommandRoute<A extends AggregateRoot, C extends Command> extend
   public PostCommandRoute(Class<A> aggregateRootClass,
                           List<Class<?>> commandsClasses,
                           CommandHandlerFn<A, C> handler,
-                          StateTransitionFn<A, Event> stateTransitionFn,
+                          StateTransitionFn<A> stateTransitionFn,
                           DependencyInjectionFn<A> dependencyInjectionFn,
                           SnapshotReader<String, A> snapshotReader,
                           Gson gson) {
@@ -92,13 +92,13 @@ public class PostCommandRoute<A extends AggregateRoot, C extends Command> extend
               .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
             .end()
             .process(e -> {
-              final String aggregateRootId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
+              final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
               final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
               final Command command = e.getIn().getBody(Command.class);
               final C _command = (C) command;
-              final Snapshot<A> snapshot = snapshotReader.getSnapshot(aggregateRootId);
-              final Result<UnitOfWork> result = handler.handle(commandId, aggregateRootId, _command,
-                      snapshot.getInstance(), snapshot.getVersion(),
+              final Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
+              final Result<UnitOfWork> result = handler.handle(commandId, _command,
+                      targetId, snapshot.getInstance(), snapshot.getVersion(),
                       stateTransitionFn, dependencyInjectionFn);
               if (result.isOk()){
                 // journal.append(aggreateRootId, result.getResult());

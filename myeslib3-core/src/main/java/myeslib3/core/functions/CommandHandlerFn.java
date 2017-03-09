@@ -1,16 +1,13 @@
 package myeslib3.core.functions;
 
 import com.spencerwi.either.Result;
-import myeslib3.core.data.Command;
-import myeslib3.core.data.Event;
-import myeslib3.core.data.UnitOfWork;
-import myeslib3.core.data.Version;
+import myeslib3.core.data.*;
 
 @FunctionalInterface
-public interface CommandHandlerFn<AggregateRoot, C extends Command> {
+public interface CommandHandlerFn<A extends AggregateRoot, C extends Command> {
 
-  Result<UnitOfWork> handle(String commandId, String aggregateRootId, C command,
-                            AggregateRoot aggregateRoot, Version version,
-                            StateTransitionFn<AggregateRoot, Event> stateTransitionFn,
-                            DependencyInjectionFn<AggregateRoot> dependencyInjectionFn);
+  Result<UnitOfWork> handle(String commandId, C command,
+                            String targetId, A targetInstance, Version targetVersion,
+                            StateTransitionFn<A> stateTransitionFn,
+                            DependencyInjectionFn<A> dependencyInjectionFn);
 }
