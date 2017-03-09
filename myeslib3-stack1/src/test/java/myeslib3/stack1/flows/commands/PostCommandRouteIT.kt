@@ -2,12 +2,16 @@ package myeslib3.stack1.flows.commands
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.nhaarman.mockito_kotlin.argThat
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import myeslib3.core.data.Command
 import myeslib3.core.data.Event
 import myeslib3.core.data.Version
 import myeslib3.dependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
 import myeslib3.stack1.features.json.RuntimeTypeAdapterFactory
+import myeslib3.stack1.features.persistence.Journal
 import myeslib3.stack1.features.persistence.SnapshotReader
 import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
@@ -16,7 +20,7 @@ import org.apache.camel.impl.DefaultCamelContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.mockito.MockitoAnnotations
+import org.junit.jupiter.api.Test
 import java.util.*
 import java.util.function.Supplier
 
@@ -24,15 +28,29 @@ class PostCommandRouteIT {
 
     var context: CamelContext = DefaultCamelContext()
 
+    val customerId = "customer#1"
+    val commandId = "command#1"
+
     @BeforeEach
     @Throws(Exception::class)
     fun setup() {
-        MockitoAnnotations.initMocks(this)
+        //MockitoAnnotations.initMocks(this)
         context = DefaultCamelContext()
+
         val commandList = Arrays.asList<Class<*>>(CreateCustomerCmd::class.java, ActivateCustomerCmd::class.java,
                 CreateActivatedCustomerCmd::class.java, DeactivateCustomerCmd::class.java)
+
+        val supplier: Supplier<Customer> = Supplier { Customer() }
+        val readerMock = mock<SnapshotReader<String, Customer>> {
+            on { getSnapshot(argThat { true /* whatever */ }) } doReturn Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
+        }
+        val journalMock = mock<Journal<String>> {
+        }
+
         val route = PostCommandRoute<Customer, CustomerCommand>(Customer::class.java, commandList,
-                commandHandlerFn, stateTransitionFn, dependencyInjectionFn, CaffeineSnapShotReader(), gson())
+                commandHandlerFn, stateTransitionFn, dependencyInjectionFn,
+                readerMock, journalMock,
+                gson())
         context.addRoutes(route)
         context.start()
     }
@@ -43,7 +61,7 @@ class PostCommandRouteIT {
         context.stop()
     }
 
-//    @Test
+    @Test
     fun aTest() {
         assertThat(1).isEqualTo(1)
         Thread.sleep(4000000)
