@@ -14,9 +14,11 @@ import myeslib3.stack1.features.json.RuntimeTypeAdapterFactory
 import myeslib3.stack1.features.persistence.Journal
 import myeslib3.stack1.features.persistence.SnapshotReader
 import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot
+import myeslib3.stack1.flows.PostCommandRouteSync
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
+import org.apache.camel.spi.IdempotentRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -44,13 +46,13 @@ class PostCommandRouteIT {
         val readerMock = mock<SnapshotReader<String, Customer>> {
             on { getSnapshot(argThat { true /* whatever */ }) } doReturn Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
         }
-        val journalMock = mock<Journal<String>> {
-        }
+        val journalMock = mock<Journal<String>> {}
+        val idempotentRepoMock = mock<IdempotentRepository<String>> {}
 
-        val route = PostCommandRoute<Customer, CustomerCommand>(Customer::class.java, commandList,
+        val route = PostCommandRouteSync<Customer, CustomerCommand>(Customer::class.java, commandList,
                 commandHandlerFn, stateTransitionFn, dependencyInjectionFn,
                 readerMock, journalMock,
-                gson())
+                gson(), idempotentRepoMock)
         context.addRoutes(route)
         context.start()
     }
