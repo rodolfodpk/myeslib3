@@ -16,6 +16,6 @@ public class Version {
   }
 
   public Version nextVersion () {
-    return new Version(this.getVersion()+1);
+    return new Version(version+1);
   }
 }

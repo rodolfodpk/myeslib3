@@ -10,4 +10,5 @@ public interface CommandHandlerFn<A extends AggregateRoot, C extends Command> {
                             String targetId, A targetInstance, Version targetVersion,
                             StateTransitionFn<A> stateTransitionFn,
                             DependencyInjectionFn<A> dependencyInjectionFn);
+
 }
