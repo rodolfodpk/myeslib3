@@ -1,4 +1,4 @@
-package myeslib3.stack1.features.json;
+package myeslib3.stack1.json;
 /*
  * Copyright (C) 2011 Google Inc.
  *

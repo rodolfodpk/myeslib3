@@ -1,20 +1,15 @@
-package myeslib3.stack1.flows;
+package myeslib3.stack1;
 
 import com.google.gson.Gson;
 import com.spencerwi.either.Result;
-import java.util.Arrays;
-import java.util.List;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
-import myeslib3.stack1.features.persistence.Journal;
-import myeslib3.stack1.features.persistence.SnapshotReader;
-import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot;
-import static myeslib3.stack1.utils.StringHelpers.aggregateRootId;
-import static myeslib3.stack1.utils.StringHelpers.commandId;
+import myeslib3.stack.persistence.Journal;
+import myeslib3.stack.persistence.SnapshotReader;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
@@ -22,6 +17,12 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.camel.spi.IdempotentRepository;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static myeslib3.stack1.utils.StringHelpers.aggregateRootId;
+import static myeslib3.stack1.utils.StringHelpers.commandId;
 
 public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
@@ -33,8 +34,8 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
   final CommandHandlerFn<A, C> handler;
   final StateTransitionFn<A> stateTransitionFn;
   final DependencyInjectionFn<A> dependencyInjectionFn;
-  final SnapshotReader<String, A> snapshotReader;
-  final Journal<String> journal;
+  final SnapshotReader<A> snapshotReader;
+  final Journal journal;
   final Gson gson ;
   final IdempotentRepository<String> idempotentRepo;
 
@@ -43,8 +44,8 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
                               CommandHandlerFn<A, C> handler,
                               StateTransitionFn<A> stateTransitionFn,
                               DependencyInjectionFn<A> dependencyInjectionFn,
-                              SnapshotReader<String, A> snapshotReader,
-                              Journal<String> journal, Gson gson,
+                              SnapshotReader<A> snapshotReader,
+                              Journal journal, Gson gson,
                               IdempotentRepository<String> idempotentRepo) {
     this.aggregateRootClass = aggregateRootClass;
     this.commandsClasses = commandsClasses;
@@ -61,7 +62,7 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
   public void configure() throws Exception {
 
     restConfiguration().component("undertow").bindingMode(RestBindingMode.auto)
-          //  .dataFormatProperty("prettyPrint", "true")
+            .dataFormatProperty("prettyPrint", "true")
             .contextPath("/").port(8080)
             .apiContextPath("/api-doc")
             .apiProperty("api.title", "**Bounded context** Example API").apiProperty("api.version", "1.0.0")
@@ -119,12 +120,12 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
               final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
               final Command command = e.getIn().getBody(Command.class);
               final C _command = (C) command;
-              final Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
+              final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
               final Result<UnitOfWork> result = handler.handle(commandId, _command,
                       targetId, snapshot.getInstance(), snapshot.getVersion(),
                       stateTransitionFn, dependencyInjectionFn);
               if (result.isOk()){
-                journal.append(targetId, result.getResult());
+                journal.append(result.getResult());
                 e.getOut().setBody(result.getResult(), UnitOfWork.class);
                 e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
               } else {

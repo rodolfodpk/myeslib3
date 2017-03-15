@@ -1,4 +1,4 @@
-package myeslib3.stack1.features.idempotency;
+package myeslib3.stack1.idempotency;
 
 import javax.sql.DataSource;
 import org.slf4j.Logger;

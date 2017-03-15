@@ -1,4 +1,4 @@
-package myeslib3.stack1.flows.commands
+package myeslib3.stack1
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -10,11 +10,9 @@ import myeslib3.core.data.Event
 import myeslib3.core.data.Version
 import myeslib3.dependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
-import myeslib3.stack1.features.json.RuntimeTypeAdapterFactory
-import myeslib3.stack1.features.persistence.Journal
-import myeslib3.stack1.features.persistence.SnapshotReader
-import myeslib3.stack1.features.persistence.SnapshotReader.Snapshot
-import myeslib3.stack1.flows.PostCommandRouteSync
+import myeslib3.stack.persistence.Journal
+import myeslib3.stack.persistence.SnapshotReader
+import myeslib3.stack1.json.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
@@ -43,10 +41,10 @@ class PostCommandRouteIT {
                 CreateActivatedCustomerCmd::class.java, DeactivateCustomerCmd::class.java)
 
         val supplier: Supplier<Customer> = Supplier { Customer() }
-        val readerMock = mock<SnapshotReader<String, Customer>> {
-            on { getSnapshot(argThat { true /* whatever */ }) } doReturn Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
+        val readerMock = mock<SnapshotReader<Customer>> {
+            on { getSnapshot(argThat { true /* whatever */ }) } doReturn SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
         }
-        val journalMock = mock<Journal<String>> {}
+        val journalMock = mock<Journal> {}
         val idempotentRepoMock = mock<IdempotentRepository<String>> {}
 
         val route = PostCommandRouteSync<Customer, CustomerCommand>(Customer::class.java, commandList,
@@ -99,12 +97,12 @@ class PostCommandRouteIT {
 }
 
 // https://github.com/rodolfodpk/myeslib2/blob/master/myeslib2-stack1/src/main/java/org/myeslib/stack1/infra/Stack1SnapshotReader.java
-class CaffeineSnapShotReader : SnapshotReader<String, Customer> {
+class CaffeineSnapShotReader : SnapshotReader<Customer> {
 
     val supplier: Supplier<Customer> = Supplier { Customer() }
 
-    override fun getSnapshot(id: String): Snapshot<Customer> {
-        return Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
+    override fun getSnapshot(id: String): SnapshotReader.Snapshot<Customer> {
+        return SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
     }
 
 }

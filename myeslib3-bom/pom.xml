@@ -17,7 +17,7 @@
         <java.version>1.8</java.version>
         <kotlin.version>1.1.0</kotlin.version>
         <lombok.version>1.16.8</lombok.version>
-        <camel.version>2.18.1</camel.version>
+        <camel.version>2.18.3</camel.version>
         <guice.version>4.1.0</guice.version>
         <sl4j.version>1.7.8</sl4j.version>
         <junit.version>4.12</junit.version>
@@ -82,6 +82,12 @@
             <dependency>
                 <groupId>rodolfodpk</groupId>
                 <artifactId>myeslib3-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>rodolfodpk</groupId>
+                <artifactId>myeslib3-stack</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
