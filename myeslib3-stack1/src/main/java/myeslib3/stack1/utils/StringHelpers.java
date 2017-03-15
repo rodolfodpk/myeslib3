@@ -26,7 +26,7 @@ public class StringHelpers {
     return sb.toString().toLowerCase();
   }
 
-  public static String SnakeCaseTocamelCase(String start) {
+  public static String SnakeCaseToCamelCase(String start) {
     StringBuffer sb = new StringBuffer();
     for (String s : start.split("_")) {
       sb.append(Character.toUpperCase(s.charAt(0)));
