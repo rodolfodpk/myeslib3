@@ -7,6 +7,7 @@ import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 // https://access.redhat.com/documentation/en-US/Red_Hat_JBoss_Fuse/6.2/html/Apache_Camel_Development_Guide/MsgRout-LoadBalancer.html#MsgRout-LoadBalancer-Sticky
 // https://github.com/apache/camel/blob/master/camel-core/src/main/java/org/apache/camel/processor/loadbalancer/StickyLoadBalancer.java
@@ -25,17 +26,17 @@ import java.util.concurrent.*;
 // idempotency na mesma tabela da queue com key da UnitOfWork e timestamp de processing time
 public class Stack1EventsProjector implements EventsProjector {
 
-	final Runnable runnable;
+	final Consumer<UnitOfWork> projectionSideEffect;
 	final Cache<String, Integer> cache; // this has very short TTL requirements (just to avoid collision)
 
 	final List<ExecutorService> executors;
 
 	public Stack1EventsProjector(int executorsPoolSize,
-															 Runnable runnable,
+															 Consumer<UnitOfWork> projectionSideEffect,
 															 Cache<String, Integer> cache) {
 
 		this.executors = new ArrayList<>(executorsPoolSize);
-		this.runnable = runnable;
+		this.projectionSideEffect = projectionSideEffect;
 		this.cache = cache;
 		for (int i = 0; i < executorsPoolSize; i++) {
 			final ExecutorService executorService = new ThreadPoolExecutor(1, 1,
@@ -50,7 +51,7 @@ public class Stack1EventsProjector implements EventsProjector {
 						ThreadLocalRandom.current().nextInt(0, executors.size() + 1));
 		cache.put(unitOfWork.getAggregateRootId(), targetExecutor);
 		final ExecutorService e = executors.get(targetExecutor);
-		e.submit(runnable);
+		e.submit(() -> projectionSideEffect.accept(unitOfWork));
 	}
 
 	// Not soo necessary because each executor operates on a SynchronousQueue
