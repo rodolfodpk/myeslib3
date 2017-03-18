@@ -1,10 +1,11 @@
-package myeslib3.stack1.utils;
+package myeslib3.stack1.infra.utils;
+
+import myeslib3.core.data.AggregateRoot;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import myeslib3.core.data.AggregateRoot;
 
 public class StringHelpers {
 

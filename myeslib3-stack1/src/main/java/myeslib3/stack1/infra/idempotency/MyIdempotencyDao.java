@@ -1,8 +1,9 @@
-package myeslib3.stack1.idempotency;
+package myeslib3.stack1.infra.idempotency;
 
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
 
 public class MyIdempotencyDao {
 

@@ -1,4 +1,4 @@
-package myeslib3.stack1.json;
+package myeslib3.stack1.infra.gson;
 /*
  * Copyright (C) 2011 Google Inc.
  *
@@ -20,6 +20,7 @@ import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;

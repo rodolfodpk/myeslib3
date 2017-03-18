@@ -1,15 +1,16 @@
-package myeslib3.stack1;
+package myeslib3.stack1.routes;
 
 import com.google.gson.Gson;
 import com.spencerwi.either.Result;
+import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
-import myeslib3.stack.persistence.Journal;
-import myeslib3.stack.persistence.SnapshotReader;
+import myeslib3.stack.SnapshotReader;
+import myeslib3.stack.WriteModelDao;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
@@ -20,11 +21,12 @@ import org.apache.camel.spi.IdempotentRepository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
-import static myeslib3.stack1.utils.StringHelpers.aggregateRootId;
-import static myeslib3.stack1.utils.StringHelpers.commandId;
+import static myeslib3.stack1.infra.utils.StringHelpers.aggregateRootId;
+import static myeslib3.stack1.infra.utils.StringHelpers.commandId;
 
-public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> extends RouteBuilder {
+public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
   private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
   private static final String COMMAND_ID = "command_id";
@@ -33,27 +35,31 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
   final List<Class<?>> commandsClasses;
   final CommandHandlerFn<A, C> handler;
   final StateTransitionFn<A> stateTransitionFn;
+  final Supplier<A> supplier;
   final DependencyInjectionFn<A> dependencyInjectionFn;
   final SnapshotReader<A> snapshotReader;
-  final Journal journal;
+  final WriteModelDao writeModelRepo;
   final Gson gson ;
   final IdempotentRepository<String> idempotentRepo;
 
-  public PostCommandRouteSync(Class<A> aggregateRootClass,
+  public CommandPostSyncRoute(Class<A> aggregateRootClass,
                               List<Class<?>> commandsClasses,
                               CommandHandlerFn<A, C> handler,
                               StateTransitionFn<A> stateTransitionFn,
+                              Supplier<A> supplier,
                               DependencyInjectionFn<A> dependencyInjectionFn,
                               SnapshotReader<A> snapshotReader,
-                              Journal journal, Gson gson,
+                              WriteModelDao writeModelRepo,
+                              Gson gson,
                               IdempotentRepository<String> idempotentRepo) {
     this.aggregateRootClass = aggregateRootClass;
     this.commandsClasses = commandsClasses;
     this.handler = handler;
     this.stateTransitionFn = stateTransitionFn;
+    this.supplier = supplier;
     this.dependencyInjectionFn = dependencyInjectionFn;
     this.snapshotReader = snapshotReader;
-    this.journal = journal;
+    this.writeModelRepo = writeModelRepo;
     this.gson = gson;
     this.idempotentRepo = idempotentRepo;
   }
@@ -76,7 +82,7 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
           .id("put-" + commandId(commandClazz))
           .put("{" + AGGREGATE_ROOT_ID + "}/" + commandId(commandClazz) + "/{" + COMMAND_ID + "}")
                 .description("post a new " + commandId(commandClazz))
-          .consumes("application/json").type(commandClazz)
+          .consumes("application/gson").type(commandClazz)
             .param()
               .name(AGGREGATE_ROOT_ID).description("the id of the target AggregateRoot instance")
               .type(RestParamType.query).dataType("java.util.String")
@@ -85,7 +91,7 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
               .name(COMMAND_ID).description("the id of the requested command")
               .type(RestParamType.query).dataType("String")
             .endParam()
-          .produces("application/json")
+          .produces("application/gson")
             .responseMessage()
               .code(201).responseModel(UnitOfWork.class).message("created")
             .endResponseMessage()
@@ -98,17 +104,17 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
           .route()
           .routeId("put-" + commandId(commandClazz))
      //     .streamCaching()
-          .log("as json: ${body}")
+          .log("as gson: ${body}")
      //     .idempotentConsumer(header(AGGREGATE_ROOT_ID)).messageIdRepository(idempotentRepo)
           .doTry()
               .unmarshal(df)
               .log("as java: ${body}")
           .doCatch(Exception.class)
               .log("*** error ")
-              .setBody(constant(Arrays.asList("json serialization error")))
+              .setBody(constant(Arrays.asList("gson serialization error")))
               .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(400))
               .marshal().json(JsonLibrary.Gson, List.class)
-              .log("as json error: ${body}")
+              .log("as gson error: ${body}")
               .stop()
           .end()
           .hystrix()
@@ -120,12 +126,14 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
               final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
               final Command command = e.getIn().getBody(Command.class);
               final C _command = (C) command;
-              final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
+              final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<A>(supplier.get(),
+                      stateTransitionFn, dependencyInjectionFn);
+              final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId, tracker);
               final Result<UnitOfWork> result = handler.handle(commandId, _command,
                       targetId, snapshot.getInstance(), snapshot.getVersion(),
                       stateTransitionFn, dependencyInjectionFn);
               if (result.isOk()){
-                journal.append(result.getResult());
+                writeModelRepo.append(result.getResult());
                 e.getOut().setBody(result.getResult(), UnitOfWork.class);
                 e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
               } else {
@@ -138,7 +146,7 @@ public class PostCommandRouteSync<A extends AggregateRoot, C extends Command> ex
             .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
           .end()
           .marshal(df)
-          .log("as json result: ${body}")
+          .log("as gson result: ${body}")
         ;
 
       });

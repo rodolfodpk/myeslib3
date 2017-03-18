@@ -66,6 +66,11 @@ val stateTransitionFn: StateTransitionFn<Customer> = StateTransitionFn { event, 
 
 val commandHandlerFn : CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
     commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
+
+    // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
+    val tracker : StateTransitionsTracker<Customer> =
+            StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
+
     Result.attempt {
         when (command) {
             is CreateCustomerCmd -> {
@@ -80,9 +85,6 @@ val commandHandlerFn : CommandHandlerFn<Customer, CustomerCommand> = CommandHand
                 UnitOfWork.create(targetId, commandId, command, targetVersion.nextVersion(),
                         targetInstance.deactivate(command.reason))
             is CreateActivatedCustomerCmd -> {
-//                // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
-                val tracker : StateTransitionsTracker<Customer> =
-                        StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
                 val events = tracker
                         .applyEvents(targetInstance.create(targetId, command.name))
                         .applyEvents(tracker.currentState().activate(command.reason))

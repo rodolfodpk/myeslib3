@@ -5,14 +5,16 @@ import com.google.gson.GsonBuilder
 import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import myeslib3.core.StateTransitionsTracker
 import myeslib3.core.data.Command
 import myeslib3.core.data.Event
 import myeslib3.core.data.Version
 import myeslib3.dependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
-import myeslib3.stack.persistence.Journal
-import myeslib3.stack.persistence.SnapshotReader
-import myeslib3.stack1.json.RuntimeTypeAdapterFactory
+import myeslib3.stack.SnapshotReader
+import myeslib3.stack.WriteModelDao
+import myeslib3.stack1.infra.gson.RuntimeTypeAdapterFactory
+import myeslib3.stack1.routes.CommandPostSyncRoute
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
@@ -41,16 +43,20 @@ class PostCommandRouteIT {
                 CreateActivatedCustomerCmd::class.java, DeactivateCustomerCmd::class.java)
 
         val supplier: Supplier<Customer> = Supplier { Customer() }
+        val tracker = StateTransitionsTracker<Customer>(supplier.get(),
+                stateTransitionFn, dependencyInjectionFn)
+
         val readerMock = mock<SnapshotReader<Customer>> {
-            on { getSnapshot(argThat { true /* whatever */ }) } doReturn SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
+            on { getSnapshot(argThat { true /* whatever */ }, tracker) } doReturn SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
         }
-        val journalMock = mock<Journal> {}
+        val writeModelDao = mock<WriteModelDao> {}
         val idempotentRepoMock = mock<IdempotentRepository<String>> {}
 
-        val route = PostCommandRouteSync<Customer, CustomerCommand>(Customer::class.java, commandList,
-                commandHandlerFn, stateTransitionFn, dependencyInjectionFn,
-                readerMock, journalMock,
-                gson(), idempotentRepoMock)
+        val route = CommandPostSyncRoute<Customer, CustomerCommand>(Customer::class.java, commandList,
+                commandHandlerFn, stateTransitionFn, supplier,
+                dependencyInjectionFn, readerMock,
+                writeModelDao, gson(), idempotentRepoMock)
+
         context.addRoutes(route)
         context.start()
     }
@@ -94,15 +100,4 @@ class PostCommandRouteIT {
 
         return gson
     }
-}
-
-// https://github.com/rodolfodpk/myeslib2/blob/master/myeslib2-stack1/src/main/java/org/myeslib/stack1/infra/Stack1SnapshotReader.java
-class CaffeineSnapShotReader : SnapshotReader<Customer> {
-
-    val supplier: Supplier<Customer> = Supplier { Customer() }
-
-    override fun getSnapshot(id: String): SnapshotReader.Snapshot<Customer> {
-        return SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
-    }
-
 }

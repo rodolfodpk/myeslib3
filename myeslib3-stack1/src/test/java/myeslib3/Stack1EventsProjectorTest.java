@@ -1,11 +1,12 @@
 package myeslib3;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-public class SingleNodeEventsProjectorTest {
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class Stack1EventsProjectorTest {
 
   MessageDigest md ;
   {
@@ -16,9 +17,12 @@ public class SingleNodeEventsProjectorTest {
     }
   }
 
-  @SneakyThrows
   String digest(String aggregateRootId) {
-    md.update(aggregateRootId.getBytes("UTF-8"), 0, 2);
+    try {
+      md.update(aggregateRootId.getBytes("UTF-8"), 0, 2);
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
     byte[] digest = md.digest();
     StringBuffer sb = new StringBuffer();
     for (byte b : digest)

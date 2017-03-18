@@ -5,5 +5,7 @@ import myeslib3.core.data.Event;
 
 @FunctionalInterface
 public interface StateTransitionFn<A extends AggregateRoot> {
+
     A apply(Event event, A aggregateRoot);
+
 }

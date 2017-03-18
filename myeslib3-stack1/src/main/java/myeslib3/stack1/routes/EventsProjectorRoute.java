@@ -1,4 +1,4 @@
-package myeslib3.stack1;
+package myeslib3.stack1.routes;
 
 public class EventsProjectorRoute {
 }

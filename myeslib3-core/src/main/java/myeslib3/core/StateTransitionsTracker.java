@@ -1,12 +1,13 @@
 package myeslib3.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Event;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class StateTransitionsTracker<A extends AggregateRoot> {
 

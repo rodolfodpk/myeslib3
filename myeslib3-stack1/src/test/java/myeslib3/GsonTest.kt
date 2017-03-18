@@ -8,7 +8,7 @@ import myeslib3.core.data.UnitOfWork
 import myeslib3.core.data.Version
 import myeslib3.core.functions.DependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
-import myeslib3.stack1.json.RuntimeTypeAdapterFactory
+import myeslib3.stack1.infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 
