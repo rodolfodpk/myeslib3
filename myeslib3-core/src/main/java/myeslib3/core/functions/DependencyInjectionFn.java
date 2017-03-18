@@ -5,6 +5,6 @@ import myeslib3.core.data.AggregateRoot;
 @FunctionalInterface
 public interface DependencyInjectionFn<A extends AggregateRoot> {
 
-    A inject(A aggregateRoot);
+	A inject(A aggregateRoot);
 
 }

@@ -16,38 +16,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DatabaseHelper {
 
-    private final DBI dbi;
-    private final String ddlScriptFile;
+	private final DBI dbi;
+	private final String ddlScriptFile;
 
-    static final Logger logger = LoggerFactory.getLogger(DatabaseHelper.class);
+	static final Logger logger = LoggerFactory.getLogger(DatabaseHelper.class);
 
-    public DatabaseHelper(DBI dbi, String ddlScriptFile) {
-        checkNotNull(dbi);
-        this.dbi = dbi;
-        checkNotNull(ddlScriptFile);
-        this.ddlScriptFile = ddlScriptFile;
-    }
+	public DatabaseHelper(DBI dbi, String ddlScriptFile) {
+		checkNotNull(dbi);
+		this.dbi = dbi;
+		checkNotNull(ddlScriptFile);
+		this.ddlScriptFile = ddlScriptFile;
+	}
 
-    public void initDb() {
-        try {
-            Handle h = dbi.open();
-            for (String statement : statements()) {
-                logger.debug("executing {}", statement);
-                h.execute(statement);
-            }
-            h.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public void initDb() {
+		try {
+			Handle h = dbi.open();
+			for (String statement : statements()) {
+				logger.debug("executing {}", statement);
+				h.execute(statement);
+			}
+			h.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    private Iterable<String> statements() throws IOException {
-        URL url = Resources.getResource(ddlScriptFile);
-        String content = Resources.toString(url, Charsets.UTF_8);
-        return Splitter.on(CharMatcher.is(';'))
-                .trimResults()
-                .omitEmptyStrings()
-                .split(content);
-    }
+	private Iterable<String> statements() throws IOException {
+		URL url = Resources.getResource(ddlScriptFile);
+		String content = Resources.toString(url, Charsets.UTF_8);
+		return Splitter.on(CharMatcher.is(';'))
+						.trimResults()
+						.omitEmptyStrings()
+						.split(content);
+	}
 }
 

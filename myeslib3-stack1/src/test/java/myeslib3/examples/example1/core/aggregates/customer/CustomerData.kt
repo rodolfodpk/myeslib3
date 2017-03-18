@@ -33,6 +33,7 @@ data class DeactivatedCmdScheduled(val scheduledCommand: DeactivateCustomerCmd,
     override fun scheduledCommand(): Command { // isso aqui nao ta serializando certo  (sem o attr type)
         return scheduledCommand
     }
+
     override fun scheduledAt(): LocalDateTime {
         return scheduledAt
     }

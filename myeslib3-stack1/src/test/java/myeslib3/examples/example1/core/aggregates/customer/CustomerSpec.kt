@@ -12,7 +12,7 @@ import kotlin.test.assertEquals
 
 class CustomerSpec : BehaviorSpec() {
 
-    val dependencyInjectionFn : DependencyInjectionFn<Customer> = DependencyInjectionFn { customer ->
+    val dependencyInjectionFn: DependencyInjectionFn<Customer> = DependencyInjectionFn { customer ->
         customer.genValService = SupplierHelperService()
         customer
     }

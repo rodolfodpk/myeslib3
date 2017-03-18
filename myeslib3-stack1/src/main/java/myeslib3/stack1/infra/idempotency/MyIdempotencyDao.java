@@ -7,15 +7,15 @@ import javax.sql.DataSource;
 
 public class MyIdempotencyDao {
 
-    Logger logger = LoggerFactory.getLogger(MyIdempotencyDao.class);
+	Logger logger = LoggerFactory.getLogger(MyIdempotencyDao.class);
 
-    private final String entityId;
-    private final DataSource dataSource;
+	private final String entityId;
+	private final DataSource dataSource;
 
-    public MyIdempotencyDao(String entityId, DataSource dataSource) {
-        this.entityId = entityId;
-        this.dataSource = dataSource;
-    }
+	public MyIdempotencyDao(String entityId, DataSource dataSource) {
+		this.entityId = entityId;
+		this.dataSource = dataSource;
+	}
 //
 //    public boolean put(final String key) {
 //      final AtomicInteger updateCount = new AtomicInteger(0);

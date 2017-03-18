@@ -16,7 +16,7 @@ class CustomerModule : AbstractModule() {
     }
 
     @Provides
-    fun injectorFn(injector: Injector) : DependencyInjectionFn<Customer> =
+    fun injectorFn(injector: Injector): DependencyInjectionFn<Customer> =
             DependencyInjectionFn { c -> injector.injectMembers(c); c }
 
 

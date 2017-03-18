@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
 
 }
 
-val dependencyInjectionFn : DependencyInjectionFn<Customer> = DependencyInjectionFn { customer ->
+val dependencyInjectionFn: DependencyInjectionFn<Customer> = DependencyInjectionFn { customer ->
     customer.genValService = SupplierHelperService()
     customer
 }

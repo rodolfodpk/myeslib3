@@ -7,10 +7,10 @@ import java.util.List;
 
 public interface WriteModelDao {
 
-	  void append(UnitOfWork unitOfWork);
+	void append(UnitOfWork unitOfWork);
 
-    List<UnitOfWork> getAll(String id);
+	List<UnitOfWork> getAll(String id);
 
-    List<UnitOfWork> getAllAfterVersion(String id, Version version);
+	List<UnitOfWork> getAllAfterVersion(String id, Version version);
 
 }

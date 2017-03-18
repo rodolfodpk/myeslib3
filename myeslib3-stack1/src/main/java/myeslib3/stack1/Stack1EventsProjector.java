@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 // https://github.com/apache/camel/blob/master/camel-core/src/main/java/org/apache/camel/processor/loadbalancer/StickyLoadBalancer.java
 // http://www.nurkiewicz.com/2014/11/executorservice-10-tips-and-tricks.html
 /*
-  Using a SynchronousQueue to propagate exceptions and use Camel idempotency within route class
+	Using a SynchronousQueue to propagate exceptions and use Camel idempotency within route class
   A good idea is to use it together with http://camel.apache.org/throttler.html
  */
 
@@ -25,40 +25,40 @@ import java.util.concurrent.*;
 // idempotency na mesma tabela da queue com key da UnitOfWork e timestamp de processing time
 public class Stack1EventsProjector implements EventsProjector {
 
-    final Runnable runnable;
-    final Cache<String, Integer> cache; // this has very short TTL requirements (just to avoid collision)
+	final Runnable runnable;
+	final Cache<String, Integer> cache; // this has very short TTL requirements (just to avoid collision)
 
-    final List<ExecutorService> executors;
+	final List<ExecutorService> executors;
 
-    public Stack1EventsProjector(int executorsPoolSize,
-																 Runnable runnable,
-																 Cache<String, Integer> cache) {
+	public Stack1EventsProjector(int executorsPoolSize,
+															 Runnable runnable,
+															 Cache<String, Integer> cache) {
 
-        this.executors = new ArrayList<>(executorsPoolSize);
-        this.runnable = runnable;
-        this.cache = cache;
-        for (int i =0; i<executorsPoolSize; i++){
-            final ExecutorService executorService = new ThreadPoolExecutor(1, 1,
-                    1L, TimeUnit.MINUTES,
-                    new SynchronousQueue<>());
-            executors.add(executorService);
-        }
-    }
+		this.executors = new ArrayList<>(executorsPoolSize);
+		this.runnable = runnable;
+		this.cache = cache;
+		for (int i = 0; i < executorsPoolSize; i++) {
+			final ExecutorService executorService = new ThreadPoolExecutor(1, 1,
+							1L, TimeUnit.MINUTES,
+							new SynchronousQueue<>());
+			executors.add(executorService);
+		}
+	}
 
-    public void submit(final UnitOfWork unitOfWork) {
-        final Integer targetExecutor = cache.get(unitOfWork.getAggregateRootId(), instanceId ->
-                ThreadLocalRandom.current().nextInt(0, executors.size() + 1));
-        cache.put(unitOfWork.getAggregateRootId(), targetExecutor);
-        final ExecutorService e = executors.get(targetExecutor);
-        e.submit(runnable);
-    }
+	public void submit(final UnitOfWork unitOfWork) {
+		final Integer targetExecutor = cache.get(unitOfWork.getAggregateRootId(), instanceId ->
+						ThreadLocalRandom.current().nextInt(0, executors.size() + 1));
+		cache.put(unitOfWork.getAggregateRootId(), targetExecutor);
+		final ExecutorService e = executors.get(targetExecutor);
+		e.submit(runnable);
+	}
 
-  // Not soo necessary because each executor operates on a SynchronousQueue
-  void shutdown() {
-    for (ExecutorService e : executors) {
-      e.shutdown();
-    }
-  }
+	// Not soo necessary because each executor operates on a SynchronousQueue
+	void shutdown() {
+		for (ExecutorService e : executors) {
+			e.shutdown();
+		}
+	}
 
 }
 

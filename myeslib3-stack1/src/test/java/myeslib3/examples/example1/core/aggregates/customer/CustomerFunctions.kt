@@ -64,17 +64,17 @@ val stateTransitionFn: StateTransitionFn<Customer> = StateTransitionFn { event, 
 
 // commands routing and execution function
 
-val commandHandlerFn : CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
+val commandHandlerFn: CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
     commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
 
     // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
-    val tracker : StateTransitionsTracker<Customer> =
+    val tracker: StateTransitionsTracker<Customer> =
             StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
 
     Result.attempt {
         when (command) {
             is CreateCustomerCmd -> {
-                require(targetVersion == Version.create(0), {"before create the instance must be version= 0"})
+                require(targetVersion == Version.create(0), { "before create the instance must be version= 0" })
                 UnitOfWork.create(targetId, commandId, command, targetVersion.nextVersion(),
                         targetInstance.create(targetId, command.name))
             }

@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 
 public class EventsHelper {
 
-	public static  List<Event> flatMap(final List<UnitOfWork> unitOfWorks) {
+	public static List<Event> flatMap(final List<UnitOfWork> unitOfWorks) {
 		return unitOfWorks.stream().flatMap((unitOfWork) -> unitOfWork.getEvents().stream()).collect(Collectors.toList());
 	}
 
-	public static  Version lastVersion(List<UnitOfWork> unitOfWorks) {
+	public static Version lastVersion(List<UnitOfWork> unitOfWorks) {
 		return unitOfWorks.isEmpty() ? Version.create(0L) : unitOfWorks.get(unitOfWorks.size() - 1).getVersion();
 	}
 

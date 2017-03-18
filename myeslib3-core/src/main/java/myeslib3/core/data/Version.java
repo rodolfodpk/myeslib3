@@ -3,27 +3,27 @@ package myeslib3.core.data;
 
 public class Version {
 
-  private final Long version;
+	private final Long version;
 
-  public Version(Long version) {
-    this.version = version;
-  }
+	public Version(Long version) {
+		this.version = version;
+	}
 
-  public static Version create(Long version) {
-    return new Version(version);
-  }
+	public static Version create(Long version) {
+		return new Version(version);
+	}
 
-  public static Version create(Integer version) {
-    return new Version(version.longValue());
-  }
+	public static Version create(Integer version) {
+		return new Version(version.longValue());
+	}
 
-  public Version nextVersion () {
-    return new Version(version+1);
-  }
+	public Version nextVersion() {
+		return new Version(version + 1);
+	}
 
-  public Long getVersion() {
-    return version;
-  }
+	public Long getVersion() {
+		return version;
+	}
 
 	@Override
 	public boolean equals(Object o) {

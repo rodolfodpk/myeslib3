@@ -128,54 +128,54 @@ public class Stack1WriteModelDao implements WriteModelDao {
 
 		dbi.inTransaction(TransactionIsolationLevel.READ_COMMITTED, (conn, status) -> {
 
-			boolean alreadyExists = conn.createStatement(selectAggRootSql)
-							.bind("id", unitOfWork.getAggregateRootId())
-							.execute() == 1;
-
-			if (!alreadyExists && unitOfWork.getVersion().getVersion() != 1L) {
-				throw new DbConcurrencyException(
-								String.format("first version must be =1. id = [%s] version = %d",
-												unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion()));
-			}
-
-			int result1 = alreadyExists ?
-							conn.createStatement(updateAggRootSql)
+							boolean alreadyExists = conn.createStatement(selectAggRootSql)
 											.bind("id", unitOfWork.getAggregateRootId())
-											.bind("new_version", unitOfWork.getVersion())
-											.bind("curr_version", unitOfWork.getVersion().getVersion() - 1)
+											.execute() == 1;
+
+							if (!alreadyExists && unitOfWork.getVersion().getVersion() != 1L) {
+								throw new DbConcurrencyException(
+												String.format("first version must be =1. id = [%s] version = %d",
+																unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion()));
+							}
+
+							int result1 = alreadyExists ?
+											conn.createStatement(updateAggRootSql)
+															.bind("id", unitOfWork.getAggregateRootId())
+															.bind("new_version", unitOfWork.getVersion())
+															.bind("curr_version", unitOfWork.getVersion().getVersion() - 1)
+															.bind("last_update", LocalDateTime.now())
+															.execute()
+											: conn.createStatement(insertAggRootSql)
+											.bind("id", unitOfWork.getAggregateRootId())
+											.bind("version", unitOfWork.getVersion())
 											.bind("last_update", LocalDateTime.now())
-											.execute()
-							: conn.createStatement(insertAggRootSql)
-							.bind("id", unitOfWork.getAggregateRootId())
-							.bind("version", unitOfWork.getVersion())
-							.bind("last_update", LocalDateTime.now())
-							.execute();
+											.execute();
 
-			if (result1 != 1) {
-				throw new DbConcurrencyException(
-								String.format("does not match the last version for id = %s and last version %d",
-												unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion() - 1));
-			}
+							if (result1 != 1) {
+								throw new DbConcurrencyException(
+												String.format("does not match the last version for id = %s and last version %d",
+																unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion() - 1));
+							}
 
-			int result2 = conn.createStatement(insertUowSql)
-							.bind("id", unitOfWork.getAggregateRootId())
-							.bind("uow_data", uowAsJson)
-							.bind("version", unitOfWork.getVersion())
-							.bind("inserted_on", unitOfWork.getTimestamp())
-							.execute();
+							int result2 = conn.createStatement(insertUowSql)
+											.bind("id", unitOfWork.getAggregateRootId())
+											.bind("uow_data", uowAsJson)
+											.bind("version", unitOfWork.getVersion())
+											.bind("inserted_on", unitOfWork.getTimestamp())
+											.execute();
 
-			int result = result1 + result2;
+							int result = result1 + result2;
 
-			if (result != 2) {
-				throw new DbConcurrencyException(
-								String.format("does not match the last version for id = %s and last version %d",
-												unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion() - 1));
-			}
+							if (result != 2) {
+								throw new DbConcurrencyException(
+												String.format("does not match the last version for id = %s and last version %d",
+																unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion() - 1));
+							}
 
-			// TODO notify topic events
+							// TODO notify topic events
 
-			return result == 2;
-		}
+							return result == 2;
+						}
 
 		);
 

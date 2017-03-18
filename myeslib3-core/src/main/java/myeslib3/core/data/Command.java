@@ -1,3 +1,4 @@
 package myeslib3.core.data;
 
-public interface Command {}
+public interface Command {
+}

@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public interface CommandScheduling {
 
-  Command scheduledCommand();
+	Command scheduledCommand();
 
-  LocalDateTime scheduledAt();
+	LocalDateTime scheduledAt();
 
 }

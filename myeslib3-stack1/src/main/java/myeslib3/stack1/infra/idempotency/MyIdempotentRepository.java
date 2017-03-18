@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,56 +28,56 @@ import org.apache.camel.support.ServiceSupport;
 @ManagedResource(description = "Memory based idempotent repository")
 public class MyIdempotentRepository extends ServiceSupport implements IdempotentRepository<String> {
 
-    private final LoadingCache<String, String> cache;
+	private final LoadingCache<String, String> cache;
 
-    public MyIdempotentRepository(LoadingCache<String, String> cache) {
-        this.cache = cache;
-    }
+	public MyIdempotentRepository(LoadingCache<String, String> cache) {
+		this.cache = cache;
+	}
 
-    @ManagedOperation(description = "Adds the key to the store")
-    public boolean add(String key) {
-        synchronized (cache) {
-            if (cache.get(key)!=null) {
-                return false;
-            } else {
-                cache.put(key, key);
-                return cache.get(key)!=null;
-            }
-        }
-    }
+	@ManagedOperation(description = "Adds the key to the store")
+	public boolean add(String key) {
+		synchronized (cache) {
+			if (cache.get(key) != null) {
+				return false;
+			} else {
+				cache.put(key, key);
+				return cache.get(key) != null;
+			}
+		}
+	}
 
-    @ManagedOperation(description = "Does the store contain the given key")
-    public boolean contains(String key) {
-        synchronized (cache) {
-            return cache.get(key) != null;
-        }
-    }
+	@ManagedOperation(description = "Does the store contain the given key")
+	public boolean contains(String key) {
+		synchronized (cache) {
+			return cache.get(key) != null;
+		}
+	}
 
-    @ManagedOperation(description = "Remove the key from the store")
-    public boolean remove(String key) {
-        synchronized (cache) {
-            cache.invalidate(key);
-            return true;
-        }
-    }
+	@ManagedOperation(description = "Remove the key from the store")
+	public boolean remove(String key) {
+		synchronized (cache) {
+			cache.invalidate(key);
+			return true;
+		}
+	}
 
-    public boolean confirm(String key) {
-        // noop
-        return true;
-    }
-    
-    @ManagedOperation(description = "Clear the store")
-    public void clear() {
+	public boolean confirm(String key) {
+		// noop
+		return true;
+	}
+
+	@ManagedOperation(description = "Clear the store")
+	public void clear() {
 //        synchronized (cache) {
 //            cache.invalidateAll();
 //        }
-    }
+	}
 
-    @Override
-    protected void doStart() throws Exception {
-    }
+	@Override
+	protected void doStart() throws Exception {
+	}
 
-    @Override
-    protected void doStop() throws Exception {
-    }
+	@Override
+	protected void doStop() throws Exception {
+	}
 }
