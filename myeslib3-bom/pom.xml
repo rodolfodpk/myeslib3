@@ -78,7 +78,7 @@
 
             <dependency>
                 <groupId>rodolfodpk</groupId>
-                <artifactId>myeslib3-stack</artifactId>
+                <artifactId>myeslib3-myeslib3.stack</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

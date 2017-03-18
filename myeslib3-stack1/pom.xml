@@ -22,11 +22,6 @@
             <artifactId>myeslib3-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>rodolfodpk</groupId>
-            <artifactId>myeslib3-stack</artifactId>
-        </dependency>
-
         <!-- guice -->
 
         <dependency>
