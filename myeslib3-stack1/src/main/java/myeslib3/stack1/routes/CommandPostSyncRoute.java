@@ -28,10 +28,11 @@ import static myeslib3.stack1.infra.utils.StringHelpers.commandId;
 
 public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
-  private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
+	private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
   private static final String COMMAND_ID = "command_id";
+	static final String APPLICATION_JSON = "application/json";
 
-  final Class<A> aggregateRootClass;
+	final Class<A> aggregateRootClass;
   final List<Class<?>> commandsClasses;
   final CommandHandlerFn<A, C> handler;
   final StateTransitionFn<A> stateTransitionFn;
@@ -82,7 +83,7 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
           .id("put-" + commandId(commandClazz))
           .put("{" + AGGREGATE_ROOT_ID + "}/" + commandId(commandClazz) + "/{" + COMMAND_ID + "}")
                 .description("post a new " + commandId(commandClazz))
-          .consumes("application/gson").type(commandClazz)
+          .consumes(APPLICATION_JSON).type(commandClazz)
             .param()
               .name(AGGREGATE_ROOT_ID).description("the id of the target AggregateRoot instance")
               .type(RestParamType.query).dataType("java.util.String")
@@ -91,7 +92,7 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
               .name(COMMAND_ID).description("the id of the requested command")
               .type(RestParamType.query).dataType("String")
             .endParam()
-          .produces("application/gson")
+          .produces(APPLICATION_JSON)
             .responseMessage()
               .code(201).responseModel(UnitOfWork.class).message("created")
             .endResponseMessage()
