@@ -1,6 +1,7 @@
 package myeslib3.stack1;
 
 import com.google.gson.Gson;
+import lombok.NonNull;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.stack.WriteModelRepository;
@@ -24,24 +25,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 public class Stack1WriteModelRepository implements WriteModelRepository {
 
 	static final Logger logger = LoggerFactory.getLogger(Stack1WriteModelRepository.class);
 
-	private final DbMetadata dbMetadata;
-	private final Gson gson;
-	private final DBI dbi;
+	final DbMetadata dbMetadata;
+	final Gson gson;
+	final DBI dbi;
 
 	public Stack1WriteModelRepository(String aggregateRootId, Gson gson, DBI dbi) {
-		checkNotNull(aggregateRootId);
-		checkNotNull(gson);
-		checkNotNull(dbi);
+		requireNonNull(aggregateRootId);
+		requireNonNull(gson);
+		requireNonNull(dbi);
 		this.dbMetadata = new DbMetadata(aggregateRootId);
 		this.gson = gson;
 		this.dbi = dbi;
-		this.dbi.registerColumnMapper(new LocalDateTimeMapper());
 	}
 
 	@Override
@@ -51,6 +51,9 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
 	@Override
 	public List<UnitOfWork> getAllAfterVersion(String id, Version version) {
+
+		requireNonNull(id);
+		requireNonNull(version);
 
 		final List<UnitOfWork> arh = new ArrayList<>();
 
@@ -98,10 +101,10 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 	@Override
 	public void append(UnitOfWork unitOfWork) throws DbConcurrencyException {
 
-		checkNotNull(unitOfWork);
-		checkNotNull(unitOfWork.getAggregateRootId());
-		checkNotNull(unitOfWork.getCommand());
-		checkNotNull(unitOfWork.getCommandId());
+		requireNonNull(unitOfWork);
+		requireNonNull(unitOfWork.getAggregateRootId());
+		requireNonNull(unitOfWork.getCommand());
+		requireNonNull(unitOfWork.getCommandId());
 
 		final String selectAggRootSql =
 						String.format("select version from %s where id = :id", dbMetadata.aggregateRootTable);

@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URL;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 public class DatabaseHelper {
 
@@ -22,9 +22,9 @@ public class DatabaseHelper {
 	static final Logger logger = LoggerFactory.getLogger(DatabaseHelper.class);
 
 	public DatabaseHelper(DBI dbi, String ddlScriptFile) {
-		checkNotNull(dbi);
+		requireNonNull(dbi);
 		this.dbi = dbi;
-		checkNotNull(ddlScriptFile);
+		requireNonNull(ddlScriptFile);
 		this.ddlScriptFile = ddlScriptFile;
 	}
 

@@ -2,6 +2,8 @@ package myeslib3.stack1.routes;
 
 import com.google.gson.Gson;
 import com.spencerwi.either.Result;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
@@ -26,46 +28,23 @@ import java.util.function.Supplier;
 import static myeslib3.stack1.infra.utils.StringHelper.aggregateRootId;
 import static myeslib3.stack1.infra.utils.StringHelper.commandId;
 
+@AllArgsConstructor
 public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
 	private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
   private static final String COMMAND_ID = "command_id";
 	static final String APPLICATION_JSON = "application/json";
 
-	final Class<A> aggregateRootClass;
-  final List<Class<?>> commandsClasses;
-  final CommandHandlerFn<A, C> handler;
-  final Supplier<A> supplier;
-  final DependencyInjectionFn<A> dependencyInjectionFn;
-  final StateTransitionFn<A> stateTransitionFn;
-  final SnapshotReader<A> snapshotReader;
-  final WriteModelRepository writeModelRepo;
-  final Gson gson ;
-  final IdempotentRepository<String> idempotentRepo;
-
-  public CommandPostSyncRoute(Class<A> aggregateRootClass,
-                              List<Class<?>> commandsClasses,
-                              CommandHandlerFn<A, C> handler,
-                              Supplier<A> supplier,
-                              DependencyInjectionFn<A> dependencyInjectionFn,
-                              StateTransitionFn<A> stateTransitionFn,
-                              SnapshotReader<A> snapshotReader,
-                              WriteModelRepository writeModelRepo,
-                              Gson gson,
-                              IdempotentRepository<String> idempotentRepo) {
-    this.aggregateRootClass = aggregateRootClass;
-    this.commandsClasses = commandsClasses;
-    this.handler = handler;
-    this.supplier = supplier;
-    this.dependencyInjectionFn = dependencyInjectionFn;
-    this.stateTransitionFn = stateTransitionFn;
-    this.snapshotReader = snapshotReader;
-    this.writeModelRepo = writeModelRepo;
-    this.gson = gson;
-    this.idempotentRepo = idempotentRepo;
-  }
-
-
+	@NonNull Class<A> aggregateRootClass;
+	@NonNull List<Class<?>> commandsClasses;
+	@NonNull CommandHandlerFn<A, C> handler;
+	@NonNull Supplier<A> supplier;
+	@NonNull DependencyInjectionFn<A> dependencyInjectionFn;
+	@NonNull StateTransitionFn<A> stateTransitionFn;
+	@NonNull SnapshotReader<A> snapshotReader;
+	@NonNull WriteModelRepository writeModelRepo;
+	@NonNull Gson gson ;
+	@NonNull IdempotentRepository<String> idempotentRepo;
 
   @Override
   public void configure() throws Exception {

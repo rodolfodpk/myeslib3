@@ -1,6 +1,8 @@
 package myeslib3.stack1;
 
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.UnitOfWork;
@@ -16,31 +18,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static myeslib3.stack1.infra.utils.EventsHelper.flatMap;
 import static myeslib3.stack1.infra.utils.EventsHelper.lastVersion;
 
+@AllArgsConstructor
 public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotReader<A> {
 
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
-	private final Cache<String, List<UnitOfWork>> cache;
-	private final WriteModelRepository dao;
-
-	public Stack1SnapshotReader(Cache<String, List<UnitOfWork>> cache,
-															WriteModelRepository dao) {
-		checkNotNull(cache);
-		checkNotNull(dao);
-
-		this.cache = cache;
-		this.dao = dao;
-	}
+	@NonNull Cache<String, List<UnitOfWork>> cache;
+	@NonNull WriteModelRepository dao;
 
 	@Override
 	public Snapshot<A> getSnapshot(String id, StateTransitionsTracker<A> tracker) {
 
-		checkNotNull(id);
-		checkNotNull(tracker);
+		requireNonNull(id);
+		requireNonNull(tracker);
 
 		logger.debug("id {} cache.get(id)", id);
 
