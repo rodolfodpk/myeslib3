@@ -65,6 +65,8 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
     this.idempotentRepo = idempotentRepo;
   }
 
+
+
   @Override
   public void configure() throws Exception {
 

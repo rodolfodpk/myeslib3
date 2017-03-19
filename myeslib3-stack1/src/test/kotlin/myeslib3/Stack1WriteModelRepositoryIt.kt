@@ -1,14 +1,13 @@
-package myeslib3.stack1
+package myeslib3
 
 import com.google.gson.Gson
 import com.google.inject.Guice
-import myeslib3.commandId
 import myeslib3.core.data.UnitOfWork
 import myeslib3.core.data.Version
-import myeslib3.customerId
-import myeslib3.dependencyInjectionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
 import myeslib3.examples.example1.runtime.CustomerModule
+import myeslib3.stack1.Stack1Module
+import myeslib3.stack1.Stack1WriteModelRepository
 import myeslib3.stack1.infra.CamelModule
 import myeslib3.stack1.infra.DatabaseModule
 import org.junit.jupiter.api.Test
@@ -29,7 +28,6 @@ class Stack1WriteModelRepositoryIt {
         repository.append(uow2())
 
     }
-
 
     fun uow1(): UnitOfWork {
         val cmd: CreateCustomerCmd = CreateCustomerCmd("customer1")

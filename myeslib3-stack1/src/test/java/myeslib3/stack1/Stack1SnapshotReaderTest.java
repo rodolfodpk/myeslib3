@@ -154,7 +154,7 @@ public class Stack1SnapshotReaderTest {
     }
 
     @Test
-    public void on_cache_then_hits_db_to_compose_history() {
+    public void on_both_cache_and_db_then_hits_db_to_compose_history() {
 
 			final String id = "customer#1";
 			final String name =  "customer#1 name";
