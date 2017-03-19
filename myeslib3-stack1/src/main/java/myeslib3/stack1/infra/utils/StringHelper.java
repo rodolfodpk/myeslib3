@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringHelpers {
+public class StringHelper {
 
 	public static String aggregateRootId(Class<? extends AggregateRoot> aggregateRootClass) {
 		return camelCaseToSnakeCase(aggregateRootClass.getSimpleName());

@@ -5,7 +5,7 @@ import myeslib3.core.data.Version;
 
 import java.util.List;
 
-public interface WriteModelDao {
+public interface WriteModelRepository {
 
 	void append(UnitOfWork unitOfWork);
 

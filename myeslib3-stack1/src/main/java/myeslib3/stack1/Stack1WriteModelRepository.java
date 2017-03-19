@@ -3,7 +3,7 @@ package myeslib3.stack1;
 import com.google.gson.Gson;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
-import myeslib3.stack.WriteModelDao;
+import myeslib3.stack.WriteModelRepository;
 import myeslib3.stack1.infra.jdbi.DbConcurrencyException;
 import myeslib3.stack1.infra.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
@@ -12,28 +12,29 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.tweak.HandleCallback;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.skife.jdbi.v2.util.LongColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Stack1WriteModelDao implements WriteModelDao {
+public class Stack1WriteModelRepository implements WriteModelRepository {
 
-	static final Logger logger = LoggerFactory.getLogger(Stack1WriteModelDao.class);
+	static final Logger logger = LoggerFactory.getLogger(Stack1WriteModelRepository.class);
 
 	private final DbMetadata dbMetadata;
 	private final Gson gson;
 	private final DBI dbi;
 
-	public Stack1WriteModelDao(String aggregateRootId, Gson gson, DBI dbi) {
+	public Stack1WriteModelRepository(String aggregateRootId, Gson gson, DBI dbi) {
 		checkNotNull(aggregateRootId);
 		checkNotNull(gson);
 		checkNotNull(dbi);
@@ -103,7 +104,7 @@ public class Stack1WriteModelDao implements WriteModelDao {
 		checkNotNull(unitOfWork.getCommandId());
 
 		final String selectAggRootSql =
-						String.format("select id, version from %s where id = :id", dbMetadata.aggregateRootTable);
+						String.format("select version from %s where id = :id", dbMetadata.aggregateRootTable);
 
 		final String insertAggRootSql =
 						String.format("insert into %s (id, version, last_update) " +
@@ -126,55 +127,59 @@ public class Stack1WriteModelDao implements WriteModelDao {
 
 		logger.debug("appending uow to {} with id {}", dbMetadata.aggregateRootTable, unitOfWork.getAggregateRootId());
 
-		dbi.inTransaction(TransactionIsolationLevel.READ_COMMITTED, (conn, status) -> {
+		dbi.inTransaction(TransactionIsolationLevel.SERIALIZABLE, (conn, status) -> {
 
-							boolean alreadyExists = conn.createStatement(selectAggRootSql)
+							Long currentVersion = conn.createQuery(selectAggRootSql)
 											.bind("id", unitOfWork.getAggregateRootId())
-											.execute() == 1;
+											.map(LongColumnMapper.WRAPPER).first() ;
 
-							if (!alreadyExists && unitOfWork.getVersion().getVersion() != 1L) {
+							if ((currentVersion == null ? 0 : currentVersion) != unitOfWork.getVersion().getVersion() -1) {
 								throw new DbConcurrencyException(
-												String.format("first version must be =1. id = [%s] version = %d",
-																unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion()));
+												String.format("id = [%s], current_version = %d, new_version = %d",
+																unitOfWork.getAggregateRootId(),
+																currentVersion, unitOfWork.getVersion().getVersion()));
 							}
 
-							int result1 = alreadyExists ?
-											conn.createStatement(updateAggRootSql)
-															.bind("id", unitOfWork.getAggregateRootId())
-															.bind("new_version", unitOfWork.getVersion())
-															.bind("curr_version", unitOfWork.getVersion().getVersion() - 1)
-															.bind("last_update", LocalDateTime.now())
-															.execute()
-											: conn.createStatement(insertAggRootSql)
-											.bind("id", unitOfWork.getAggregateRootId())
-											.bind("version", unitOfWork.getVersion())
-											.bind("last_update", LocalDateTime.now())
-											.execute();
+							int result1 ;
 
-							if (result1 != 1) {
-								throw new DbConcurrencyException(
-												String.format("does not match the last version for id = %s and last version %d",
-																unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion() - 1));
+							if (currentVersion == null ) {
+
+								result1 = conn.createStatement(insertAggRootSql)
+												.bind("id", unitOfWork.getAggregateRootId())
+												.bind("new_version", unitOfWork.getVersion().getVersion())
+												.bind("last_update", new Timestamp(Instant.now().getEpochSecond()))
+												.execute();
+
+							} else {
+
+								result1 = conn.createStatement(updateAggRootSql)
+												.bind("id", unitOfWork.getAggregateRootId())
+												.bind("new_version", unitOfWork.getVersion().getVersion())
+												.bind("curr_version", unitOfWork.getVersion().getVersion() - 1)
+												.bind("last_update", new Timestamp(Instant.now().getEpochSecond()))
+												.execute() ;
 							}
 
 							int result2 = conn.createStatement(insertUowSql)
 											.bind("id", unitOfWork.getAggregateRootId())
 											.bind("uow_data", uowAsJson)
-											.bind("version", unitOfWork.getVersion())
-											.bind("inserted_on", unitOfWork.getTimestamp())
+											.bind("version", unitOfWork.getVersion().getVersion())
+											.bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
 											.execute();
 
 							int result = result1 + result2;
 
-							if (result != 2) {
-								throw new DbConcurrencyException(
-												String.format("does not match the last version for id = %s and last version %d",
-																unitOfWork.getAggregateRootId(), unitOfWork.getVersion().getVersion() - 1));
+							if (result == 2) {
+								return true;
 							}
+
+							throw new DbConcurrencyException(
+											String.format("id = [%s], current_version = %d, new_version = %d",
+															unitOfWork.getAggregateRootId(),
+															currentVersion, unitOfWork.getVersion().getVersion()));
 
 							// TODO notify topic events
 
-							return result == 2;
 						}
 
 		);
@@ -202,9 +207,9 @@ public class Stack1WriteModelDao implements WriteModelDao {
 		public UowRecord map(int index, ResultSet r, StatementContext ctx)
 						throws SQLException {
 			String id = r.getString("id");
-			Long version = r.getBigDecimal("version").longValue();
+			Long version = r.getLong("version");
 			String uowData = r.getString("uow_data");
-			BigDecimal bdSeqNumber = r.getBigDecimal("seq_number");
+			Long bdSeqNumber = r.getLong("seq_number");
 			Long seqNumber = bdSeqNumber == null ? null : bdSeqNumber.longValue();
 			return new UowRecord(id, version, uowData, seqNumber);
 		}

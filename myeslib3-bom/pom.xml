@@ -90,6 +90,12 @@
             </dependency>
 
             <!-- own -->
+            <!-- config/ guice -->
+            <dependency>
+                <groupId>org.aeonbits.owner</groupId>
+                <artifactId>owner</artifactId>
+                <version>1.0.9</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
@@ -111,12 +117,6 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
                 <version>${sl4j.version}</version>
-            </dependency>
-
-            <!-- guice -->
-            <dependency>
-                <groupId>com.google.inject</groupId>
-                <artifactId>guice</artifactId>
             </dependency>
 
             <!-- gson -->
@@ -147,7 +147,11 @@
                 <artifactId>camel-pgevent</artifactId>
                 <version>${camel.version}</version>
             </dependency>
-            <!-- trocar p/ hikari-->
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>2.6.1</version>
+            </dependency>
             <dependency>
                 <groupId>com.impossibl.pgjdbc-ng</groupId>
                 <artifactId>pgjdbc-ng</artifactId>

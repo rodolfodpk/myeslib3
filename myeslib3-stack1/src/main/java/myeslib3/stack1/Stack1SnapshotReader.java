@@ -6,7 +6,7 @@ import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.stack.SnapshotReader;
-import myeslib3.stack.WriteModelDao;
+import myeslib3.stack.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +25,10 @@ public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotRe
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
 	private final Cache<String, List<UnitOfWork>> cache;
-	private final WriteModelDao dao;
+	private final WriteModelRepository dao;
 
 	public Stack1SnapshotReader(Cache<String, List<UnitOfWork>> cache,
-															WriteModelDao dao) {
+															WriteModelRepository dao) {
 		checkNotNull(cache);
 		checkNotNull(dao);
 
