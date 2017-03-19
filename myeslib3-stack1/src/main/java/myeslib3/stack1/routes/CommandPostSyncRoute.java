@@ -35,9 +35,9 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 	final Class<A> aggregateRootClass;
   final List<Class<?>> commandsClasses;
   final CommandHandlerFn<A, C> handler;
-  final StateTransitionFn<A> stateTransitionFn;
   final Supplier<A> supplier;
   final DependencyInjectionFn<A> dependencyInjectionFn;
+  final StateTransitionFn<A> stateTransitionFn;
   final SnapshotReader<A> snapshotReader;
   final WriteModelRepository writeModelRepo;
   final Gson gson ;
@@ -46,9 +46,9 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
   public CommandPostSyncRoute(Class<A> aggregateRootClass,
                               List<Class<?>> commandsClasses,
                               CommandHandlerFn<A, C> handler,
-                              StateTransitionFn<A> stateTransitionFn,
                               Supplier<A> supplier,
                               DependencyInjectionFn<A> dependencyInjectionFn,
+                              StateTransitionFn<A> stateTransitionFn,
                               SnapshotReader<A> snapshotReader,
                               WriteModelRepository writeModelRepo,
                               Gson gson,
@@ -56,9 +56,9 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
     this.aggregateRootClass = aggregateRootClass;
     this.commandsClasses = commandsClasses;
     this.handler = handler;
-    this.stateTransitionFn = stateTransitionFn;
     this.supplier = supplier;
     this.dependencyInjectionFn = dependencyInjectionFn;
+    this.stateTransitionFn = stateTransitionFn;
     this.snapshotReader = snapshotReader;
     this.writeModelRepo = writeModelRepo;
     this.gson = gson;

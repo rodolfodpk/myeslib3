@@ -54,7 +54,7 @@ data class Customer(val customerId: String? = null,
 
 val stateTransitionFn: StateTransitionFn<Customer> = StateTransitionFn { event, state ->
     when (event) {
-        is CustomerCreated -> state.copy(customerId = event.customerId)
+        is CustomerCreated -> state.copy(customerId = event.customerId, name = event.name)
         is CustomerActivated -> state.copy(active = true, activatedSince = event.date, reason = event.reason)
         is CustomerDeactivated -> state.copy(active = false, deactivatedSince = event.date, reason = event.reason)
         is DeactivatedCmdScheduled -> state

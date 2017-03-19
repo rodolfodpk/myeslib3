@@ -13,6 +13,7 @@ import myeslib3.core.functions.StateTransitionFn
 import myeslib3.examples.example1.core.aggregates.customer.*
 import myeslib3.stack1.infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
+import java.util.function.Supplier
 
 // dependencies
 
@@ -20,6 +21,12 @@ class CustomerModule : AbstractModule() {
 
     override fun configure() {
         bind(SupplierHelperService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun supplier(): Supplier<Customer> {
+        return Supplier { Customer() }
     }
 
     @Provides

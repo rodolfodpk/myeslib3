@@ -26,56 +26,56 @@ import java.util.*
 import java.util.function.Supplier
 
 class PostCommandRouteTest {
-
-    val injector = Guice.createInjector(CustomerModule())
-    var context: CamelContext = DefaultCamelContext()
-
-    val customerId = "customer#1"
-    val commandId = "command#1"
-
-    @BeforeEach
-    @Throws(Exception::class)
-    fun setup() {
-        //MockitoAnnotations.initMocks(this)
-        context = DefaultCamelContext()
-
-        val commandList = Arrays.asList<Class<*>>(CreateCustomerCmd::class.java, ActivateCustomerCmd::class.java,
-                CreateActivatedCustomerCmd::class.java, DeactivateCustomerCmd::class.java)
-
-        val supplier: Supplier<Customer> = Supplier { Customer() }
-
-        val tracker = StateTransitionsTracker<Customer>(supplier.get(),
-                stateTransitionFn, dependencyInjectionFn)
-
-        val readerMock = mock<SnapshotReader<Customer>> {
-            on { getSnapshot(argThat { true /* whatever */ }, any()) } doReturn
-                    SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
-        }
-
-        val writeModelDao = mock<WriteModelRepository> {}
-
-        val idempotentRepoMock = mock<IdempotentRepository<String>> {}
-
-        val route = CommandPostSyncRoute<Customer, CustomerCommand>(Customer::class.java, commandList,
-                commandHandlerFn, stateTransitionFn, supplier,
-                dependencyInjectionFn, readerMock,
-                writeModelDao, injector.getInstance(Gson::class.java), idempotentRepoMock)
-
-        context.addRoutes(route)
-        context.start()
-    }
-
-    @AfterEach
-    @Throws(Exception::class)
-    fun afterRun() {
-        context.stop()
-    }
-
-    @Test
-    @Disabled
-    fun aTest() {
-        assertThat(1).isEqualTo(1)
-        Thread.sleep(4000000)
-    }
+//
+//    val injector = Guice.createInjector(CustomerModule())
+//    var context: CamelContext = DefaultCamelContext()
+//
+//    val customerId = "customer#1"
+//    val commandId = "command#1"
+//
+//    @BeforeEach
+//    @Throws(Exception::class)
+//    fun setup() {
+//        //MockitoAnnotations.initMocks(this)
+//        context = DefaultCamelContext()
+//
+//        val commandList = Arrays.asList<Class<*>>(CreateCustomerCmd::class.java, ActivateCustomerCmd::class.java,
+//                CreateActivatedCustomerCmd::class.java, DeactivateCustomerCmd::class.java)
+//
+//        val supplier: Supplier<Customer> = Supplier { Customer() }
+//
+//        val tracker = StateTransitionsTracker<Customer>(supplier.get(),
+//                stateTransitionFn, dependencyInjectionFn)
+//
+//        val readerMock = mock<SnapshotReader<Customer>> {
+//            on { getSnapshot(argThat { true /* whatever */ }, any()) } doReturn
+//                    SnapshotReader.Snapshot(dependencyInjectionFn.inject(supplier.get()), Version(0))
+//        }
+//
+//        val writeModelDao = mock<WriteModelRepository> {}
+//
+//        val idempotentRepoMock = mock<IdempotentRepository<String>> {}
+//
+//        val route = CommandPostSyncRoute<Customer, CustomerCommand>(Customer::class.java, commandList,
+//                commandHandlerFn, stateTransitionFn, supplier,
+//                dependencyInjectionFn, readerMock,
+//                writeModelDao, injector.getInstance(Gson::class.java), idempotentRepoMock)
+//
+//        context.addRoutes(route)
+//        context.start()
+//    }
+//
+//    @AfterEach
+//    @Throws(Exception::class)
+//    fun afterRun() {
+//        context.stop()
+//    }
+//
+//    @Test
+//    @Disabled
+//    fun aTest() {
+//        assertThat(1).isEqualTo(1)
+//        Thread.sleep(4000000)
+//    }
 
 }
