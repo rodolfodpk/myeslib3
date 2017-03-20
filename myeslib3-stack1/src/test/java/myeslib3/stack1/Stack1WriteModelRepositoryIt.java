@@ -16,6 +16,8 @@ import org.skife.jdbi.v2.DBI;
 import javax.inject.Inject;
 import java.util.Arrays;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 public class Stack1WriteModelRepositoryIt {
 
 	final static Injector injector = Guice.createInjector(new CustomerModule(),
@@ -44,7 +46,9 @@ public class Stack1WriteModelRepositoryIt {
 		CustomerCreated event = new CustomerCreated(id, command.getName());
 		UnitOfWork uow1 = UnitOfWork.create(id, cmdId, command, Version.create(1), Arrays.asList(event));
 
-		repo.append(uow1);
+		repo.append(uow1, command);
+
+		assertThat(repo.getUow(uow1.getUnitOfWorkId())).isEqualTo(uow1);
 
 	}
 }

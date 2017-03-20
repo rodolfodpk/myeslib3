@@ -20,6 +20,7 @@ create table
 	public.customer_uow (uow_id varchar(36) primary key not null,
 				  uow_data json not null,
 				  uow_seq_number serial,
+				  cmd_data json not null,
 	              target_id varchar(36) not null,
                   version numeric,
                   inserted_on timestamp);

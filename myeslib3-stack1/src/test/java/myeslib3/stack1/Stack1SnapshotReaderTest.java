@@ -93,7 +93,6 @@ public class Stack1SnapshotReaderTest {
 			final CreateCustomerCmd command = new CreateCustomerCmd(name);
 
 			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
-																				command,
 																				new Version(1L),
 																				asList(new CustomerCreated(id, command.getName())),
 																				LocalDateTime.now());
@@ -130,7 +129,6 @@ public class Stack1SnapshotReaderTest {
 			final CreateCustomerCmd command = new CreateCustomerCmd(name);
 
 			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
-							command,
 							new Version(1L),
 							asList(new CustomerCreated(id, command.getName())),
 							LocalDateTime.now());
@@ -174,7 +172,6 @@ public class Stack1SnapshotReaderTest {
 			// cached history
 			final CreateCustomerCmd command1 = new CreateCustomerCmd(name);
 			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
-							command1,
 							cachedVersion,
 							asList(new CustomerCreated(id, command1.getName())),
 							LocalDateTime.now());
@@ -183,7 +180,6 @@ public class Stack1SnapshotReaderTest {
 			// non cached history (on db)
 			final ActivateCustomerCmd command2 = new ActivateCustomerCmd(reason);
 			final UnitOfWork uow2 = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
-							command2,
 							expectedVersion,
 							asList(new CustomerActivated(reason, activated_on)),
 							activated_on);

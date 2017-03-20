@@ -33,7 +33,6 @@ class CustomerSpec : BehaviorSpec() {
                 Then("a proper UnitOfWork is generated") {
                     assertThat(uow.commandId).isEqualTo(commandId)
                     assertThat(uow.aggregateRootId).isEqualTo(customerId)
-                    assertThat(uow.command).isEqualTo(cmd)
                     assertThat(uow.version).isEqualTo(Version.create(1))
                     assertThat(uow.events.first()).isEqualTo(CustomerCreated(customerId, cmd.name))
                 }
@@ -62,7 +61,6 @@ class CustomerSpec : BehaviorSpec() {
                             DeactivateCustomerCmd("just because I want automatic deactivation 1 day after activation")
                     assertThat(uow.commandId).isEqualTo(commandId)
                     assertThat(uow.aggregateRootId).isEqualTo(customerId)
-                    assertEquals(uow.command, cmd)
                     assertEquals(uow.version, Version.create(2))
                     assertEquals(uow.events.first(), CustomerActivated(cmd.reason, activatedOn))
                     assertThat(uow.events.last()).isEqualTo(DeactivatedCmdScheduled(expectedCmd, activatedOn.plusDays(1)))

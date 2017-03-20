@@ -1,6 +1,7 @@
 package myeslib3.stack1;
 
 import com.google.gson.Gson;
+import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.stack.WriteModelRepository;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 
@@ -60,12 +62,32 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 										dbMetadata.aggregateRootTable);
 
 		this.insertUowSql =
-						String.format("insert into %s (uow_id, uow_data, target_id, version, inserted_on) " +
-														"values (:uow_id, :uow_data, :target_id, :version, :inserted_on)",
+						String.format("insert into %s (uow_id, uow_data, cmd_data, target_id, version, inserted_on) " +
+														"values (:uow_id, :uow_data, :cmd_data, :target_id, :version, :inserted_on)",
 										dbMetadata.unitOfWorkTable);
 
 		logger.debug(updateAggRootSql);
 		logger.debug(insertUowSql);
+
+	}
+
+
+	@Override
+	public UnitOfWork getUow(UUID uowId) {
+
+		final String uowAsJson = dbi
+						.withHandle(new HandleCallback<String>() {
+													final  String sql = String.format("select uow_data " +
+																	"from %s where uow_id = :uow_id ", dbMetadata.unitOfWorkTable);
+													public String withHandle(Handle h) {
+														return h.createQuery(sql)
+																		.bind("uow_id", uowId.toString())
+																		.map(StringColumnMapper.INSTANCE).first();
+													}
+												}
+						);
+
+		return uowAsJson == null ? null : gson.fromJson(uowAsJson, UnitOfWork.class);
 
 	}
 
@@ -124,14 +146,16 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 	}
 
 	@Override
-	public void append(UnitOfWork unitOfWork) throws DbConcurrencyException {
+	public void append(UnitOfWork unitOfWork, Command command) throws DbConcurrencyException {
 
 		requireNonNull(unitOfWork);
 		requireNonNull(unitOfWork.getAggregateRootId());
-		requireNonNull(unitOfWork.getCommand());
 		requireNonNull(unitOfWork.getCommandId());
 
+		requireNonNull(unitOfWork);
+
 		final String uowAsJson = gson.toJson(unitOfWork, UnitOfWork.class);
+		final String cmdAsJson = gson.toJson(command, Command.class);
 
 		logger.debug("appending uow to {} with id {}", dbMetadata.aggregateRootTable, unitOfWork.getAggregateRootId());
 
@@ -171,6 +195,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 							int result2 = conn.createStatement(insertUowSql)
 											.bind("uow_id", unitOfWork.getUnitOfWorkId().toString())
 											.bind("uow_data", uowAsJson)
+											.bind("cmd_data", cmdAsJson)
 											.bind("target_id", unitOfWork.getAggregateRootId())
 											.bind("version", unitOfWork.getVersion().getVersion())
 											.bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
@@ -195,6 +220,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 		);
 
 	}
+
 
 	static class DbMetadata {
 

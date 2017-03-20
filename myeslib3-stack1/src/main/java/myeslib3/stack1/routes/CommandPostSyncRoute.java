@@ -115,7 +115,7 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
                       targetId, snapshot.getInstance(), snapshot.getVersion(),
                       stateTransitionFn, dependencyInjectionFn);
               if (result.isOk()){
-                writeModelRepo.append(result.getResult());
+                writeModelRepo.append(result.getResult(), _command);
                 e.getOut().setBody(result.getResult(), UnitOfWork.class);
                 e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
               } else {
