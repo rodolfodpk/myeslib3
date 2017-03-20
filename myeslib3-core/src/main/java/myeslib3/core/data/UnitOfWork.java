@@ -16,12 +16,12 @@ public class UnitOfWork {
 	private final List<Event> events;
 	private final LocalDateTime timestamp;
 
-	public static UnitOfWork create(String aggregateRootId, String commandId, Command command, Version version,
+	public static UnitOfWork create(String aggregateRootId, String commandId, Version version,
 																	List<Event> events) {
 		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, commandId, version, events, LocalDateTime.now());
 	}
 
-	public static UnitOfWork create(String aggregateRootId, String commandId, Command command, Version version,
+	public static UnitOfWork create(String aggregateRootId, String commandId, Version version,
 																	List<Event> events, LocalDateTime timestamp) {
 		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, commandId, version, events, timestamp);
 	}
