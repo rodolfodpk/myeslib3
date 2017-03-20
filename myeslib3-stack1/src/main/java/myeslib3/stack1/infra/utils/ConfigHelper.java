@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 public class ConfigHelper {
 
+  @SuppressWarnings({"unchecked", "deprecation"})
   public static void overrideConfigPropsWithSystemVars(
           final Binder binder, final Accessible config) {
 

@@ -8,16 +8,13 @@ import myeslib3.stack1.infra.jdbi.DbConcurrencyException;
 import myeslib3.stack1.infra.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.tweak.HandleCallback;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.util.LongColumnMapper;
+import org.skife.jdbi.v2.util.StringColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -85,21 +82,21 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
 		final List<UnitOfWork> arh = new ArrayList<>();
 
-		logger.debug("will load {} from {}", id.toString(), dbMetadata.aggregateRootTable);
+		logger.debug("will load {} from {}", id, dbMetadata.aggregateRootTable);
 
-		final List<UowRecord> unitsOfWork = dbi
-						.withHandle(new HandleCallback<List<UowRecord>>() {
+		final List<String> unitsOfWork = dbi
+						.withHandle(new HandleCallback<List<String>>() {
 
-													String sql = String.format("select id, version, uow_data, seq_number " +
+													String sql = String.format("select uow_data " +
 																	"from %s where id = :id " +
 																	" and version > :version " +
 																	"order by version", dbMetadata.unitOfWorkTable);
 
-													public List<UowRecord> withHandle(Handle h) {
+													public List<String> withHandle(Handle h) {
 														return h.createQuery(sql)
 																		.bind("id", id.toString())
 																		.bind("version", version.getVersion())
-																		.map(new UowRecordMapper()).list();
+																		.map(StringColumnMapper.INSTANCE).list();
 													}
 												}
 						);
@@ -116,9 +113,9 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 		logger.debug("found {} units of work for id {} and version > {} on {}",
 						unitsOfWork.size(), id.toString(), version.getVersion(), dbMetadata.unitOfWorkTable);
 
-		for (UowRecord r : unitsOfWork) {
-			logger.debug("converting to uow from {}", r.uowData);
-			final UnitOfWork uow = gson.fromJson(r.uowData, UnitOfWork.class);
+		for (String uowAsJson : unitsOfWork) {
+			logger.debug("converting to uow from {}", uowAsJson);
+			final UnitOfWork uow = gson.fromJson(uowAsJson, UnitOfWork.class);
 			logger.debug(uow.toString());
 			arh.add(uow);
 		}
@@ -172,15 +169,19 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 							}
 
 							int result2 = conn.createStatement(insertUowSql)
-											.bind("id", unitOfWork.getAggregateRootId())
+											.bind("uow_id", unitOfWork.getUnitOfWorkId().toString())
 											.bind("uow_data", uowAsJson)
+											.bind("target_id", unitOfWork.getAggregateRootId())
 											.bind("version", unitOfWork.getVersion().getVersion())
 											.bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
 											.execute();
 
-							int result = result1 + result2;
+							conn.createStatement(
+											String.format(
+															"SELECT pg_notify('testchannel', '%s'); ", unitOfWork.getUnitOfWorkId().toString()))
+															.execute();
 
-							if (result == 2) {
+							if (result1 + result2 == 2) {
 								return true;
 							}
 
@@ -189,41 +190,10 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 															unitOfWork.getAggregateRootId(),
 															currentVersion, unitOfWork.getVersion().getVersion()));
 
-							// TODO notify topic events
-
 						}
 
 		);
 
-	}
-
-	static class UowRecord {
-
-		final String id;
-		final Long version;
-		final String uowData;
-		final Long seqNumber;
-
-		public UowRecord(String id, Long version, String uowData, Long seqNumber) {
-			this.id = id;
-			this.version = version;
-			this.uowData = uowData;
-			this.seqNumber = seqNumber;
-		}
-
-	}
-
-	static class UowRecordMapper implements ResultSetMapper<UowRecord> {
-		@Override
-		public UowRecord map(int index, ResultSet r, StatementContext ctx)
-						throws SQLException {
-			String id = r.getString("id");
-			Long version = r.getLong("version");
-			String uowData = r.getString("uow_data");
-			Long bdSeqNumber = r.getLong("seq_number");
-			Long seqNumber = bdSeqNumber == null ? null : bdSeqNumber.longValue();
-			return new UowRecord(id, version, uowData, seqNumber);
-		}
 	}
 
 	static class DbMetadata {

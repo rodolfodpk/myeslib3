@@ -17,8 +17,11 @@ create table
 drop table if exists public.customer_uow ;
 
 create table
-	public.customer_uow (id varchar(36) primary key not null,
-                  version numeric,
+	public.customer_uow (uow_id varchar(36) primary key not null,
 				  uow_data json not null,
-				  seq_number serial,
+				  uow_seq_number serial,
+	              target_id varchar(36) not null,
+                  version numeric,
                   inserted_on timestamp);
+
+CREATE INDEX ON public.customer_uow ((target_id));

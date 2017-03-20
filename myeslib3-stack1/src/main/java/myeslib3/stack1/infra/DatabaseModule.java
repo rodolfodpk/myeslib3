@@ -3,6 +3,7 @@ package myeslib3.stack1.infra;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
+import com.impossibl.postgres.jdbc.PGDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.skife.jdbi.v2.DBI;
@@ -16,6 +17,21 @@ public class DatabaseModule extends PrivateModule {
   @Override
   protected void configure() {
 
+  }
+
+  @Provides
+  @Singleton
+  @Exposed
+  public PGDataSource pds(DatabaseConfig config) {
+    PGDataSource ds = new PGDataSource();
+    ds.setHost(config.db_host());
+    ds.setPort(config.db_port());
+    ds.setDatabase(config.db_name());
+    ds.setUser(config.db_user());
+    if (config.db_password() != null) {
+      ds.setPassword(config.db_password());
+    }
+    return ds;
   }
 
   @Provides

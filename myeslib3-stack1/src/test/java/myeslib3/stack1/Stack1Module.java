@@ -1,6 +1,7 @@
 package myeslib3.stack1;
 
 import com.google.inject.AbstractModule;
+import myeslib3.stack1.infra.DatabaseConfig;
 import org.aeonbits.owner.ConfigCache;
 
 import static myeslib3.stack1.infra.utils.ConfigHelper.overrideConfigPropsWithSystemVars;
@@ -13,6 +14,7 @@ public class Stack1Module extends AbstractModule{
 		Stack1Config config =
 						ConfigCache.getOrCreate(Stack1Config.class, System.getProperties(), System.getenv());
 		bind(Stack1Config.class).toInstance(config);
+		bind(DatabaseConfig.class).toInstance(config);
 		overrideConfigPropsWithSystemVars(binder(), config);
 
 	}

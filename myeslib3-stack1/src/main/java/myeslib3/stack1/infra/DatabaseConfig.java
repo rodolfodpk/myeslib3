@@ -29,4 +29,16 @@ public interface DatabaseConfig {
   @Config.Key("database.query.timeout.ms")
   Integer query_query_timeout_ms();
 
+  @DefaultValue("dbname1")
+  @Config.Key("database.name")
+  String db_name();
+
+  @DefaultValue("localhost")
+  @Config.Key("database.host")
+  String db_host();
+
+  @DefaultValue("5432")
+  @Config.Key("database.port")
+  int db_port();
+
 }

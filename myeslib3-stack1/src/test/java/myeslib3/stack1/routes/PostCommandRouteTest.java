@@ -1,4 +1,4 @@
-package myeslib3.stack1;
+package myeslib3.stack1.routes;
 
 import com.google.gson.Gson;
 import com.google.inject.Guice;
@@ -11,7 +11,6 @@ import myeslib3.examples.example1.core.aggregates.customer.*;
 import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack.SnapshotReader;
 import myeslib3.stack.WriteModelRepository;
-import myeslib3.stack1.routes.CommandPostSyncRoute;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.camel.impl.DefaultCamelContext;
