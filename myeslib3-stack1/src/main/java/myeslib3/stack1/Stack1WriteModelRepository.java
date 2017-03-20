@@ -60,8 +60,8 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 										dbMetadata.aggregateRootTable);
 
 		this.insertUowSql =
-						String.format("insert into %s (id, uow_data, version, inserted_on) " +
-														"values (:id, :uow_data, :version, :inserted_on)",
+						String.format("insert into %s (uow_id, uow_data, target_id, version, inserted_on) " +
+														"values (:uow_id, :uow_data, :target_id, :version, :inserted_on)",
 										dbMetadata.unitOfWorkTable);
 
 		logger.debug(updateAggRootSql);
@@ -88,7 +88,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 						.withHandle(new HandleCallback<List<String>>() {
 
 													String sql = String.format("select uow_data " +
-																	"from %s where id = :id " +
+																	"from %s where target_id = :id " +
 																	" and version > :version " +
 																	"order by version", dbMetadata.unitOfWorkTable);
 
