@@ -33,6 +33,8 @@ import static org.mockito.Mockito.*;
 
 public class Stack1SnapshotReaderTest {
 
+	final Injector injector = Guice.createInjector(new CustomerModule());
+
     @Inject
     Supplier<Customer> supplier;
     @Inject
@@ -48,7 +50,6 @@ public class Stack1SnapshotReaderTest {
     @Before
     public void init() throws Exception {
         cache = Caffeine.newBuilder().build();
-        Injector injector = Guice.createInjector(new CustomerModule());
         injector.injectMembers(this);
         MockitoAnnotations.initMocks(this);
     }

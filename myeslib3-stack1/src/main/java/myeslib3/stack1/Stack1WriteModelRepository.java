@@ -1,7 +1,6 @@
 package myeslib3.stack1;
 
 import com.google.gson.Gson;
-import lombok.NonNull;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.stack.WriteModelRepository;
@@ -31,17 +30,46 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
 	static final Logger logger = LoggerFactory.getLogger(Stack1WriteModelRepository.class);
 
-	final DbMetadata dbMetadata;
-	final Gson gson;
-	final DBI dbi;
+	private final DbMetadata dbMetadata;
+	private final Gson gson;
+	private final DBI dbi;
+
+	private final String selectAggRootSql;
+	private final String insertAggRootSql;
+	private final String updateAggRootSql;
+	private final String insertUowSql;
 
 	public Stack1WriteModelRepository(String aggregateRootId, Gson gson, DBI dbi) {
+
 		requireNonNull(aggregateRootId);
 		requireNonNull(gson);
 		requireNonNull(dbi);
+
 		this.dbMetadata = new DbMetadata(aggregateRootId);
 		this.gson = gson;
 		this.dbi = dbi;
+		this.dbi.registerColumnMapper(new LocalDateTimeMapper());
+
+		this.selectAggRootSql =
+						String.format("select version from %s where id = :id", dbMetadata.aggregateRootTable);
+
+		this.insertAggRootSql =
+						String.format("insert into %s (id, version, last_update) " +
+										"values (:id, :new_version, :last_update) ", dbMetadata.aggregateRootTable);
+
+		this.updateAggRootSql =
+						String.format("update %s set version_number = :new_version, last_update = :last_update " +
+														"where id = :id and version_number = :curr_version",
+										dbMetadata.aggregateRootTable);
+
+		this.insertUowSql =
+						String.format("insert into %s (id, uow_data, version, inserted_on) " +
+														"values (:id, :uow_data, :version, :inserted_on)",
+										dbMetadata.unitOfWorkTable);
+
+		logger.debug(updateAggRootSql);
+		logger.debug(insertUowSql);
+
 	}
 
 	@Override
@@ -106,27 +134,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 		requireNonNull(unitOfWork.getCommand());
 		requireNonNull(unitOfWork.getCommandId());
 
-		final String selectAggRootSql =
-						String.format("select version from %s where id = :id", dbMetadata.aggregateRootTable);
-
-		final String insertAggRootSql =
-						String.format("insert into %s (id, version, last_update) " +
-										"values (:id, :new_version, :last_update) ", dbMetadata.aggregateRootTable);
-
-		final String updateAggRootSql =
-						String.format("update %s set version_number = :new_version, last_update = :last_update " +
-														"where id = :id and version_number = :curr_version",
-										dbMetadata.aggregateRootTable);
-
-		final String insertUowSql =
-						String.format("insert into %s (id, uow_data, version, inserted_on) " +
-														"values (:id, :uow_data, :version, :inserted_on)",
-										dbMetadata.unitOfWorkTable);
-
 		final String uowAsJson = gson.toJson(unitOfWork, UnitOfWork.class);
-
-		logger.debug(updateAggRootSql);
-		logger.debug(insertUowSql);
 
 		logger.debug("appending uow to {} with id {}", dbMetadata.aggregateRootTable, unitOfWork.getAggregateRootId());
 
