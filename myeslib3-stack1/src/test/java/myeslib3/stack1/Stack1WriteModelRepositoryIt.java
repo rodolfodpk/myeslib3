@@ -39,9 +39,10 @@ public class Stack1WriteModelRepositoryIt {
 	public void append() {
 
 		String id = "c1";
+		String cmdId = "cmd1";
 		CreateCustomerCmd command = new CreateCustomerCmd("c1");
 		CustomerCreated event = new CustomerCreated(id, command.getName());
-		UnitOfWork uow1 = UnitOfWork.create(id, command.getName(), command, Version.create(1),  Arrays.asList(event));
+		UnitOfWork uow1 = UnitOfWork.create(id, cmdId, command, Version.create(1), Arrays.asList(event));
 
 		repo.append(uow1);
 
