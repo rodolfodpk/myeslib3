@@ -26,6 +26,13 @@
             <artifactId>myeslib3-core</artifactId>
         </dependency>
 
+        <!-- log -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+
         <!-- config/ guice -->
         <dependency>
             <groupId>org.aeonbits.owner</groupId>
@@ -127,18 +134,18 @@
             <version>0.12.2</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test-junit</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.jetbrains.kotlin</groupId>-->
+            <!--<artifactId>kotlin-test</artifactId>-->
+            <!--<version>${kotlin.version}</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.jetbrains.kotlin</groupId>-->
+            <!--<artifactId>kotlin-test-junit</artifactId>-->
+            <!--<version>${kotlin.version}</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>io.kotlintest</groupId>
             <artifactId>kotlintest</artifactId>
@@ -150,6 +157,19 @@
 
     <build>
         <plugins>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>${junit.platform.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>

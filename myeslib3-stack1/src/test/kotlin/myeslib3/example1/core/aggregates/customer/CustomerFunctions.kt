@@ -1,13 +1,13 @@
-package myeslib3.examples.example1.core.aggregates.customer
+package myeslib3.example1.core.aggregates.customer
 
 
 import com.spencerwi.either.Result
-import myeslib3.core.StateTransitionsTracker
-import myeslib3.core.data.AggregateRoot
-import myeslib3.core.data.UnitOfWork
-import myeslib3.core.data.Version
-import myeslib3.core.functions.CommandHandlerFn
-import myeslib3.core.functions.StateTransitionFn
+import myeslib3.core.AggregateRoot
+import myeslib3.core.UnitOfWork
+import myeslib3.core.Version
+import myeslib3.core.command.CommandHandlerFn
+import myeslib3.core.command.WriteModelStateTracker
+import myeslib3.core.command.WriteModelStateTransitionFn
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
@@ -52,7 +52,7 @@ data class Customer(val customerId: String? = null,
 
 // events routing and execution function
 
-val stateTransitionFn: StateTransitionFn<Customer> = StateTransitionFn { event, state ->
+val WRITE_MODEL_STATE_TRANSITION_FN: WriteModelStateTransitionFn<Customer> = WriteModelStateTransitionFn { event, state ->
     when (event) {
         is CustomerCreated -> state.copy(customerId = event.customerId, name = event.name)
         is CustomerActivated -> state.copy(active = true, activatedSince = event.date, reason = event.reason)
@@ -64,12 +64,12 @@ val stateTransitionFn: StateTransitionFn<Customer> = StateTransitionFn { event, 
 
 // commands routing and execution function
 
-val commandHandlerFn: CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
+val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
     commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
 
     // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
-    val tracker: StateTransitionsTracker<Customer> =
-            StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
+    val trackerWriteModel: WriteModelStateTracker<Customer> =
+            WriteModelStateTracker(targetInstance, stateTransitionFn, injectionFn)
 
     Result.attempt {
         when (command) {
@@ -85,9 +85,9 @@ val commandHandlerFn: CommandHandlerFn<Customer, CustomerCommand> = CommandHandl
                 UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
                         targetInstance.deactivate(command.reason))
             is CreateActivatedCustomerCmd -> {
-                val events = tracker
+                val events = trackerWriteModel
                         .applyEvents(targetInstance.create(targetId, command.name))
-                        .applyEvents(tracker.currentState().activate(command.reason))
+                        .applyEvents(trackerWriteModel.currentState().activate(command.reason))
                         .collectedEvents()
                 UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(), events)
             }

@@ -19,8 +19,8 @@
         <camel.version>2.18.3</camel.version>
         <guice.version>4.1.0</guice.version>
         <sl4j.version>1.7.8</sl4j.version>
-        <junit.version>4.12</junit.version>
-        <junit.vintage.version>${junit.version}.0-M3</junit.vintage.version>
+        <junit.version>5.0.0-M3</junit.version>
+        <!--<junit.vintage.version>${junit.version}.0-M3</junit.vintage.version>-->
         <junit.jupiter.version>5.0.0-M3</junit.jupiter.version>
         <junit.platform.version>1.0.0-M3</junit.platform.version>
     </properties>
@@ -39,10 +39,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-        </dependency>
+
 
         <!-- test -->
         <dependency>
@@ -87,13 +84,6 @@
                 <groupId>rodolfodpk</groupId>
                 <artifactId>myeslib3-myeslib3.stack</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <!-- util -->
-            <dependency>
-                <groupId>com.spencerwi</groupId>
-                <artifactId>Either.java</artifactId>
-                <version>1.1.0</version>
             </dependency>
 
             <!-- own -->
@@ -227,36 +217,50 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Spec*</include>
-                        <include>**/Test*.java</include>
-                        <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
-                        <include>**/*TestCase.java</include>
-                    </includes>
-                </configuration>
+                <version>2.19</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.junit.platform</groupId>
                         <artifactId>junit-platform-surefire-provider</artifactId>
-                        <version>${junit.platform.version}</version>
+                        <version>1.0.0-M3</version>
                     </dependency>
-                    <dependency>
-                        <groupId>org.junit.vintage</groupId>
-                        <artifactId>junit-vintage-engine</artifactId>
-                        <version>${junit.vintage.version}</version>
-                    </dependency>
-                    <!--<dependency>-->
-                    <!--<groupId>org.junit.jupiter</groupId>-->
-                    <!--<artifactId>junit-jupiter-engine</artifactId>-->
-                    <!--<version>${junit.jupiter.version}</version>-->
-                    <!--</dependency>-->
                 </dependencies>
             </plugin>
+
+            <!--<plugin>-->
+                <!--<artifactId>maven-surefire-plugin</artifactId>-->
+                <!--<version>2.19.1</version>-->
+                <!--<configuration>-->
+                    <!--<includes>-->
+                        <!--<include>**/*Spec*</include>-->
+                        <!--<include>**/Test*.java</include>-->
+                        <!--<include>**/*Test.java</include>-->
+                        <!--<include>**/*Tests.java</include>-->
+                        <!--<include>**/*TestCase.java</include>-->
+                    <!--</includes>-->
+                <!--</configuration>-->
+                <!--<dependencies>-->
+                    <!--<dependency>-->
+                        <!--<groupId>org.junit.platform</groupId>-->
+                        <!--<artifactId>junit-platform-surefire-provider</artifactId>-->
+                        <!--<version>${junit.platform.version}</version>-->
+                    <!--</dependency>-->
+                    <!--<dependency>-->
+                        <!--<groupId>org.junit.vintage</groupId>-->
+                        <!--<artifactId>junit-vintage-engine</artifactId>-->
+                        <!--<version>${junit.vintage.version}</version>-->
+                    <!--</dependency>-->
+                    <!--&lt;!&ndash;<dependency>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<groupId>org.junit.jupiter</groupId>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<artifactId>junit-jupiter-engine</artifactId>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<version>${junit.jupiter.version}</version>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</dependency>&ndash;&gt;-->
+                <!--</dependencies>-->
+            <!--</plugin>-->
+
         </plugins>
 
     </build>

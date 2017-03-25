@@ -1,7 +1,7 @@
 package myeslib3.stack1;
 
-import myeslib3.stack1.infra.CamelConfig;
-import myeslib3.stack1.infra.DatabaseConfig;
+import myeslib3.stack1.stack1infra.CamelConfig;
+import myeslib3.stack1.stack1infra.DatabaseConfig;
 import org.aeonbits.owner.Accessible;
 import org.aeonbits.owner.Config;
 

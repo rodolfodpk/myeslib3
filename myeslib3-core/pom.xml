@@ -15,9 +15,11 @@
 
     <dependencies>
 
+        <!-- util -->
         <dependency>
             <groupId>com.spencerwi</groupId>
             <artifactId>Either.java</artifactId>
+            <version>1.1.0</version>
         </dependency>
 
         <!--<dependency>-->
@@ -26,5 +28,35 @@
         <!--<version>2.1.0-alpha</version>-->
         <!--</dependency>-->
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-shade-plugin</artifactId>-->
+                <!--<version>2.4.3</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>shade</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<relocations>-->
+                                <!--<relocation>-->
+                                    <!--<pattern>com.spencerwi.either</pattern>-->
+                                    <!--<shadedPattern>myeslib3.core.command</shadedPattern>-->
+                                <!--</relocation>-->
+                            <!--</relocations>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+        </plugins>
+    </build>
 
 </project>
