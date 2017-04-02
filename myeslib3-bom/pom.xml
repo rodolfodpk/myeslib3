@@ -19,10 +19,8 @@
         <camel.version>2.18.3</camel.version>
         <guice.version>4.1.0</guice.version>
         <sl4j.version>1.7.8</sl4j.version>
-        <junit.version>4.12</junit.version>
-        <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
-        <junit.vintage.version>${junit.version}.0-M4</junit.vintage.version>
-        <junit.platform.version>1.0.0-M4</junit.platform.version>
+        <junit.jupiter.version>5.0.0-M3</junit.jupiter.version>
+        <junit.platform.version>1.0.0-M3</junit.platform.version>
     </properties>
 
     <dependencies>
@@ -33,13 +31,6 @@
             <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <!--<dependency>-->
-            <!--<groupId>org.derive4j</groupId>-->
-            <!--<artifactId>derive4j</artifactId>-->
-            <!--<version>0.10.2</version>-->
-            <!--<optional>true</optional>-->
-        <!--</dependency>-->
 
         <!-- logging -->
         <dependency>
@@ -52,12 +43,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -84,6 +69,13 @@
     <dependencyManagement>
 
         <dependencies>
+
+            <dependency>
+                <groupId>org.derive4j</groupId>
+                <artifactId>derive4j</artifactId>
+                <version>0.10.2</version>
+                <optional>true</optional>
+            </dependency>
 
             <!-- own -->
             <dependency>
@@ -243,11 +235,6 @@
                         <groupId>org.junit.jupiter</groupId>
                         <artifactId>junit-jupiter-engine</artifactId>
                         <version>${junit.jupiter.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.junit.vintage</groupId>
-                        <artifactId>junit-vintage-engine</artifactId>
-                        <version>${junit.vintage.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
