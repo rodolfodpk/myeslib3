@@ -1,29 +1,31 @@
-package myeslib3.core.command;
+package myeslib3.core;
 
-import myeslib3.core.AggregateRoot;
-import myeslib3.core.Event;
+import myeslib3.core.data.AggregateRoot;
+import myeslib3.core.data.Event;
+import myeslib3.core.functions.DependencyInjectionFn;
+import myeslib3.core.functions.WriteModelStateTransitionFn;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class WriteModelStateTracker<AGGREGATE_ROOT extends AggregateRoot> {
+public class StateTransitionsTracker<AGGREGATE_ROOT extends AggregateRoot> {
 
 	final AGGREGATE_ROOT originalInstance;
 	final WriteModelStateTransitionFn<AGGREGATE_ROOT> applyEventsFn;
 	final DependencyInjectionFn<AGGREGATE_ROOT> dependencyInjectionFn;
 	final List<StateTransition<AGGREGATE_ROOT>> stateTransitions;
 
-	public WriteModelStateTracker(AGGREGATE_ROOT originalInstance,
-																WriteModelStateTransitionFn<AGGREGATE_ROOT> applyEventsFn,
-																DependencyInjectionFn<AGGREGATE_ROOT> dependencyInjectionFn) {
+	public StateTransitionsTracker(AGGREGATE_ROOT originalInstance,
+																 WriteModelStateTransitionFn<AGGREGATE_ROOT> applyEventsFn,
+																 DependencyInjectionFn<AGGREGATE_ROOT> dependencyInjectionFn) {
 		this.originalInstance = originalInstance;
 		this.applyEventsFn = applyEventsFn;
 		this.dependencyInjectionFn = dependencyInjectionFn;
 		this.stateTransitions = new ArrayList<>();
 	}
 
-	public WriteModelStateTracker<AGGREGATE_ROOT> applyEvents(List<Event> events) {
+	public StateTransitionsTracker<AGGREGATE_ROOT> applyEvents(List<Event> events) {
 		events.forEach(e -> {
 			final AGGREGATE_ROOT newInstance = applyEventsFn.apply(e, currentState());
 			stateTransitions.add(new StateTransition<>(newInstance, e));

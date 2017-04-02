@@ -1,6 +1,6 @@
 package myeslib3.stack1.query.impl;
 
-import myeslib3.core.UnitOfWork;
+import myeslib3.core.data.UnitOfWork;
 import myeslib3.stack1.query.EventsProjector;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 
@@ -49,7 +49,7 @@ public class Stack1EventsProjector implements EventsProjector {
 		}
 	}
 
-	public void apply(String aggregateRootId, final List<UnitOfWork> unitOfWork) {
+	public void apply(final UnitOfWork unitOfWork) {
 //		final Integer targetExecutor = cache.getInstance(unitOfWork.getAggregateRootId(), instanceId ->
 //						ThreadLocalRandom.current().nextInt(0, executors.size() + 1));
 //		cache.put(unitOfWork.getAggregateRootId(), targetExecutor);

@@ -49,7 +49,7 @@
                             <!--<relocations>-->
                                 <!--<relocation>-->
                                     <!--<pattern>com.spencerwi.either</pattern>-->
-                                    <!--<shadedPattern>myeslib3.core.command</shadedPattern>-->
+                                    <!--<shadedPattern>myeslib3.core.functionsns</shadedPattern>-->
                                 <!--</relocation>-->
                             <!--</relocations>-->
                         <!--</configuration>-->

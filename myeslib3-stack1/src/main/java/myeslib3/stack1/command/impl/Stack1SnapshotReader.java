@@ -3,10 +3,10 @@ package myeslib3.stack1.command.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import myeslib3.core.AggregateRoot;
-import myeslib3.core.UnitOfWork;
-import myeslib3.core.Version;
-import myeslib3.core.command.WriteModelStateTracker;
+import myeslib3.core.StateTransitionsTracker;
+import myeslib3.core.data.AggregateRoot;
+import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.data.Version;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
@@ -31,7 +31,7 @@ public class Stack1SnapshotReader<AGGREGATE_ROOT extends AggregateRoot> implemen
 	@NonNull WriteModelRepository dao;
 
 	@Override
-	public Snapshot<AGGREGATE_ROOT> getSnapshot(String id, WriteModelStateTracker<AGGREGATE_ROOT> tracker) {
+	public Snapshot<AGGREGATE_ROOT> getSnapshot(String id, StateTransitionsTracker<AGGREGATE_ROOT> tracker) {
 
 		requireNonNull(id);
 		requireNonNull(tracker);

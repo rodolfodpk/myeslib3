@@ -1,8 +1,8 @@
 package myeslib3.example1.core.aggregates.customer
 
-import myeslib3.core.Command
-import myeslib3.core.Event
-import myeslib3.core.command.CommandScheduling
+import myeslib3.core.data.Command
+import myeslib3.core.data.CommandScheduling
+import myeslib3.core.data.Event
 import java.time.LocalDateTime
 
 // customer commands

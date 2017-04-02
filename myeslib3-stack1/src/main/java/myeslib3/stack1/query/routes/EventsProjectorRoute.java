@@ -1,7 +1,7 @@
 package myeslib3.stack1.query.routes;
 
 import lombok.AllArgsConstructor;
-import myeslib3.core.UnitOfWork;
+import myeslib3.core.data.UnitOfWork;
 import myeslib3.stack1.query.EventsProjector;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -35,9 +35,11 @@ public class EventsProjectorRoute extends RouteBuilder {
 			.routeId(eventsChannelId + "-events-projector-write")
 			.threads(10)
 			.process(e -> {
-				final String aggregateRootId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
+				// final String aggregateRootId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
 				final List<UnitOfWork> list = e.getIn().getBody(List.class);
-				eventsProjector.apply(aggregateRootId, list);
+				for (UnitOfWork uow: list) {
+					eventsProjector.apply(uow);
+				}
 			})
 			.log("${body}");
 

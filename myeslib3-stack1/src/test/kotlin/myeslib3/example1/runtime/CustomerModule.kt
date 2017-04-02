@@ -5,11 +5,11 @@ import com.google.gson.GsonBuilder
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
-import myeslib3.core.Command
-import myeslib3.core.Event
-import myeslib3.core.command.CommandHandlerFn
-import myeslib3.core.command.DependencyInjectionFn
-import myeslib3.core.command.WriteModelStateTransitionFn
+import myeslib3.core.data.Command
+import myeslib3.core.data.Event
+import myeslib3.core.functions.CommandHandlerFn
+import myeslib3.core.functions.DependencyInjectionFn
+import myeslib3.core.functions.WriteModelStateTransitionFn
 import myeslib3.example1.core.aggregates.customer.*
 import myeslib3.stack1.stack1infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory

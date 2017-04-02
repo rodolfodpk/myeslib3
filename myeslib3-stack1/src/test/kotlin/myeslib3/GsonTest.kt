@@ -2,11 +2,11 @@ package myeslib3
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import myeslib3.core.Command
-import myeslib3.core.Event
-import myeslib3.core.UnitOfWork
-import myeslib3.core.Version
-import myeslib3.core.command.DependencyInjectionFn
+import myeslib3.core.data.Command
+import myeslib3.core.data.Event
+import myeslib3.core.data.UnitOfWork
+import myeslib3.core.data.Version
+import myeslib3.core.functions.DependencyInjectionFn
 import myeslib3.example1.core.aggregates.customer.*
 import myeslib3.stack1.stack1infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory

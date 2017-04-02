@@ -2,9 +2,9 @@ package myeslib3.example1.core.aggregates.customer
 
 import com.nhaarman.mockito_kotlin.*
 import io.kotlintest.specs.BehaviorSpec
-import myeslib3.core.UnitOfWork
-import myeslib3.core.Version
-import myeslib3.core.command.DependencyInjectionFn
+import myeslib3.core.data.UnitOfWork
+import myeslib3.core.data.Version
+import myeslib3.core.functions.DependencyInjectionFn
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDateTime
 import java.util.*

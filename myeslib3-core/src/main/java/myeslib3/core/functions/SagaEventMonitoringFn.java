@@ -1,8 +1,8 @@
-package myeslib3.core.query;
+package myeslib3.core.functions;
 
-import myeslib3.core.AggregateRoot;
-import myeslib3.core.Command;
-import myeslib3.core.Event;
+import myeslib3.core.data.AggregateRoot;
+import myeslib3.core.data.Command;
+import myeslib3.core.data.Event;
 
 import java.util.Optional;
 

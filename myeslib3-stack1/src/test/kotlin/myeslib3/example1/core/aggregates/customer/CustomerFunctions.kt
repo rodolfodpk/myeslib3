@@ -2,12 +2,12 @@ package myeslib3.example1.core.aggregates.customer
 
 
 import com.spencerwi.either.Result
-import myeslib3.core.AggregateRoot
-import myeslib3.core.UnitOfWork
-import myeslib3.core.Version
-import myeslib3.core.command.CommandHandlerFn
-import myeslib3.core.command.WriteModelStateTracker
-import myeslib3.core.command.WriteModelStateTransitionFn
+import myeslib3.core.StateTransitionsTracker
+import myeslib3.core.data.AggregateRoot
+import myeslib3.core.data.UnitOfWork
+import myeslib3.core.data.Version
+import myeslib3.core.functions.CommandHandlerFn
+import myeslib3.core.functions.WriteModelStateTransitionFn
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
@@ -68,8 +68,8 @@ val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHan
     commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
 
     // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
-    val trackerWriteModel: WriteModelStateTracker<Customer> =
-            WriteModelStateTracker(targetInstance, stateTransitionFn, injectionFn)
+    val trackerTransitions: StateTransitionsTracker<Customer> =
+            StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
 
     Result.attempt {
         when (command) {
@@ -85,14 +85,14 @@ val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHan
                 UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
                         targetInstance.deactivate(command.reason))
             is CreateActivatedCustomerCmd -> {
-                val events = trackerWriteModel
+                val events = trackerTransitions
                         .applyEvents(targetInstance.create(targetId, command.name))
-                        .applyEvents(trackerWriteModel.currentState().activate(command.reason))
+                        .applyEvents(trackerTransitions.currentState().activate(command.reason))
                         .collectedEvents()
                 UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(), events)
             }
             else -> {
-                throw IllegalArgumentException("invalid command")
+                throw IllegalArgumentException("invalid functions")
             }
         }
     }

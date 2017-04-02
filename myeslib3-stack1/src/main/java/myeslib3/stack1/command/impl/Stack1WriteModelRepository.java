@@ -1,9 +1,9 @@
 package myeslib3.stack1.command.impl;
 
 import com.google.gson.Gson;
-import myeslib3.core.Command;
-import myeslib3.core.UnitOfWork;
-import myeslib3.core.Version;
+import myeslib3.core.data.Command;
+import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.data.Version;
 import myeslib3.stack1.command.WriteModelRepository;
 import myeslib3.stack1.stack1infra.jdbi.DbConcurrencyException;
 import myeslib3.stack1.stack1infra.jdbi.LocalDateTimeMapper;

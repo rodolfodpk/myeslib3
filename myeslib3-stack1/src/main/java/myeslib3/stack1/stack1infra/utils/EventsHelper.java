@@ -1,8 +1,8 @@
 package myeslib3.stack1.stack1infra.utils;
 
-import myeslib3.core.Event;
-import myeslib3.core.UnitOfWork;
-import myeslib3.core.Version;
+import myeslib3.core.data.Event;
+import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.data.Version;
 
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,6 +1,6 @@
 package myeslib3.stack1.stack1infra.utils;
 
-import myeslib3.core.AggregateRoot;
+import myeslib3.core.data.AggregateRoot;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

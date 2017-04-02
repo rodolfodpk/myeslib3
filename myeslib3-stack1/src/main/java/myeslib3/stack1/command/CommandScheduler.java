@@ -1,6 +1,6 @@
 package myeslib3.stack1.command;
 
-import myeslib3.core.command.CommandScheduling;
+import myeslib3.core.data.CommandScheduling;
 
 @FunctionalInterface
 public interface CommandScheduler {

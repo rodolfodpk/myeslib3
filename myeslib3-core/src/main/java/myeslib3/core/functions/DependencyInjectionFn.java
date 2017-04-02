@@ -1,6 +1,6 @@
-package myeslib3.core.command;
+package myeslib3.core.functions;
 
-import myeslib3.core.AggregateRoot;
+import myeslib3.core.data.AggregateRoot;
 
 @FunctionalInterface
 public interface DependencyInjectionFn<AGGREGATE_ROOT extends AggregateRoot> {

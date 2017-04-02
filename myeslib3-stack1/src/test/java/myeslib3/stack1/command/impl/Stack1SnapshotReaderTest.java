@@ -2,11 +2,11 @@ package myeslib3.stack1.command.impl;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.UnitOfWork;
-import myeslib3.core.Version;
-import myeslib3.core.command.DependencyInjectionFn;
-import myeslib3.core.command.WriteModelStateTracker;
-import myeslib3.core.command.WriteModelStateTransitionFn;
+import myeslib3.core.StateTransitionsTracker;
+import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.data.Version;
+import myeslib3.core.functions.DependencyInjectionFn;
+import myeslib3.core.functions.WriteModelStateTransitionFn;
 import myeslib3.example1.core.aggregates.customer.*;
 import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack1.command.SnapshotReader;
@@ -64,7 +64,7 @@ public class Stack1SnapshotReaderTest {
 
 			final List<UnitOfWork> expectedHistory = new ArrayList<>();
 
-			final WriteModelStateTracker<Customer> tracker = new WriteModelStateTracker<>(supplier.get(),
+			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(supplier.get(),
 							writeModelStateTransitionFn, dependencyInjectionFn);
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
@@ -101,7 +101,7 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final WriteModelStateTracker<Customer> tracker = new WriteModelStateTracker<>(supplier.get(),
+			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(supplier.get(),
 							writeModelStateTransitionFn, dependencyInjectionFn);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
@@ -137,7 +137,7 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final WriteModelStateTracker<Customer> tracker = new WriteModelStateTracker<>(expectedInstance,
+			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(expectedInstance,
 							writeModelStateTransitionFn, dependencyInjectionFn);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
@@ -190,7 +190,7 @@ public class Stack1SnapshotReaderTest {
 			when(dao.getAll(id)).thenReturn(cachedHistory);
 			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
 
-			final WriteModelStateTracker<Customer> tracker = new WriteModelStateTracker<>(expectedInstance,
+			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(expectedInstance,
 							writeModelStateTransitionFn, dependencyInjectionFn);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);

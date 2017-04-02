@@ -1,8 +1,8 @@
 package myeslib3.stack1.command;
 
-import myeslib3.core.Command;
-import myeslib3.core.UnitOfWork;
-import myeslib3.core.Version;
+import myeslib3.core.data.Command;
+import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.data.Version;
 
 import java.util.List;
 import java.util.UUID;

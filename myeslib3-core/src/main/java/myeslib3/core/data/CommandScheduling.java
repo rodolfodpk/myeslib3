@@ -1,6 +1,4 @@
-package myeslib3.core.command;
-
-import myeslib3.core.Command;
+package myeslib3.core.data;
 
 import java.time.LocalDateTime;
 

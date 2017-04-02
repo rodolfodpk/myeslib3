@@ -4,13 +4,13 @@ import com.google.gson.Gson;
 import com.spencerwi.either.Result;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import myeslib3.core.AggregateRoot;
-import myeslib3.core.Command;
-import myeslib3.core.UnitOfWork;
-import myeslib3.core.command.CommandHandlerFn;
-import myeslib3.core.command.DependencyInjectionFn;
-import myeslib3.core.command.WriteModelStateTracker;
-import myeslib3.core.command.WriteModelStateTransitionFn;
+import myeslib3.core.StateTransitionsTracker;
+import myeslib3.core.data.AggregateRoot;
+import myeslib3.core.data.Command;
+import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.functions.CommandHandlerFn;
+import myeslib3.core.functions.DependencyInjectionFn;
+import myeslib3.core.functions.WriteModelStateTransitionFn;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Exchange;
@@ -70,7 +70,7 @@ public class CommandPostSyncRoute<AGGREGATE_ROOT extends AggregateRoot, COMMAND 
               .type(RestParamType.query).dataType("java.util.String")
             .endParam()
             .param()
-              .name(COMMAND_ID).description("the id of the requested command")
+              .name(COMMAND_ID).description("the id of the requested functions")
               .type(RestParamType.query).dataType("String")
             .endParam()
           .produces(APPLICATION_JSON)
@@ -109,7 +109,7 @@ public class CommandPostSyncRoute<AGGREGATE_ROOT extends AggregateRoot, COMMAND 
               final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
               final Command command = e.getIn().getBody(Command.class);
               final COMMAND _command = (COMMAND) command;
-              final WriteModelStateTracker<AGGREGATE_ROOT> tracker = new WriteModelStateTracker<>(supplier.get(),
+              final StateTransitionsTracker<AGGREGATE_ROOT> tracker = new StateTransitionsTracker<>(supplier.get(),
 											writeModelStateTransitionFn, dependencyInjectionFn);
               final SnapshotReader.Snapshot<AGGREGATE_ROOT> snapshot = snapshotReader.getSnapshot(targetId, tracker);
               final Result<UnitOfWork> result = handler.handle(commandId, _command,
