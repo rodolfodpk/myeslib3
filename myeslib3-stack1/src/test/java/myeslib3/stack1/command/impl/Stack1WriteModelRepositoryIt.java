@@ -11,6 +11,7 @@ import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack1.Stack1Module;
 import myeslib3.stack1.stack1infra.DatabaseModule;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 
@@ -38,7 +39,7 @@ public class Stack1WriteModelRepositoryIt {
 			repo = new Stack1WriteModelRepository("example1_uow_channel", "customer", gson, dbi);
 	}
 
-	@Test
+	@Test @Ignore
 	public void append() {
 
 		String id = "c1";

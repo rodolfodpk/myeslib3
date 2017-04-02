@@ -1,7 +1,6 @@
 package myeslib3.example1.core.aggregates.customer
 
 
-import com.spencerwi.either.Result
 import myeslib3.core.StateTransitionsTracker
 import myeslib3.core.data.AggregateRoot
 import myeslib3.core.data.UnitOfWork
@@ -67,35 +66,33 @@ val WRITE_MODEL_STATE_TRANSITION_FN: WriteModelStateTransitionFn<Customer> = Wri
 val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
     commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
 
-    // TODO consider fold operation instead https://gist.github.com/cy6erGn0m/6960104
-    val trackerTransitions: StateTransitionsTracker<Customer> =
+    val tracker: StateTransitionsTracker<Customer> =
             StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
 
-    Result.attempt {
-        when (command) {
-            is CreateCustomerCmd -> {
-                require(targetVersion == Version.create(0), { "before create the instance must be version= 0" })
-                UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
-                        targetInstance.create(targetId, command.name))
-            }
-            is ActivateCustomerCmd ->
-                UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
-                        targetInstance.activate(command.reason))
-            is DeactivateCustomerCmd ->
-                UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
-                        targetInstance.deactivate(command.reason))
-            is CreateActivatedCustomerCmd -> {
-                val events = trackerTransitions
-                        .applyEvents(targetInstance.create(targetId, command.name))
-                        .applyEvents(trackerTransitions.currentState().activate(command.reason))
-                        .collectedEvents()
-                UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(), events)
-            }
-            else -> {
-                throw IllegalArgumentException("invalid functions")
-            }
+    when (command) {
+        is CreateCustomerCmd -> {
+            require(targetVersion == Version.create(0), { "before create the instance must be version= 0" })
+            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
+                    targetInstance.create(targetId, command.name))
+        }
+        is ActivateCustomerCmd ->
+            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
+                    targetInstance.activate(command.reason))
+        is DeactivateCustomerCmd ->
+            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
+                    targetInstance.deactivate(command.reason))
+        is CreateActivatedCustomerCmd -> {
+            val events = tracker
+                    .applyEvents(targetInstance.create(targetId, command.name))
+                    .applyEvents(tracker.currentState().activate(command.reason))
+                    .collectedEvents()
+            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(), events)
+        }
+        else -> {
+            throw IllegalArgumentException("invalid command")
         }
     }
+
 }
 
 

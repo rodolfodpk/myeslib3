@@ -2,10 +2,10 @@ package myeslib3.example1.core.aggregates.customer
 
 import com.nhaarman.mockito_kotlin.*
 import io.kotlintest.specs.BehaviorSpec
-import myeslib3.core.data.UnitOfWork
 import myeslib3.core.data.Version
 import myeslib3.core.functions.DependencyInjectionFn
 import org.assertj.core.api.Assertions.assertThat
+import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
 import java.util.*
 
@@ -25,10 +25,9 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(0)
             When("a createCommand is issued") {
                 val cmd = CreateCustomerCmd(name = "customer 1")
-                val operation = COMMAND_HANDLER_FN.handle(commandId, cmd,
+                val uow = COMMAND_HANDLER_FN.handle(commandId, cmd,
                         customerId, customer, version,
                         WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
-                val uow: UnitOfWork = operation.result
                 Then("a proper UnitOfWork is generated") {
                     assertThat(uow.commandId).isEqualTo(commandId)
                     assertThat(uow.aggregateRootId).isEqualTo(customerId)
@@ -51,10 +50,9 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             When("an activateCommand is issued") {
                 val cmd = ActivateCustomerCmd("because I want it")
-                val operation = COMMAND_HANDLER_FN.handle(commandId, cmd,
+                val uow = COMMAND_HANDLER_FN.handle(commandId, cmd,
                         customerId, customer, version,
                         WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
-                val uow: UnitOfWork = operation.result
                 Then("a proper UnitOfWork is generated") {
                     val expectedCmd =
                             DeactivateCustomerCmd("just because I want automatic deactivation 1 day after activation")
@@ -81,11 +79,12 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             When("a createCommand with same customerId is issued") {
                 val cmd = CreateCustomerCmd(name = "customer1")
-                val operation = COMMAND_HANDLER_FN.handle(commandId, cmd,
-                        customerId, customer, version,
-                        WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                val exception = shouldThrow<IllegalArgumentException> {
+                    COMMAND_HANDLER_FN.handle(commandId, cmd,
+                            customerId, customer, version,
+                            WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                }
                 Then("result must be an error with an IllegalArgumentException") {
-                    val exception = operation.exception
                     assertThat(exception?.localizedMessage).isEqualTo("before create the instance must be version= 0")
                     assertThat(exception!!.javaClass.name).isEqualTo(IllegalArgumentException::class.java.name)
                 }
@@ -99,11 +98,12 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             val cmd = CreateCustomerCmd(name = "customer1")
             When("a createCommand is issued") {
-                val operation = COMMAND_HANDLER_FN.handle(commandId, cmd,
-                        customerId, customer, version,
-                        WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                val exception = shouldThrow<IllegalArgumentException> {
+                    COMMAND_HANDLER_FN.handle(commandId, cmd,
+                            customerId, customer, version,
+                            WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                }
                 Then("result must be an error with an IllegalArgumentException") {
-                    val exception = operation.exception
                     assertThat(exception?.localizedMessage).isEqualTo("before create the instance must be version= 0")
                     assertThat(exception!!.javaClass.name).isEqualTo(IllegalArgumentException::class.java.name)
                 }

@@ -14,8 +14,9 @@ import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
 import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -31,6 +32,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.*;
 
+@DisplayName("a snapshotReader")
 public class Stack1SnapshotReaderTest {
 
 	final Injector injector = Guice.createInjector(new CustomerModule());
@@ -47,7 +49,7 @@ public class Stack1SnapshotReaderTest {
 
     Cache<String, List<UnitOfWork>> cache;
 
-    @Before
+    @BeforeEach
     public void init() throws Exception {
         cache = Caffeine.newBuilder().build();
         injector.injectMembers(this);

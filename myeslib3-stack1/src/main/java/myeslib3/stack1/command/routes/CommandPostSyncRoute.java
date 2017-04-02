@@ -1,7 +1,6 @@
 package myeslib3.stack1.command.routes;
 
 import com.google.gson.Gson;
-import com.spencerwi.either.Result;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import myeslib3.core.StateTransitionsTracker;
@@ -11,6 +10,8 @@ import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.WriteModelStateTransitionFn;
+import myeslib3.stack1.command.CommandExecution;
+import myeslib3.stack1.command.CommandExecutions;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Exchange;
@@ -25,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static myeslib3.stack1.command.CommandExecutions.ERROR;
+import static myeslib3.stack1.command.CommandExecutions.SUCCESS;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.aggregateRootId;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.commandId;
 
@@ -87,7 +90,6 @@ public class CommandPostSyncRoute<AGGREGATE_ROOT extends AggregateRoot, COMMAND 
           .routeId("put-" + commandId(commandClazz))
      //     .streamCaching()
           .log("as gson: ${body}")
-     //     .idempotentConsumer(header(AGGREGATE_ROOT_ID)).messageIdRepository(idempotentRepo)
           .doTry()
               .unmarshal(df)
               .log("as java: ${body}")
@@ -105,24 +107,41 @@ public class CommandPostSyncRoute<AGGREGATE_ROOT extends AggregateRoot, COMMAND 
               .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
             .end()
             .process(e -> {
-              final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
-              final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
-              final Command command = e.getIn().getBody(Command.class);
-              final COMMAND _command = (COMMAND) command;
-              final StateTransitionsTracker<AGGREGATE_ROOT> tracker = new StateTransitionsTracker<>(supplier.get(),
+							final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
+							final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
+							final Command command = e.getIn().getBody(Command.class);
+							final COMMAND _command = (COMMAND) command;
+							final StateTransitionsTracker<AGGREGATE_ROOT> tracker = new StateTransitionsTracker<>(supplier.get(),
 											writeModelStateTransitionFn, dependencyInjectionFn);
-              final SnapshotReader.Snapshot<AGGREGATE_ROOT> snapshot = snapshotReader.getSnapshot(targetId, tracker);
-              final Result<UnitOfWork> result = handler.handle(commandId, _command,
-                      targetId, snapshot.getInstance(), snapshot.getVersion(),
-											writeModelStateTransitionFn, dependencyInjectionFn);
-              if (result.isOk()){
-                writeModelRepo.append(result.getResult(), _command);
-                e.getOut().setBody(result.getResult(), UnitOfWork.class);
-                e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-              } else {
-                e.getOut().setBody(Arrays.asList(result.getException().getMessage()), List.class);
-                e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-              }
+							final SnapshotReader.Snapshot<AGGREGATE_ROOT> snapshot = snapshotReader.getSnapshot(targetId, tracker);
+							final UnitOfWork unitOfWork;
+							CommandExecution result;
+							try {
+								unitOfWork = handler.handle(commandId, _command,
+												targetId, snapshot.getInstance(), snapshot.getVersion(),
+												writeModelStateTransitionFn, dependencyInjectionFn);
+								result = SUCCESS(unitOfWork);
+							} catch (Exception ex) {
+								result = ERROR(ex);
+							}
+							e.getOut().setBody(command, Command.class);
+							e.getOut().setBody(result, CommandExecution.class);
+						})
+						// .idempotentConsumer(header(COMMAND_ID)).messageIdRepository(idempotentRepo)
+						.process(e -> {
+							final Command command = e.getIn().getBody(Command.class);
+							final COMMAND _command = (COMMAND) command;
+							final CommandExecution result = e.getIn().getBody(CommandExecution.class);
+              CommandExecutions.caseOf(result)
+									.SUCCESS(uow -> (Runnable) () -> {
+										writeModelRepo.append(uow, _command);
+										e.getOut().setBody(uow, UnitOfWork.class);
+										e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+									})
+									.ERROR(exception -> () -> {
+										e.getOut().setBody(Arrays.asList(exception.getMessage()), List.class);
+										e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+									});
             })
           .onFallback()
             .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
