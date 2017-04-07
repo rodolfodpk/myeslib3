@@ -50,7 +50,6 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 	@NonNull Gson gson ;
 	@NonNull IdempotentRepository<String> idempotentRepo;
 
-
 	@Override
   public void configure() throws Exception {
 
