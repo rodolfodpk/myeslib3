@@ -15,16 +15,6 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>com.spencerwi</groupId>
-            <artifactId>Either.java</artifactId>
-        </dependency>
-
-        <!--<dependency>-->
-        <!--<groupId>io.javaslang</groupId>-->
-        <!--<artifactId>javaslang</artifactId>-->
-        <!--<version>2.1.0-alpha</version>-->
-        <!--</dependency>-->
     </dependencies>
 
 </project>

@@ -1,4 +1,4 @@
-package myeslib3.examples.example1.core.aggregates.customer
+package myeslib3.example1.core.aggregates.customer
 
 import myeslib3.core.data.Command
 import myeslib3.core.data.CommandScheduling

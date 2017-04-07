@@ -21,9 +21,4 @@ public class UnitOfWork {
 		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, commandId, version, events, LocalDateTime.now());
 	}
 
-	public static UnitOfWork create(String aggregateRootId, String commandId, Version version,
-																	List<Event> events, LocalDateTime timestamp) {
-		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, commandId, version, events, timestamp);
-	}
-
 }

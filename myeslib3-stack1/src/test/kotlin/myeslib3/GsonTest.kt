@@ -2,13 +2,10 @@ package myeslib3
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import myeslib3.core.data.Command
-import myeslib3.core.data.Event
-import myeslib3.core.data.UnitOfWork
-import myeslib3.core.data.Version
+import myeslib3.core.data.*
 import myeslib3.core.functions.DependencyInjectionFn
-import myeslib3.examples.example1.core.aggregates.customer.*
-import myeslib3.stack1.infra.gson.RuntimeTypeAdapterFactory
+import myeslib3.example1.core.aggregates.customer.*
+import myeslib3.stack1.stack1infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -44,14 +41,14 @@ fun uow1(): UnitOfWork {
     val cmd: CreateCustomerCmd = CreateCustomerCmd("customer1")
     val customer = dependencyInjectionFn.inject(Customer())
     val version = Version.create(0)
-    return commandHandlerFn.handle(commandId, cmd, customerId, customer, version, stateTransitionFn, dependencyInjectionFn).result
+    return COMMAND_HANDLER_FN.handle(commandId, cmd, customerId, customer, version, WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
 }
 
 fun uow2(): UnitOfWork {
     val cmd = CreateActivatedCustomerCmd("customer1", "because I want it")
     val customer = dependencyInjectionFn.inject(Customer())
     val version = Version.create(0)
-    return commandHandlerFn.handle(commandId, cmd, customerId, customer, version, stateTransitionFn, dependencyInjectionFn).result
+    return COMMAND_HANDLER_FN.handle(commandId, cmd, customerId, customer, version, WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
 }
 
 fun gson(): Gson {
