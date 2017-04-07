@@ -6,13 +6,13 @@ import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Version;
 
 @FunctionalInterface
-public interface SnapshotReader<AGGREGATE_ROOT extends AggregateRoot> {
+public interface SnapshotReader<A extends AggregateRoot> {
 
-	Snapshot<AGGREGATE_ROOT> getSnapshot(final String id, StateTransitionsTracker<AGGREGATE_ROOT> tracker);
+	Snapshot<A> getSnapshot(final String id, StateTransitionsTracker<A> tracker);
 
 	@Value
-	class Snapshot<AGGREGATE_ROOT> {
-		final AGGREGATE_ROOT instance;
+	class Snapshot<A> {
+		final A instance;
 		final Version version;
 	}
 }

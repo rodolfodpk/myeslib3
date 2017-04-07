@@ -23,7 +23,7 @@ import static myeslib3.stack1.stack1infra.utils.EventsHelper.flatMap;
 import static myeslib3.stack1.stack1infra.utils.EventsHelper.lastVersion;
 
 @AllArgsConstructor
-public class Stack1SnapshotReader<AGGREGATE_ROOT extends AggregateRoot> implements SnapshotReader<AGGREGATE_ROOT> {
+public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotReader<A> {
 
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
@@ -31,7 +31,7 @@ public class Stack1SnapshotReader<AGGREGATE_ROOT extends AggregateRoot> implemen
 	@NonNull WriteModelRepository dao;
 
 	@Override
-	public Snapshot<AGGREGATE_ROOT> getSnapshot(String id, StateTransitionsTracker<AGGREGATE_ROOT> tracker) {
+	public Snapshot<A> getSnapshot(String id, StateTransitionsTracker<A> tracker) {
 
 		requireNonNull(id);
 		requireNonNull(tracker);

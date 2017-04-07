@@ -15,6 +15,7 @@ import myeslib3.stack1.command.CommandExecutions;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
@@ -32,24 +33,25 @@ import static myeslib3.stack1.stack1infra.utils.StringHelper.aggregateRootId;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.commandId;
 
 @AllArgsConstructor
-public class CommandPostSyncRoute<AGGREGATE_ROOT extends AggregateRoot, COMMAND extends Command> extends RouteBuilder {
+public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
 	private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
   private static final String COMMAND_ID = "command_id";
 	static final String APPLICATION_JSON = "application/json";
 
-	@NonNull Class<AGGREGATE_ROOT> aggregateRootClass;
+	@NonNull Class<A> aggregateRootClass;
 	@NonNull List<Class<?>> commandsClasses;
-	@NonNull CommandHandlerFn<AGGREGATE_ROOT, COMMAND> handler;
-	@NonNull Supplier<AGGREGATE_ROOT> supplier;
-	@NonNull DependencyInjectionFn<AGGREGATE_ROOT> dependencyInjectionFn;
-	@NonNull WriteModelStateTransitionFn<AGGREGATE_ROOT> writeModelStateTransitionFn;
-	@NonNull SnapshotReader<AGGREGATE_ROOT> snapshotReader;
+	@NonNull CommandHandlerFn<A, C> handler;
+	@NonNull Supplier<A> supplier;
+	@NonNull DependencyInjectionFn<A> dependencyInjectionFn;
+	@NonNull WriteModelStateTransitionFn<A> writeModelStateTransitionFn;
+	@NonNull SnapshotReader<A> snapshotReader;
 	@NonNull WriteModelRepository writeModelRepo;
 	@NonNull Gson gson ;
 	@NonNull IdempotentRepository<String> idempotentRepo;
 
-  @Override
+
+	@Override
   public void configure() throws Exception {
 
     restConfiguration().component("undertow").bindingMode(RestBindingMode.auto)
@@ -106,52 +108,68 @@ public class CommandPostSyncRoute<AGGREGATE_ROOT extends AggregateRoot, COMMAND 
 							.groupKey(commandClazz.getSimpleName())
               .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
             .end()
-            .process(e -> {
-							final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
-							final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
-							final Command command = e.getIn().getBody(Command.class);
-							final COMMAND _command = (COMMAND) command;
-							final StateTransitionsTracker<AGGREGATE_ROOT> tracker = new StateTransitionsTracker<>(supplier.get(),
-											writeModelStateTransitionFn, dependencyInjectionFn);
-							final SnapshotReader.Snapshot<AGGREGATE_ROOT> snapshot = snapshotReader.getSnapshot(targetId, tracker);
-							final UnitOfWork unitOfWork;
-							CommandExecution result;
-							try {
-								unitOfWork = handler.handle(commandId, _command,
-												targetId, snapshot.getInstance(), snapshot.getVersion(),
-												writeModelStateTransitionFn, dependencyInjectionFn);
-								result = SUCCESS(unitOfWork);
-							} catch (Exception ex) {
-								result = ERROR(ex);
-							}
-							e.getOut().setBody(command, Command.class);
-							e.getOut().setBody(result, CommandExecution.class);
-						})
+            .process(new CommandProcessor())
 						// .idempotentConsumer(header(COMMAND_ID)).messageIdRepository(idempotentRepo)
-						.process(e -> {
-							final Command command = e.getIn().getBody(Command.class);
-							final COMMAND _command = (COMMAND) command;
-							final CommandExecution result = e.getIn().getBody(CommandExecution.class);
-              CommandExecutions.caseOf(result)
-									.SUCCESS(uow -> (Runnable) () -> {
-										writeModelRepo.append(uow, _command);
-										e.getOut().setBody(uow, UnitOfWork.class);
-										e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-									})
-									.ERROR(exception -> () -> {
-										e.getOut().setBody(Arrays.asList(exception.getMessage()), List.class);
-										e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-									});
-            })
-          .onFallback()
-            .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
-            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
-          .end()
-          .marshal(df)
-          .log("as gson result: ${body}")
+						.process(new CommandResultsProcessor())
+						.onFallback()
+							.transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
+							.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
+						.end()
+						.marshal(df)
+						.log("as gson result: ${body}")
         ;
 
       });
+
   }
 
+	class CommandProcessor implements Processor {
+
+		@Override
+		public void process(Exchange e) throws Exception {
+
+			final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
+			final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
+			final Command command = e.getIn().getBody(Command.class);
+			final C _command = (C) command;
+			final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
+							writeModelStateTransitionFn, dependencyInjectionFn);
+			final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId, tracker);
+			final UnitOfWork unitOfWork;
+			CommandExecution result;
+			try {
+				unitOfWork = handler.handle(commandId, _command,
+								targetId, snapshot.getInstance(), snapshot.getVersion(),
+								writeModelStateTransitionFn, dependencyInjectionFn);
+				result = SUCCESS(unitOfWork);
+			} catch (Exception ex) {
+				result = ERROR(ex);
+			}
+			e.getOut().setBody(command, Command.class);
+			e.getOut().setBody(result, CommandExecution.class);
+
+		}
+	}
+
+	class CommandResultsProcessor implements Processor {
+
+		@Override
+		public void process(Exchange e) throws Exception {
+
+			final Command command = e.getIn().getBody(Command.class);
+			final C _command = (C) command;
+			final CommandExecution result = e.getIn().getBody(CommandExecution.class);
+			CommandExecutions.caseOf(result)
+				.SUCCESS(uow -> (Runnable) () -> {
+					writeModelRepo.append(uow, _command);
+					e.getOut().setBody(uow, UnitOfWork.class);
+					e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+				})
+				.ERROR(exception -> () -> {
+					e.getOut().setBody(Arrays.asList(exception.getMessage()), List.class);
+					e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+				});
+
+		}
+	}
 }
