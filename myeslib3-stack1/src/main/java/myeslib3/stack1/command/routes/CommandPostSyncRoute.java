@@ -108,21 +108,24 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
               .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
             .end()
             .process(new CommandProcessor())
-						// .idempotentConsumer(header(COMMAND_ID)).messageIdRepository(idempotentRepo)
-						.process(new CommandResultsProcessor())
-						.onFallback()
-							.transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
-							.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
-						.end()
-						.marshal(df)
-						.log("as gson result: ${body}")
+            .to("direct:save-events")
+          .onFallback()
+            .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
+            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
+          .end()
+          .marshal(df)
+          .log("as gson result: ${body}")
         ;
 
       });
 
+    from("direct:save-events")
+            .id("save-events")
+            .idempotentConsumer(header(COMMAND_ID)).messageIdRepository(idempotentRepo)
+            .process(new SaveEventsProcessor());
   }
 
-	class CommandProcessor implements Processor {
+	final class CommandProcessor implements Processor {
 
 		@Override
 		public void process(Exchange e) throws Exception {
@@ -150,7 +153,7 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 		}
 	}
 
-	class CommandResultsProcessor implements Processor {
+	final class SaveEventsProcessor implements Processor {
 
 		@Override
 		public void process(Exchange e) throws Exception {
