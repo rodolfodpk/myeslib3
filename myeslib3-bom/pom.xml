@@ -169,17 +169,24 @@
                 <artifactId>camel-swagger-java</artifactId>
                 <version>${camel.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-quartz2</artifactId>
-                <version>${camel.version}</version>
-            </dependency>
+            <!--<dependency>-->
+                <!--<groupId>org.apache.camel</groupId>-->
+                <!--<artifactId>camel-quartz2</artifactId>-->
+                <!--<version>${camel.version}</version>-->
+            <!--</dependency>-->
 
             <!-- jdbi -->
             <dependency>
                 <groupId>org.jdbi</groupId>
                 <artifactId>jdbi</artifactId>
                 <version>2.78</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-test</artifactId>
+                <version>${camel.version}</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>

@@ -34,10 +34,10 @@ import static myeslib3.stack1.stack1infra.utils.StringHelper.*;
 @AllArgsConstructor
 public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
-	private static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
-  private static final String COMMAND_ID = "command_id";
-  private static final String RESULT = "result";
-  private static final String APPLICATION_JSON = "application/json";
+	static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
+  static final String COMMAND_ID = "command_id";
+  static final String RESULT = "result";
+  static final String APPLICATION_JSON = "application/json";
 
 	@NonNull final Class<A> aggregateRootClass;
 	@NonNull final List<Class<?>> commandsClasses;
@@ -64,6 +64,7 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 
     fromF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
       .routeId("save-events-" + aggregateRootId(aggregateRootClass))
+      .log("${header.command_id}")
       .idempotentConsumer(header(COMMAND_ID)).messageIdRepository(idempotentRepo)
       .process(new SaveEventsProcessor())
       ;
@@ -119,7 +120,6 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
           .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
         .end()
         .process(new CommandProcessor())
-        .log("result: ${header.RESULT} ")
         .toF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
         .log("*** after save : ${body}")
       .onFallback()
