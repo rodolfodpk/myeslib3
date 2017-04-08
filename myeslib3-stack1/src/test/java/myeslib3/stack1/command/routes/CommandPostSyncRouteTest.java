@@ -3,7 +3,9 @@ package myeslib3.stack1.command.routes;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.Command;
+import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
@@ -21,6 +23,7 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -29,11 +32,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class CommandPostSyncRouteTest extends CamelTestSupport {
 
@@ -59,7 +64,6 @@ public class CommandPostSyncRouteTest extends CamelTestSupport {
 	@Mock
 	WriteModelRepository writeModelRepository;
 
-
 	@Before
 	public void init() throws Exception {
 	}
@@ -71,6 +75,9 @@ public class CommandPostSyncRouteTest extends CamelTestSupport {
 	@Test
 	public void test1() {
 
+    String customerId = "1";
+	  String commandId = "1";
+
     when(snapshotReader.getSnapshot(anyString(), any()))
             .thenReturn(new SnapshotReader.Snapshot<>(supplier.get(), new Version(0)));
 
@@ -79,10 +86,25 @@ public class CommandPostSyncRouteTest extends CamelTestSupport {
     String asJson =  gson.toJson(c, Command.class);
 
     Map<String, Object> headers = new HashMap<>();
-    headers.put(CommandPostSyncRoute.AGGREGATE_ROOT_ID, "1");
-    headers.put(CommandPostSyncRoute.COMMAND_ID, "1");
+    headers.put(CommandPostSyncRoute.AGGREGATE_ROOT_ID, customerId);
+    headers.put(CommandPostSyncRoute.COMMAND_ID, commandId);
 
     template.requestBodyAndHeaders(asJson, headers);
+
+    verify(snapshotReader).getSnapshot(eq(customerId), any(StateTransitionsTracker.class));
+
+    CustomerCreated expectedEvent = new CustomerCreated(customerId, "customer1");
+    UnitOfWork result = UnitOfWork.create(customerId, new Version(1), Arrays.asList(expectedEvent));
+
+    ArgumentCaptor<UnitOfWork> argument = ArgumentCaptor.forClass(UnitOfWork.class);
+
+    verify(writeModelRepository).append(argument.capture(), eq(c), any(Function.class));
+
+    assertEquals(argument.getValue().getAggregateRootId(), result.getAggregateRootId());
+    assertEquals(argument.getValue().getEvents(), result.getEvents());
+    assertEquals(argument.getValue().getVersion(), result.getVersion());
+
+    verifyNoMoreInteractions(snapshotReader, writeModelRepository);
 
     //System.out.println(uowAsJson);
   }
