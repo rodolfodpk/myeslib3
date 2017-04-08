@@ -15,6 +15,11 @@ public class StringHelper {
 		return camelCaseToSnakeCase(commandClass.getSimpleName());
 	}
 
+	public static String aggrCmdRoot(String prefix,
+                                   Class<? extends AggregateRoot> aggregateRootClass, Class<?> commandClass) {
+		return camelCaseToSnakeCase(prefix + aggregateRootClass.getSimpleName() + "-" + commandClass.getSimpleName());
+	}
+
 	public static String camelCaseToSnakeCase(String start) {
 		Matcher m = Pattern.compile("(?<=[a-z])[A-Z]").matcher(start);
 		StringBuffer sb = new StringBuffer();

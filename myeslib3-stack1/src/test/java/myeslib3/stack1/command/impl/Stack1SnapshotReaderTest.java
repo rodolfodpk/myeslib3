@@ -32,7 +32,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.*;
 
-@DisplayName("a snapshotReader")
+@DisplayName("A SnapshotReader")
 public class Stack1SnapshotReaderTest {
 
 	final Injector injector = Guice.createInjector(new CustomerModule());

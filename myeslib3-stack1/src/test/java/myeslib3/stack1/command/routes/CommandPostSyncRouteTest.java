@@ -3,7 +3,9 @@ package myeslib3.stack1.command.routes;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
+import myeslib3.core.data.Version;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
@@ -11,13 +13,15 @@ import myeslib3.example1.core.aggregates.customer.*;
 import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
+import org.apache.camel.ProducerTemplate;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.impl.DefaultProducerTemplate;
 import org.apache.camel.processor.idempotent.MemoryIdempotentRepository;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -26,7 +30,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 public class CommandPostSyncRouteTest {
+
+	static final Injector injector = Guice.createInjector(new CustomerModule());
+  static final DefaultCamelContext context = new DefaultCamelContext();
 
 	@Inject
 	Supplier<Customer> supplier;
@@ -42,24 +53,22 @@ public class CommandPostSyncRouteTest {
 	@Mock
 	SnapshotReader<Customer> snapshotReader;
 	@Mock
-	WriteModelRepository dao;
+	WriteModelRepository writeModelRepository;
 
-	Cache<String, List<UnitOfWork>> cache;
-	DefaultCamelContext context;
 
-	@Before
+	@BeforeEach
 	public void init() throws Exception {
-		cache = Caffeine.newBuilder().build();
-		context = new DefaultCamelContext();
-		Injector injector = Guice.createInjector(new CustomerModule());
 		injector.injectMembers(this);
 		MockitoAnnotations.initMocks(this);
-		CommandPostSyncRoute<Customer, CustomerCommand> route =
+		when(snapshotReader.getSnapshot(anyString(), any()))
+						.thenReturn(new SnapshotReader.Snapshot<>(supplier.get(), new Version(0)));
+		final CommandPostSyncRoute<Customer, CustomerCommand> route =
 						new CommandPostSyncRoute<>(Customer.class, commandsList(),
 										commandHandlerFn, supplier, dependencyInjectionFn, stateTransitionFn,
-										snapshotReader, dao, gson, new MemoryIdempotentRepository());
-
+										snapshotReader, writeModelRepository, gson, new MemoryIdempotentRepository());
+		context.addRoutes(route);
 		context.start();
+		//Thread.sleep(10000);
 	}
 
 	@AfterEach
@@ -69,7 +78,16 @@ public class CommandPostSyncRouteTest {
 
 	@Test
 	public void test1() {
-		// TODO Retrofit client for apply Customer commands
+
+    ProducerTemplate p = new DefaultProducerTemplate(context);
+
+    CustomerCommand c = new CreateCustomerCmd("customer1");
+
+    String asJson =  gson.toJson(c, Command.class);
+
+    p.sendBody("direct:handle-customer-create_customer_cmd", asJson);
+
+
 	}
 
 	List<Class<?>> commandsList() {
