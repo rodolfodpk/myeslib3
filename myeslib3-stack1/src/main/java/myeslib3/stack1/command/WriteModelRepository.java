@@ -6,10 +6,11 @@ import myeslib3.core.data.Version;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 public interface WriteModelRepository  {
 
-	void append(UnitOfWork unitOfWork, Command causeCommand);
+	void append(UnitOfWork unitOfWork, Command causeCommand, Function<Command, String> commandId);
 
 	UnitOfWork get(UUID uowId);
 

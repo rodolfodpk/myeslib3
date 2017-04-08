@@ -9,7 +9,7 @@ import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.WriteModelStateTransitionFn;
+import myeslib3.core.functions.StateTransitionFn;
 import myeslib3.stack1.command.CommandExecution;
 import myeslib3.stack1.command.CommandExecutions;
 import myeslib3.stack1.command.SnapshotReader;
@@ -39,16 +39,16 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
   private static final String COMMAND_ID = "command_id";
 	static final String APPLICATION_JSON = "application/json";
 
-	@NonNull Class<A> aggregateRootClass;
-	@NonNull List<Class<?>> commandsClasses;
-	@NonNull CommandHandlerFn<A, C> handler;
-	@NonNull Supplier<A> supplier;
-	@NonNull DependencyInjectionFn<A> dependencyInjectionFn;
-	@NonNull WriteModelStateTransitionFn<A> writeModelStateTransitionFn;
-	@NonNull SnapshotReader<A> snapshotReader;
-	@NonNull WriteModelRepository writeModelRepo;
-	@NonNull Gson gson ;
-	@NonNull IdempotentRepository<String> idempotentRepo;
+	@NonNull final Class<A> aggregateRootClass;
+	@NonNull final List<Class<?>> commandsClasses;
+	@NonNull final CommandHandlerFn<A, C> handler;
+	@NonNull final Supplier<A> supplier;
+	@NonNull final DependencyInjectionFn<A> dependencyInjectionFn;
+	@NonNull final StateTransitionFn<A> stateTransitionFn;
+	@NonNull final SnapshotReader<A> snapshotReader;
+	@NonNull final WriteModelRepository writeModelRepo;
+	@NonNull final Gson gson ;
+	@NonNull final IdempotentRepository<String> idempotentRepo;
 
 	@Override
   public void configure() throws Exception {
@@ -62,7 +62,7 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 
       commandsClasses.forEach( commandClazz -> {
 
-        GsonDataFormat df = new GsonDataFormat(gson, commandClazz);
+        final GsonDataFormat df = new GsonDataFormat(gson, commandClazz);
 
         rest("/" + aggregateRootId(aggregateRootClass))
           .id("put-" + commandId(commandClazz))
@@ -135,14 +135,14 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 			final Command command = e.getIn().getBody(Command.class);
 			final C _command = (C) command;
 			final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
-							writeModelStateTransitionFn, dependencyInjectionFn);
+              stateTransitionFn, dependencyInjectionFn);
 			final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId, tracker);
 			final UnitOfWork unitOfWork;
 			CommandExecution result;
 			try {
-				unitOfWork = handler.handle(commandId, _command,
+				unitOfWork = handler.handle(_command,
 								targetId, snapshot.getInstance(), snapshot.getVersion(),
-								writeModelStateTransitionFn, dependencyInjectionFn);
+                stateTransitionFn, dependencyInjectionFn);
 				result = SUCCESS(unitOfWork);
 			} catch (Exception ex) {
 				result = ERROR(ex);
@@ -158,12 +158,13 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 		@Override
 		public void process(Exchange e) throws Exception {
 
+      final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
 			final Command command = e.getIn().getBody(Command.class);
 			final C _command = (C) command;
 			final CommandExecution result = e.getIn().getBody(CommandExecution.class);
 			CommandExecutions.caseOf(result)
 				.SUCCESS(uow -> (Runnable) () -> {
-					writeModelRepo.append(uow, _command);
+					writeModelRepo.append(uow, _command, command1 -> commandId);
 					e.getOut().setBody(uow, UnitOfWork.class);
 					e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
 				})

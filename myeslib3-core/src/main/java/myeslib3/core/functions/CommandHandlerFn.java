@@ -6,11 +6,11 @@ import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 
 @FunctionalInterface
-public interface CommandHandlerFn<AGGREGATE_ROOT extends AggregateRoot, COMMAND extends Command> {
+public interface CommandHandlerFn<A extends AggregateRoot, C extends Command> {
 
-  UnitOfWork handle(String commandId, COMMAND command,
-                    String targetId, AGGREGATE_ROOT targetInstance, Version targetVersion,
-                    WriteModelStateTransitionFn<AGGREGATE_ROOT> writeModelStateTransitionFn,
-                    DependencyInjectionFn<AGGREGATE_ROOT> dependencyInjectionFn);
+  UnitOfWork handle(C command,
+                    String targetId, A targetInstance, Version targetVersion,
+                    StateTransitionFn<A> stateTransitionFn,
+                    DependencyInjectionFn<A> dependencyInjectionFn);
 
 }

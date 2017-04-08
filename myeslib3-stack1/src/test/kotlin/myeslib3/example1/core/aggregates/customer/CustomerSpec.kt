@@ -25,11 +25,11 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(0)
             When("a createCommand is issued") {
                 val cmd = CreateCustomerCmd(name = "customer 1")
-                val uow = COMMAND_HANDLER_FN.handle(commandId, cmd,
+                val uow = COMMAND_HANDLER_FN.handle(cmd,
                         customerId, customer, version,
-                        WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                        STATE_TRANSITION_FN, dependencyInjectionFn)
                 Then("a proper UnitOfWork is generated") {
-                    assertThat(uow.commandId).isEqualTo(commandId)
+//                    assertThat(uow.commandId).isEqualTo(commandId)
                     assertThat(uow.aggregateRootId).isEqualTo(customerId)
                     assertThat(uow.version).isEqualTo(Version.create(1))
                     assertThat(uow.events.first()).isEqualTo(CustomerCreated(customerId, cmd.name))
@@ -50,13 +50,13 @@ class CustomerSpec : BehaviorSpec() {
             val version = Version.create(1)
             When("an activateCommand is issued") {
                 val cmd = ActivateCustomerCmd("because I want it")
-                val uow = COMMAND_HANDLER_FN.handle(commandId, cmd,
+                val uow = COMMAND_HANDLER_FN.handle(cmd,
                         customerId, customer, version,
-                        WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                        STATE_TRANSITION_FN, dependencyInjectionFn)
                 Then("a proper UnitOfWork is generated") {
                     val expectedCmd =
                             DeactivateCustomerCmd("just because I want automatic deactivation 1 day after activation")
-                    assertThat(uow.commandId).isEqualTo(commandId)
+//                    assertThat(uow.commandId).isEqualTo(commandId)
                     assertThat(uow.aggregateRootId).isEqualTo(customerId)
                     assertThat(uow.version).isEqualTo(Version.create(2))
                     assertThat(uow.events.first()).isEqualTo(CustomerActivated(cmd.reason, activatedOn))
@@ -80,13 +80,13 @@ class CustomerSpec : BehaviorSpec() {
             When("a createCommand with same customerId is issued") {
                 val cmd = CreateCustomerCmd(name = "customer1")
                 val exception = shouldThrow<IllegalArgumentException> {
-                    COMMAND_HANDLER_FN.handle(commandId, cmd,
+                    COMMAND_HANDLER_FN.handle(cmd,
                             customerId, customer, version,
-                            WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                            STATE_TRANSITION_FN, dependencyInjectionFn)
                 }
                 Then("result must be an error with an IllegalArgumentException") {
-                    assertThat(exception?.localizedMessage).isEqualTo("before create the instance must be version= 0")
-                    assertThat(exception!!.javaClass.name).isEqualTo(IllegalArgumentException::class.java.name)
+                    assertThat(exception.localizedMessage).isEqualTo("before create the instance must be version= 0")
+                    assertThat(exception.javaClass.name).isEqualTo(IllegalArgumentException::class.java.name)
                 }
                 Then("nothing is called on serviceMock") {
                     verifyNoMoreInteractions(serviceMock)
@@ -99,13 +99,13 @@ class CustomerSpec : BehaviorSpec() {
             val cmd = CreateCustomerCmd(name = "customer1")
             When("a createCommand is issued") {
                 val exception = shouldThrow<IllegalArgumentException> {
-                    COMMAND_HANDLER_FN.handle(commandId, cmd,
+                    COMMAND_HANDLER_FN.handle(cmd,
                             customerId, customer, version,
-                            WRITE_MODEL_STATE_TRANSITION_FN, dependencyInjectionFn)
+                            STATE_TRANSITION_FN, dependencyInjectionFn)
                 }
                 Then("result must be an error with an IllegalArgumentException") {
-                    assertThat(exception?.localizedMessage).isEqualTo("before create the instance must be version= 0")
-                    assertThat(exception!!.javaClass.name).isEqualTo(IllegalArgumentException::class.java.name)
+                    assertThat(exception.localizedMessage).isEqualTo("before create the instance must be version= 0")
+                    assertThat(exception.javaClass.name).isEqualTo(IllegalArgumentException::class.java.name)
                 }
             }
         }

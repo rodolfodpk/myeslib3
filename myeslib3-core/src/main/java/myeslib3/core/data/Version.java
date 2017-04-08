@@ -5,14 +5,15 @@ import lombok.Value;
 @Value
 public class Version {
 
-	private final Long version;
+	private final long version;
 
-	public static Version create(Long version) {
-		return new Version(version);
+	public Version(long version) {
+		if (version <=0) throw new IllegalArgumentException("Version must be positive");
+		this.version = version;
 	}
 
-	public static Version create(Integer version) {
-		return new Version(version.longValue());
+	public static Version create(long version) {
+		return new Version(version);
 	}
 
 	public Version nextVersion() {

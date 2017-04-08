@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -150,13 +151,12 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   }
 
   @Override
-  public void append(UnitOfWork unitOfWork, Command command) throws DbConcurrencyException {
+  public void append(final UnitOfWork unitOfWork, final Command command, final Function<Command, String> commandIdFn)
+          throws DbConcurrencyException {
 
     requireNonNull(unitOfWork);
     requireNonNull(unitOfWork.getAggregateRootId());
-    requireNonNull(unitOfWork.getCommandId());
-
-    requireNonNull(unitOfWork);
+    requireNonNull(commandIdFn);
 
     final String uowAsJson = gson.toJson(unitOfWork, UnitOfWork.class);
     final String cmdAsJson = gson.toJson(command, Command.class);
@@ -199,6 +199,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       int result2 = conn.createStatement(insertUowSql)
               .bind("uow_id", unitOfWork.getUnitOfWorkId().toString())
               .bind("uow_data", uowAsJson)
+              .bind("cmd_id", commandIdFn.apply(command))
               .bind("cmd_data", cmdAsJson)
               .bind("target_id", unitOfWork.getAggregateRootId())
               .bind("version", unitOfWork.getVersion().getVersion())
@@ -211,6 +212,13 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
                       eventsChannelId,
                       unitOfWork.getUnitOfWorkId().toString()))
               .execute();
+
+      // TODO schedular commands emitidos aqui ?? SIM (e remove CommandScheduler)
+
+//              uow.getEvents().stream()
+//            .filter(event -> event instanceof CommandScheduling) // TODO tem que ter idempotency disto
+//            .map(event -> (CommandScheduling) e)
+//            .forEachOrdered(cs -> commandScheduler.schedule(commandId, cs));
 
       if (result1 + result2 == 2) {
         return true;

@@ -6,7 +6,7 @@ import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.WriteModelStateTransitionFn;
+import myeslib3.core.functions.StateTransitionFn;
 import myeslib3.example1.core.aggregates.customer.*;
 import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack1.command.SnapshotReader;
@@ -42,7 +42,7 @@ public class Stack1SnapshotReaderTest {
     @Inject
     DependencyInjectionFn<Customer> dependencyInjectionFn;
     @Inject
-		WriteModelStateTransitionFn<Customer> writeModelStateTransitionFn;
+    StateTransitionFn<Customer> stateTransitionFn;
 
     @Mock
     WriteModelRepository dao;
@@ -67,7 +67,7 @@ public class Stack1SnapshotReaderTest {
 			final List<UnitOfWork> expectedHistory = new ArrayList<>();
 
 			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(supplier.get(),
-							writeModelStateTransitionFn, dependencyInjectionFn);
+              stateTransitionFn, dependencyInjectionFn);
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
@@ -94,7 +94,7 @@ public class Stack1SnapshotReaderTest {
 
 			final CreateCustomerCmd command = new CreateCustomerCmd(name);
 
-			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
+			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
 																				new Version(1L),
 																				asList(new CustomerCreated(id, command.getName())),
 																				LocalDateTime.now());
@@ -104,7 +104,7 @@ public class Stack1SnapshotReaderTest {
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
 			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(supplier.get(),
-							writeModelStateTransitionFn, dependencyInjectionFn);
+              stateTransitionFn, dependencyInjectionFn);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
 
@@ -130,7 +130,7 @@ public class Stack1SnapshotReaderTest {
 
 			final CreateCustomerCmd command = new CreateCustomerCmd(name);
 
-			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
+			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
 							new Version(1L),
 							asList(new CustomerCreated(id, command.getName())),
 							LocalDateTime.now());
@@ -140,7 +140,7 @@ public class Stack1SnapshotReaderTest {
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
 			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(expectedInstance,
-							writeModelStateTransitionFn, dependencyInjectionFn);
+              stateTransitionFn, dependencyInjectionFn);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
 
@@ -173,7 +173,7 @@ public class Stack1SnapshotReaderTest {
 
 			// cached history
 			final CreateCustomerCmd command1 = new CreateCustomerCmd(name);
-			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
+			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
 							cachedVersion,
 							asList(new CustomerCreated(id, command1.getName())),
 							LocalDateTime.now());
@@ -181,7 +181,7 @@ public class Stack1SnapshotReaderTest {
 
 			// non cached history (on db)
 			final ActivateCustomerCmd command2 = new ActivateCustomerCmd(reason);
-			final UnitOfWork uow2 = new UnitOfWork(UUID.randomUUID(), id, UUID.randomUUID().toString(),
+			final UnitOfWork uow2 = new UnitOfWork(UUID.randomUUID(), id,
 							expectedVersion,
 							asList(new CustomerActivated(reason, activated_on)),
 							activated_on);
@@ -193,7 +193,7 @@ public class Stack1SnapshotReaderTest {
 			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
 
 			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(expectedInstance,
-							writeModelStateTransitionFn, dependencyInjectionFn);
+              stateTransitionFn, dependencyInjectionFn);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
 

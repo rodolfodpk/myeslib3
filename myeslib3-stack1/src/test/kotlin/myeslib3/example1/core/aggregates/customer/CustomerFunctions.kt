@@ -6,7 +6,8 @@ import myeslib3.core.data.AggregateRoot
 import myeslib3.core.data.UnitOfWork
 import myeslib3.core.data.Version
 import myeslib3.core.functions.CommandHandlerFn
-import myeslib3.core.functions.WriteModelStateTransitionFn
+import myeslib3.core.functions.SagaEventMonitoringFn
+import myeslib3.core.functions.StateTransitionFn
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
@@ -51,7 +52,7 @@ data class Customer(val customerId: String? = null,
 
 // events routing and execution function
 
-val WRITE_MODEL_STATE_TRANSITION_FN: WriteModelStateTransitionFn<Customer> = WriteModelStateTransitionFn { event, state ->
+val STATE_TRANSITION_FN: StateTransitionFn<Customer> = StateTransitionFn { event, state ->
     when (event) {
         is CustomerCreated -> state.copy(customerId = event.customerId, name = event.name)
         is CustomerActivated -> state.copy(active = true, activatedSince = event.date, reason = event.reason)
@@ -64,7 +65,7 @@ val WRITE_MODEL_STATE_TRANSITION_FN: WriteModelStateTransitionFn<Customer> = Wri
 // commands routing and execution function
 
 val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHandlerFn {
-    commandId, command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
+    command, targetId, targetInstance, targetVersion, stateTransitionFn, injectionFn ->
 
     val tracker: StateTransitionsTracker<Customer> =
             StateTransitionsTracker(targetInstance, stateTransitionFn, injectionFn)
@@ -72,21 +73,21 @@ val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHan
     when (command) {
         is CreateCustomerCmd -> {
             require(targetVersion == Version.create(0), { "before create the instance must be version= 0" })
-            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
+            UnitOfWork.create(targetId, targetVersion.nextVersion(),
                     targetInstance.create(targetId, command.name))
         }
         is ActivateCustomerCmd ->
-            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
+            UnitOfWork.create(targetId, targetVersion.nextVersion(),
                     targetInstance.activate(command.reason))
         is DeactivateCustomerCmd ->
-            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(),
+            UnitOfWork.create(targetId, targetVersion.nextVersion(),
                     targetInstance.deactivate(command.reason))
         is CreateActivatedCustomerCmd -> {
             val events = tracker
                     .applyEvents(targetInstance.create(targetId, command.name))
                     .applyEvents(tracker.currentState().activate(command.reason))
                     .collectedEvents()
-            UnitOfWork.create(targetId, commandId, targetVersion.nextVersion(), events)
+            UnitOfWork.create(targetId, targetVersion.nextVersion(), events)
         }
         else -> {
             throw IllegalArgumentException("invalid command")
@@ -95,4 +96,13 @@ val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHan
 
 }
 
+val EVENT_MONITORING_FN: SagaEventMonitoringFn = SagaEventMonitoringFn { event ->
+
+    when(event) {
+        is DeactivatedCmdScheduled -> {
+            Optional.of(event.scheduledCommand)
+        }
+        else -> Optional.empty()
+    }
+}
 

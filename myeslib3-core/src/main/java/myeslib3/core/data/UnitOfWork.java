@@ -1,5 +1,6 @@
 package myeslib3.core.data;
 
+import lombok.NonNull;
 import lombok.Value;
 
 import java.time.LocalDateTime;
@@ -9,16 +10,14 @@ import java.util.UUID;
 @Value
 public class UnitOfWork {
 
-	private final UUID unitOfWorkId;
-	private final String aggregateRootId;
-	private final String commandId;
-	private final Version version;
-	private final List<Event> events;
-	private final LocalDateTime timestamp;
+	@NonNull private final UUID unitOfWorkId;
+	@NonNull private final String aggregateRootId;
+	@NonNull private final Version version;
+	@NonNull private final List<Event> events;
+	@NonNull private final LocalDateTime timestamp;
 
-	public static UnitOfWork create(String aggregateRootId, String commandId, Version version,
-																	List<Event> events) {
-		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, commandId, version, events, LocalDateTime.now());
+	public static UnitOfWork create(String aggregateRootId, Version version, List<Event> events) {
+		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, version, events, LocalDateTime.now());
 	}
 
 }

@@ -6,7 +6,7 @@ import com.google.inject.Injector;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.functions.CommandHandlerFn;
 import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.WriteModelStateTransitionFn;
+import myeslib3.core.functions.StateTransitionFn;
 import myeslib3.example1.core.aggregates.customer.*;
 import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack1.command.SnapshotReader;
@@ -33,7 +33,7 @@ public class CommandPostSyncRouteTest {
 	@Inject
 	DependencyInjectionFn<Customer> dependencyInjectionFn;
 	@Inject
-	WriteModelStateTransitionFn<Customer> writeModelStateTransitionFn;
+  StateTransitionFn<Customer> stateTransitionFn;
 	@Inject
 	CommandHandlerFn<Customer, CustomerCommand> commandHandlerFn;
 	@Inject
@@ -56,7 +56,7 @@ public class CommandPostSyncRouteTest {
 		MockitoAnnotations.initMocks(this);
 		CommandPostSyncRoute<Customer, CustomerCommand> route =
 						new CommandPostSyncRoute<>(Customer.class, commandsList(),
-										commandHandlerFn, supplier, dependencyInjectionFn, writeModelStateTransitionFn,
+										commandHandlerFn, supplier, dependencyInjectionFn, stateTransitionFn,
 										snapshotReader, dao, gson, new MemoryIdempotentRepository());
 
 		context.start();

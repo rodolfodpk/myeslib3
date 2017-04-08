@@ -9,7 +9,8 @@ import myeslib3.core.data.Command
 import myeslib3.core.data.Event
 import myeslib3.core.functions.CommandHandlerFn
 import myeslib3.core.functions.DependencyInjectionFn
-import myeslib3.core.functions.WriteModelStateTransitionFn
+import myeslib3.core.functions.SagaEventMonitoringFn
+import myeslib3.core.functions.StateTransitionFn
 import myeslib3.example1.core.aggregates.customer.*
 import myeslib3.stack1.stack1infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
@@ -36,14 +37,20 @@ class CustomerModule : AbstractModule() {
 
     @Provides
     @Singleton
-    fun stateTransitionFn(): WriteModelStateTransitionFn<Customer> {
-        return WRITE_MODEL_STATE_TRANSITION_FN
+    fun stateTransitionFn(): StateTransitionFn<Customer> {
+        return STATE_TRANSITION_FN
     }
 
     @Provides
     @Singleton
     fun commandHandlerFn(): CommandHandlerFn<Customer, CustomerCommand> {
         return myeslib3.example1.core.aggregates.customer.COMMAND_HANDLER_FN
+    }
+
+    @Provides
+    @Singleton
+    fun eventMonitoringFn(): SagaEventMonitoringFn {
+        return myeslib3.example1.core.aggregates.customer.EVENT_MONITORING_FN
     }
 
     @Provides
