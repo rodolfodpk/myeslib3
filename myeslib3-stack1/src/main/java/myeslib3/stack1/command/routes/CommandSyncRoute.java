@@ -108,45 +108,45 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
       final Optional<UnitOfWork> unitOfWork;
       CommandExecution result;
       try {
-	      unitOfWork = handler.handleCommand(_command,
-				      	targetId, snapshot.getInstance(), snapshot.getVersion(),
-					      stateTransitionFn, dependencyInjectionFn);
-	      result = SUCCESS(unitOfWork);
+        unitOfWork = handler.handleCommand(_command,
+                targetId, snapshot.getInstance(), snapshot.getVersion(),
+                stateTransitionFn, dependencyInjectionFn);
+        result = SUCCESS(unitOfWork);
       } catch (Exception ex) {
-	      result = ERROR(ex);
+        result = ERROR(ex);
       }
       e.getOut().setHeader(COMMAND_ID, commandId);
       e.getOut().setBody(command, Command.class);
       e.getOut().setHeader(RESULT, result);
     }
-	}
+  }
 
-	final class SaveEventsProcessor implements Processor {
+  final class SaveEventsProcessor implements Processor {
 
     @Override
-		public void process(Exchange e) throws Exception {
+    public void process(Exchange e) throws Exception {
 
-		final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
-		final Command command = e.getIn().getBody(Command.class);
-		final C _command = (C) command;
-		final CommandExecution result = e.getIn().getHeader(RESULT, CommandExecution.class);
-		Runnable r = CommandExecutions.caseOf(result)
-		.SUCCESS(uow -> (Runnable) () -> {
-			if (uow.isPresent()) {
-				writeModelRepo.append(uow.get(), _command, command1 -> commandId);
-				e.getOut().setBody(uow.get(), UnitOfWork.class);
-				e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-			} else {
-				e.getOut().setBody(null);
-				e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-			}
-		})
-		.ERROR(exception -> () -> {
-			e.getOut().setBody(Arrays.asList(exception.getMessage()), List.class);
-			e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-		});
-		r.run();
-		}
-	}
+      final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
+      final Command command = e.getIn().getBody(Command.class);
+      final C _command = (C) command;
+      final CommandExecution result = e.getIn().getHeader(RESULT, CommandExecution.class);
+      Runnable r = CommandExecutions.caseOf(result)
+              .SUCCESS(uow -> (Runnable) () -> {
+                if (uow.isPresent()) {
+                  writeModelRepo.append(uow.get(), _command, command1 -> commandId);
+                  e.getOut().setBody(uow.get(), UnitOfWork.class);
+                  e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+                } else {
+                  e.getOut().setBody(null);
+                  e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+                }
+              })
+              .ERROR(exception -> () -> {
+                e.getOut().setBody(Arrays.asList(exception.getMessage()), List.class);
+                e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+              });
+      r.run();
+    }
+  }
 
 }
