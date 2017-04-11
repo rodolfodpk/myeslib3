@@ -44,7 +44,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	static final Injector injector = Guice.createInjector(new CustomerModule());
   static final DefaultCamelContext context = new DefaultCamelContext();
 
-  @Produce(uri = "direct://handleCommand-create_customer_cmd")
+  @Produce(uri = "direct://handle-create_customer_cmd")
   protected ProducerTemplate template;
 
   @Inject
