@@ -121,8 +121,6 @@ public class Stack1SnapshotReaderTest {
 			final String id = "customer#1";
 			final String name =  "customer#1 name";
 
-			final Customer expectedInstance = new Customer(id, name, false, null, null, null);
-
 			final CreateCustomerCmd command = new CreateCustomerCmd(name);
 
 			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
