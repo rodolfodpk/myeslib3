@@ -130,14 +130,14 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
       final Command command = e.getIn().getBody(Command.class);
       final C _command = (C) command;
       final CommandExecution result = e.getIn().getHeader(RESULT, CommandExecution.class);
-      Runnable r = CommandExecutions.caseOf(result)
+      final Runnable r = CommandExecutions.caseOf(result)
               .SUCCESS(uow -> (Runnable) () -> {
                 if (uow.isPresent()) {
                   writeModelRepo.append(uow.get(), _command, command1 -> commandId);
                   e.getOut().setBody(uow.get(), UnitOfWork.class);
                   e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
                 } else {
-                  e.getOut().setBody(null);
+                  e.getOut().setBody(Arrays.asList("unknown command"), List.class);
                   e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
                 }
               })
