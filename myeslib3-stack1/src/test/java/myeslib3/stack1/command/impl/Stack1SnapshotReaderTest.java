@@ -7,7 +7,10 @@ import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.core.functions.DependencyInjectionFn;
 import myeslib3.core.functions.StateTransitionFn;
-import myeslib3.example1.core.aggregates.customer.*;
+import myeslib3.example1.core.aggregates.customer.CreateCustomerCmd;
+import myeslib3.example1.core.aggregates.customer.Customer;
+import myeslib3.example1.core.aggregates.customer.CustomerActivated;
+import myeslib3.example1.core.aggregates.customer.CustomerCreated;
 import myeslib3.examples.example1.runtime.CustomerModule;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
@@ -71,9 +74,10 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
+			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+							dependencyInjectionFn, stateTransitionFn);
 
-			assertThat(reader.getSnapshot(id, tracker)).isEqualTo(expectedSnapshot);
+			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
 
 			verify(dao).getAll(id);
 
@@ -103,12 +107,10 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(supplier.get(),
-              stateTransitionFn, dependencyInjectionFn);
+			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+							dependencyInjectionFn, stateTransitionFn);
 
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
-
-			assertThat(reader.getSnapshot(id, tracker)).isEqualTo(expectedSnapshot);
+			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
 
 			verify(dao).getAll(id);
 
@@ -139,16 +141,7 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(expectedInstance,
-              stateTransitionFn, dependencyInjectionFn);
-
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
-
 			cache.put(id, expectedHistory);
-
-			assertThat(reader.getSnapshot(id, tracker)).isEqualTo(expectedSnapshot);
-
-			verify(dao).getAllAfterVersion(eq(id), eq(expectedSnapshot.getVersion()));
 
 			verifyNoMoreInteractions(dao);
 
@@ -180,26 +173,23 @@ public class Stack1SnapshotReaderTest {
 			final List<UnitOfWork> cachedHistory = Lists.newArrayList(newUow);
 
 			// non cached history (on db)
-			final ActivateCustomerCmd command2 = new ActivateCustomerCmd(reason);
 			final UnitOfWork uow2 = new UnitOfWork(UUID.randomUUID(), id,
 							expectedVersion,
 							asList(new CustomerActivated(reason, activated_on)),
 							activated_on);
-			List<UnitOfWork> nonCachedHistory = Lists.newArrayList(uow2);
+			final List<UnitOfWork> nonCachedHistory = Lists.newArrayList(uow2);
 
 			// prepare
 
 			when(dao.getAll(id)).thenReturn(cachedHistory);
 			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
 
-			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(expectedInstance,
-              stateTransitionFn, dependencyInjectionFn);
-
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao);
+			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+							dependencyInjectionFn, stateTransitionFn);
 
 			cache.put(id, cachedHistory);
 
-			assertThat(reader.getSnapshot(id, tracker)).isEqualTo(expectedSnapshot);
+			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
 
 			verify(dao).getAllAfterVersion(eq(id), eq(cachedVersion));
 

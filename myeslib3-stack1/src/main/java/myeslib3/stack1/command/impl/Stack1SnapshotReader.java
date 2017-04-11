@@ -7,6 +7,8 @@ import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
+import myeslib3.core.functions.DependencyInjectionFn;
+import myeslib3.core.functions.StateTransitionFn;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,16 +30,21 @@ public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotRe
 
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
-	@NonNull Cache<String, List<UnitOfWork>> cache;
-	@NonNull WriteModelRepository dao;
+	@NonNull final Cache<String, List<UnitOfWork>> cache;
+	@NonNull final WriteModelRepository dao;
+  @NonNull final Supplier<A> supplier;
+  @NonNull final DependencyInjectionFn<A> dependencyInjectionFn;
+  @NonNull final StateTransitionFn<A> stateTransitionFn;
 
-	@Override
-	public Snapshot<A> getSnapshot(String id, StateTransitionsTracker<A> tracker) {
+  @Override
+	public Snapshot<A> getSnapshot(String id) {
 
 		requireNonNull(id);
-		requireNonNull(tracker);
 
 		logger.debug("id {} cache.getInstance(id)", id);
+
+    final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
+            stateTransitionFn, dependencyInjectionFn);
 
 		final AtomicBoolean wasDaoCalled = new AtomicBoolean(false);
 

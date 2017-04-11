@@ -3,7 +3,6 @@ package myeslib3.stack1.command.routes;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
@@ -78,7 +77,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     String customerId = "1";
 	  String commandId = "1";
 
-    when(snapshotReader.getSnapshot(anyString(), any()))
+    when(snapshotReader.getSnapshot(anyString()))
             .thenReturn(new SnapshotReader.Snapshot<>(supplier.get(), new Version(0)));
 
     CustomerCommand c = new CreateCustomerCmd("customer1");
@@ -91,7 +90,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 
     template.requestBodyAndHeaders(asJson, headers);
 
-    verify(snapshotReader).getSnapshot(eq(customerId), any(StateTransitionsTracker.class));
+    verify(snapshotReader).getSnapshot(eq(customerId));
 
     CustomerCreated expectedEvent = new CustomerCreated(customerId, "customer1");
     UnitOfWork result = UnitOfWork.create(customerId, new Version(1), Arrays.asList(expectedEvent));
@@ -114,7 +113,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
     final CommandSyncRoute<Customer, CustomerCommand> route =
-            new CommandSyncRoute<>(Customer.class, commandsList(), commandHandlerFn, supplier, dependencyInjectionFn,
+            new CommandSyncRoute<>(Customer.class, commandsList(), commandHandlerFn, dependencyInjectionFn,
                     stateTransitionFn, snapshotReader, writeModelRepository, gson, new MemoryIdempotentRepository());
     return route;
   }

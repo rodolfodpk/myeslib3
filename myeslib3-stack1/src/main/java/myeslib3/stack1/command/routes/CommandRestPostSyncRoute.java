@@ -61,7 +61,7 @@ public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuil
         .responseMessage()
           .code(503).responseModel(List.class).message("service unavailable")
         .endResponseMessage()
-        .to("direct:handleCommand-" + commandId(commandClazz));
+        .to("direct:handle-" + commandId(commandClazz));
 
   }
 

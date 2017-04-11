@@ -3,7 +3,6 @@ package myeslib3.stack1.command.routes;
 import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
@@ -24,7 +23,6 @@ import org.apache.camel.spi.IdempotentRepository;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static myeslib3.stack1.command.CommandExecutions.ERROR;
 import static myeslib3.stack1.command.CommandExecutions.SUCCESS;
@@ -40,7 +38,6 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
 	@NonNull final Class<A> aggregateRootClass;
 	@NonNull final List<Class<?>> commandsClasses;
 	@NonNull final CommandHandlerFn<A, C> handler;
-	@NonNull final Supplier<A> supplier;
 	@NonNull final DependencyInjectionFn<A> dependencyInjectionFn;
 	@NonNull final StateTransitionFn<A> stateTransitionFn;
 	@NonNull final SnapshotReader<A> snapshotReader;
@@ -65,8 +62,8 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
 
     final GsonDataFormat df = new GsonDataFormat(gson, commandClazz);
 
-    fromF("direct:handleCommand-%s", commandId(commandClazz))
-      .routeId(aggrCmdRoot("handleCommand-", aggregateRootClass, commandClazz))
+    fromF("direct:handle-%s", commandId(commandClazz))
+      .routeId(aggrCmdRoot("handle-", aggregateRootClass, commandClazz))
  //     .streamCaching()
       .log("as gson: ${body}")
       .doTry()
@@ -107,9 +104,7 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
 			final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
 			final Command command = e.getIn().getBody(Command.class);
 			final C _command = (C) command;
-			final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
-              stateTransitionFn, dependencyInjectionFn);
-			final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId, tracker);
+			final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
 			final Optional<UnitOfWork> unitOfWork;
 			CommandExecution result;
 			try {
