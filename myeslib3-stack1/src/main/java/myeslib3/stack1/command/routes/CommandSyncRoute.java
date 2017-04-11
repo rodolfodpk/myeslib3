@@ -16,8 +16,6 @@ import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.gson.GsonDataFormat;
-import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spi.IdempotentRepository;
 
 import java.util.Arrays;
@@ -58,23 +56,32 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
       ;
   }
 
-  private void createRouteForCommand(Class<?> commandClazz) {
+  private void createRouteForCommand(Class<?> _commandClazz) {
 
-    final GsonDataFormat df = new GsonDataFormat(gson, commandClazz);
+    final Class<C> commandClazz = (Class<C>) _commandClazz;
 
     fromF("direct:handle-%s", commandId(commandClazz))
       .routeId(aggrCmdRoot("handle-", aggregateRootClass, commandClazz))
  //     .streamCaching()
-      .log("as gson: ${body}")
+      .log("as json: ${body}")
       .doTry()
-          .unmarshal(df)
+          .process(e -> {
+            final String asJson = e.getIn().getBody(String.class);
+            final C instance = gson.fromJson(asJson, commandClazz);
+            e.getOut().setBody(instance, commandClazz);
+            e.getOut().setHeaders(e.getIn().getHeaders());
+          })
           .log("as java: ${body}")
       .doCatch(Exception.class)
           .log("*** error ")
           .setBody(constant(Arrays.asList("gson serialization error")))
           .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(400))
-          .marshal().json(JsonLibrary.Gson, List.class)
-          .log("as gson error: ${body}")
+          .process(e -> {
+            final List<String> instance = e.getIn().getBody(List.class);
+            final String asJson = gson.toJson(instance, List.class);
+            e.getOut().setBody(asJson, String.class);
+          })
+          .log("as json error: ${body}")
           .stop()
       .end()
       .hystrix()
@@ -89,8 +96,13 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
         .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
       .end()
-      .marshal(df)
-      .log("as gson result: ${body}")
+      .process((Processor) e -> {
+        final C instance = e.getIn().getBody(commandClazz);
+        final String asJson = gson.toJson(instance, commandClazz);
+        e.getOut().setBody(asJson, String.class);
+        e.getOut().setHeaders(e.getIn().getHeaders());
+      })
+      .log("as json result: ${body}")
     ;
 
   }

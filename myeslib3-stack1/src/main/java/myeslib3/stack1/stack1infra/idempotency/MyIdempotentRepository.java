@@ -53,7 +53,7 @@ public class MyIdempotentRepository extends ServiceSupport implements Idempotent
 		}
 	}
 
-	@ManagedOperation(description = "Remove the key from the store")
+	@ManagedOperation(description = "Remove the key serialize the store")
 	public boolean remove(String key) {
 		synchronized (cache) {
 			cache.invalidate(key);

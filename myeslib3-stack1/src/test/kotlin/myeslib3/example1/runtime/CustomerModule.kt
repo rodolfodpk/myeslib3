@@ -1,5 +1,6 @@
 package myeslib3.examples.example1.runtime
 
+import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.inject.AbstractModule
@@ -75,6 +76,8 @@ class CustomerModule : AbstractModule() {
         gsonBuilder.registerTypeAdapterFactory(GsonJava8TypeAdapterFactory())
         gsonBuilder.registerTypeAdapterFactory(rtaCommand)
         gsonBuilder.registerTypeAdapterFactory(rtaEvents)
+
+        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES) // snake case
 
         val gson = gsonBuilder.create()
 

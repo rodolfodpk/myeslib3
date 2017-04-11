@@ -1,5 +1,6 @@
 package myeslib3
 
+import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import myeslib3.core.data.Command
@@ -75,6 +76,8 @@ fun gson(): Gson {
     gsonBuilder.registerTypeAdapterFactory(GsonJava8TypeAdapterFactory())
     gsonBuilder.registerTypeAdapterFactory(rtaCommand)
     gsonBuilder.registerTypeAdapterFactory(rtaEvents)
+
+    gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 
     val gson = gsonBuilder.create()
 
