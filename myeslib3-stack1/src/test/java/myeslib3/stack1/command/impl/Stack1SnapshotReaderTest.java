@@ -2,7 +2,6 @@ package myeslib3.stack1.command.impl;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.core.functions.DependencyInjectionFn;
@@ -69,9 +68,6 @@ public class Stack1SnapshotReaderTest {
 
 			final List<UnitOfWork> expectedHistory = new ArrayList<>();
 
-			final StateTransitionsTracker<Customer> tracker = new StateTransitionsTracker<>(supplier.get(),
-              stateTransitionFn, dependencyInjectionFn);
-
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
 			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
@@ -126,9 +122,6 @@ public class Stack1SnapshotReaderTest {
 			final String name =  "customer#1 name";
 
 			final Customer expectedInstance = new Customer(id, name, false, null, null, null);
-
-			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-							new SnapshotReader.Snapshot<>(expectedInstance, Version.create(1L));
 
 			final CreateCustomerCmd command = new CreateCustomerCmd(name);
 
