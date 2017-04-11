@@ -98,33 +98,32 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
   final class CommandProcessor implements Processor {
 
     @Override
-		public void process(Exchange e) throws Exception {
+    public void process(Exchange e) throws Exception {
 
-		final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
-		final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
-		final Command command = e.getIn().getBody(Command.class);
-		final C _command = (C) command;
-		final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
-		final Optional<UnitOfWork> unitOfWork;
-		CommandExecution result;
-		try {
-			unitOfWork = handler.handleCommand(_command,
-							targetId, snapshot.getInstance(), snapshot.getVersion(),
-							stateTransitionFn, dependencyInjectionFn);
-			result = SUCCESS(unitOfWork);
-		} catch (Exception ex) {
-			result = ERROR(ex);
-		}
-		e.getOut().setHeader(COMMAND_ID, commandId);
-		e.getOut().setBody(command, Command.class);
-		e.getOut().setHeader(RESULT, result);
-
-		}
+      final String targetId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
+      final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
+      final Command command = e.getIn().getBody(Command.class);
+      final C _command = (C) command;
+      final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId);
+      final Optional<UnitOfWork> unitOfWork;
+      CommandExecution result;
+      try {
+	      unitOfWork = handler.handleCommand(_command,
+				      	targetId, snapshot.getInstance(), snapshot.getVersion(),
+					      stateTransitionFn, dependencyInjectionFn);
+	      result = SUCCESS(unitOfWork);
+      } catch (Exception ex) {
+	      result = ERROR(ex);
+      }
+      e.getOut().setHeader(COMMAND_ID, commandId);
+      e.getOut().setBody(command, Command.class);
+      e.getOut().setHeader(RESULT, result);
+    }
 	}
 
 	final class SaveEventsProcessor implements Processor {
 
-		@Override
+    @Override
 		public void process(Exchange e) throws Exception {
 
 		final String commandId = e.getIn().getHeader(COMMAND_ID, String.class);
@@ -149,4 +148,5 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
 		r.run();
 		}
 	}
+
 }
