@@ -15,14 +15,15 @@ import static myeslib3.stack1.stack1infra.utils.StringHelper.*;
 @AllArgsConstructor
 public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuilder {
 
-	static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
+  static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
   static final String COMMAND_ID = "command_id";
   static final String APPLICATION_JSON = "application/json";
 
 	@NonNull final Class<A> aggregateRootClass;
 	@NonNull final List<Class<?>> commandsClasses;
 
-	@Override
+
+  @Override
   public void configure() throws Exception {
 
     restConfiguration().component("undertow").bindingMode(RestBindingMode.auto)
