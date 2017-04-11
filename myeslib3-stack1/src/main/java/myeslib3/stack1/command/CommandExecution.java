@@ -5,11 +5,13 @@ import myeslib3.core.data.UnitOfWork;
 import org.derive4j.ArgOption;
 import org.derive4j.Data;
 
+import java.util.Optional;
+
 @Data(arguments = ArgOption.checkedNotNull)
 public abstract class CommandExecution {
 
 	interface Cases<C> {
-		C SUCCESS(UnitOfWork unitOfWork);
+		C SUCCESS(Optional<UnitOfWork> unitOfWork);
 		C ERROR(Exception exception);
 	}
 

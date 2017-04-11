@@ -73,24 +73,24 @@ val COMMAND_HANDLER_FN: CommandHandlerFn<Customer, CustomerCommand> = CommandHan
     when (command) {
         is CreateCustomerCmd -> {
             require(targetVersion == Version.create(0), { "before create the instance must be version= 0" })
-            UnitOfWork.create(targetId, targetVersion.nextVersion(),
-                    targetInstance.create(targetId, command.name))
+            Optional.of(UnitOfWork.create(targetId, targetVersion.nextVersion(),
+                    targetInstance.create(targetId, command.name)))
         }
         is ActivateCustomerCmd ->
-            UnitOfWork.create(targetId, targetVersion.nextVersion(),
-                    targetInstance.activate(command.reason))
+            Optional.of(UnitOfWork.create(targetId, targetVersion.nextVersion(),
+                    targetInstance.activate(command.reason)))
         is DeactivateCustomerCmd ->
-            UnitOfWork.create(targetId, targetVersion.nextVersion(),
-                    targetInstance.deactivate(command.reason))
+            Optional.of(UnitOfWork.create(targetId, targetVersion.nextVersion(),
+                    targetInstance.deactivate(command.reason)))
         is CreateActivatedCustomerCmd -> {
             val events = tracker
                     .applyEvents(targetInstance.create(targetId, command.name))
                     .applyEvents(tracker.currentState().activate(command.reason))
                     .collectedEvents()
-            UnitOfWork.create(targetId, targetVersion.nextVersion(), events)
+            Optional.of(UnitOfWork.create(targetId, targetVersion.nextVersion(), events))
         }
         else -> {
-            throw IllegalArgumentException("invalid command")
+            Optional.empty<UnitOfWork>()
         }
     }
 

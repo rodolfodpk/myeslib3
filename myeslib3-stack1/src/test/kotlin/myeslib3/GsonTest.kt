@@ -11,6 +11,7 @@ import myeslib3.example1.core.aggregates.customer.*
 import myeslib3.stack1.stack1infra.gson.RuntimeTypeAdapterFactory
 import net.dongliu.gson.GsonJava8TypeAdapterFactory
 import org.junit.jupiter.api.Assertions.assertEquals
+import java.util.*
 
 val customerId = "customer#1"
 val commandId = "command#1"
@@ -21,13 +22,13 @@ fun main(args: Array<String>) {
 
     val gson = gson()
 
-    val uow1 = uow1()
+    val uow1 = uow1().get()
     val uowAsJson1 = gson.toJson(uow1)
     println(uowAsJson1)
     val fromJsonUow1 = gson.fromJson(uowAsJson1, UnitOfWork::class.java)
     assertEquals(fromJsonUow1, uow1)
 
-    val uow2 = uow2()
+    val uow2 = uow2().get()
     val uowAsJson2 = gson.toJson(uow2)
     println(uowAsJson2)
     val fromJsonUow2 = gson.fromJson(uowAsJson2, UnitOfWork::class.java)
@@ -40,18 +41,18 @@ val dependencyInjectionFn: DependencyInjectionFn<Customer> = DependencyInjection
     customer
 }
 
-fun uow1(): UnitOfWork {
+fun uow1(): Optional<UnitOfWork> {
     val cmd: CreateCustomerCmd = CreateCustomerCmd("customer1")
     val customer = dependencyInjectionFn.inject(Customer())
     val version = Version.create(0)
-    return COMMAND_HANDLER_FN.handle(cmd, customerId, customer, version, STATE_TRANSITION_FN, dependencyInjectionFn)
+    return COMMAND_HANDLER_FN.handleCommand(cmd, customerId, customer, version, STATE_TRANSITION_FN, dependencyInjectionFn)
 }
 
-fun uow2(): UnitOfWork {
+fun uow2(): Optional<UnitOfWork> {
     val cmd = CreateActivatedCustomerCmd("customer1", "because I want it")
     val customer = dependencyInjectionFn.inject(Customer())
     val version = Version.create(0)
-    return COMMAND_HANDLER_FN.handle(cmd, customerId, customer, version, STATE_TRANSITION_FN, dependencyInjectionFn)
+    return COMMAND_HANDLER_FN.handleCommand(cmd, customerId, customer, version, STATE_TRANSITION_FN, dependencyInjectionFn)
 }
 
 fun gson(): Gson {

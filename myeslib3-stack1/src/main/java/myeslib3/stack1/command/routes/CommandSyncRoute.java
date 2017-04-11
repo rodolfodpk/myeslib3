@@ -19,12 +19,11 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.gson.GsonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import org.apache.camel.model.rest.RestBindingMode;
-import org.apache.camel.model.rest.RestParamType;
 import org.apache.camel.spi.IdempotentRepository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static myeslib3.stack1.command.CommandExecutions.ERROR;
@@ -32,12 +31,11 @@ import static myeslib3.stack1.command.CommandExecutions.SUCCESS;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.*;
 
 @AllArgsConstructor
-public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
+public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extends RouteBuilder {
 
 	static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
   static final String COMMAND_ID = "command_id";
   static final String RESULT = "result";
-  static final String APPLICATION_JSON = "application/json";
 
 	@NonNull final Class<A> aggregateRootClass;
 	@NonNull final List<Class<?>> commandsClasses;
@@ -53,13 +51,6 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 	@Override
   public void configure() throws Exception {
 
-    restConfiguration().component("undertow").bindingMode(RestBindingMode.auto)
-            .dataFormatProperty("prettyPrint", "true")
-            .contextPath("/").port(8080)
-            .apiContextPath("/api-doc")
-            .apiProperty("api.title", "Customer API").apiProperty("api.version", "1.0.0")
-            .enableCORS(true);
-
     commandsClasses.forEach(this::createRouteForCommand);
 
     fromF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
@@ -74,33 +65,8 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 
     final GsonDataFormat df = new GsonDataFormat(gson, commandClazz);
 
-    rest("/" + aggregateRootId(aggregateRootClass))
-      .put("{" + AGGREGATE_ROOT_ID + "}/" + commandId(commandClazz) + "/{" + COMMAND_ID + "}")
-            .id(aggrCmdRoot("put-", aggregateRootClass, commandClazz))
-            .description("post a new " + commandId(commandClazz))
-      .consumes(APPLICATION_JSON).type(commandClazz)
-        .param()
-          .name(AGGREGATE_ROOT_ID).description("the id of the target AggregateRoot instance")
-          .type(RestParamType.query).dataType("java.util.String")
-        .endParam()
-        .param()
-          .name(COMMAND_ID).description("the id of the requested functions")
-          .type(RestParamType.query).dataType("String")
-        .endParam()
-      .produces(APPLICATION_JSON)
-        .responseMessage()
-          .code(201).responseModel(UnitOfWork.class).message("created")
-        .endResponseMessage()
-        .responseMessage()
-          .code(400).responseModel(List.class).message("bad request")
-        .endResponseMessage()
-        .responseMessage()
-          .code(503).responseModel(List.class).message("service unavailable")
-        .endResponseMessage()
-        .to("direct:handle-" + commandId(commandClazz));
-
-    fromF("direct:handle-%s", commandId(commandClazz))
-      .routeId(aggrCmdRoot("handle-", aggregateRootClass, commandClazz))
+    fromF("direct:handleCommand-%s", commandId(commandClazz))
+      .routeId(aggrCmdRoot("handleCommand-", aggregateRootClass, commandClazz))
  //     .streamCaching()
       .log("as gson: ${body}")
       .doTry()
@@ -144,10 +110,10 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 			final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
               stateTransitionFn, dependencyInjectionFn);
 			final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(targetId, tracker);
-			final UnitOfWork unitOfWork;
+			final Optional<UnitOfWork> unitOfWork;
 			CommandExecution result;
 			try {
-				unitOfWork = handler.handle(_command,
+				unitOfWork = handler.handleCommand(_command,
 								targetId, snapshot.getInstance(), snapshot.getVersion(),
                 stateTransitionFn, dependencyInjectionFn);
 				result = SUCCESS(unitOfWork);
@@ -172,9 +138,14 @@ public class CommandPostSyncRoute<A extends AggregateRoot, C extends Command> ex
 			final CommandExecution result = e.getIn().getHeader(RESULT, CommandExecution.class);
 			Runnable r = CommandExecutions.caseOf(result)
 				.SUCCESS(uow -> (Runnable) () -> {
-          writeModelRepo.append(uow, _command, command1 -> commandId);
-					e.getOut().setBody(uow, UnitOfWork.class);
-					e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+				  if (uow.isPresent()) {
+            writeModelRepo.append(uow.get(), _command, command1 -> commandId);
+            e.getOut().setBody(uow.get(), UnitOfWork.class);
+            e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+          } else {
+            e.getOut().setBody(null);
+            e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 412);
+          }
 				})
 				.ERROR(exception -> () -> {
 					e.getOut().setBody(Arrays.asList(exception.getMessage()), List.class);

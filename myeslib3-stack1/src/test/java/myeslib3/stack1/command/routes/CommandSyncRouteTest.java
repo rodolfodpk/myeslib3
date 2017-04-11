@@ -40,12 +40,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class CommandPostSyncRouteTest extends CamelTestSupport {
+public class CommandSyncRouteTest extends CamelTestSupport {
 
 	static final Injector injector = Guice.createInjector(new CustomerModule());
   static final DefaultCamelContext context = new DefaultCamelContext();
 
-  @Produce(uri = "direct://handle-create_customer_cmd")
+  @Produce(uri = "direct://handleCommand-create_customer_cmd")
   protected ProducerTemplate template;
 
   @Inject
@@ -86,8 +86,8 @@ public class CommandPostSyncRouteTest extends CamelTestSupport {
     String asJson =  gson.toJson(c, Command.class);
 
     Map<String, Object> headers = new HashMap<>();
-    headers.put(CommandPostSyncRoute.AGGREGATE_ROOT_ID, customerId);
-    headers.put(CommandPostSyncRoute.COMMAND_ID, commandId);
+    headers.put(CommandRestPostSyncRoute.AGGREGATE_ROOT_ID, customerId);
+    headers.put(CommandRestPostSyncRoute.COMMAND_ID, commandId);
 
     template.requestBodyAndHeaders(asJson, headers);
 
@@ -113,10 +113,9 @@ public class CommandPostSyncRouteTest extends CamelTestSupport {
   protected RouteBuilder createRouteBuilder() {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
-    final CommandPostSyncRoute<Customer, CustomerCommand> route =
-            new CommandPostSyncRoute<>(Customer.class, commandsList(),
-                    commandHandlerFn, supplier, dependencyInjectionFn, stateTransitionFn,
-                    snapshotReader, writeModelRepository, gson, new MemoryIdempotentRepository());
+    final CommandSyncRoute<Customer, CustomerCommand> route =
+            new CommandSyncRoute<>(Customer.class, commandsList(), commandHandlerFn, supplier, dependencyInjectionFn,
+                    stateTransitionFn, snapshotReader, writeModelRepository, gson, new MemoryIdempotentRepository());
     return route;
   }
 
