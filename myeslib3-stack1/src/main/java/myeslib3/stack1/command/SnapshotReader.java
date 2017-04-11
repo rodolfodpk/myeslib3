@@ -7,7 +7,7 @@ import myeslib3.core.data.Version;
 @FunctionalInterface
 public interface SnapshotReader<A extends AggregateRoot> {
 
-	Snapshot<A> getSnapshot(final String id);
+	Snapshot<A> getSnapshot(final String aggregateRootId);
 
 	@Value
 	class Snapshot<A> {

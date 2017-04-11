@@ -139,7 +139,7 @@ public class CommandSyncRoute<A extends AggregateRoot, C extends Command> extend
             e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
           } else {
             e.getOut().setBody(null);
-            e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 412);
+            e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
           }
 				})
 				.ERROR(exception -> () -> {

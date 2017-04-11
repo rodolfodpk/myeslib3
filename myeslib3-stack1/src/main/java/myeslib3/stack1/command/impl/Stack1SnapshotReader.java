@@ -37,24 +37,24 @@ public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotRe
   @NonNull final StateTransitionFn<A> stateTransitionFn;
 
   @Override
-	public Snapshot<A> getSnapshot(String id) {
+	public Snapshot<A> getSnapshot(String aggregateRootId) {
 
-		requireNonNull(id);
+		requireNonNull(aggregateRootId);
 
-		logger.debug("id {} cache.getInstance(id)", id);
+		logger.debug("id {} cache.getInstance(id)", aggregateRootId);
 
     final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
             stateTransitionFn, dependencyInjectionFn);
 
 		final AtomicBoolean wasDaoCalled = new AtomicBoolean(false);
 
-		final List<UnitOfWork> cachedUowList = cache.get(id, s -> {
-			logger.debug("id {} cache.getInstance(id) does not contain anything for this id. Will have to search on dao", id);
+		final List<UnitOfWork> cachedUowList = cache.get(aggregateRootId, s -> {
+			logger.debug("id {} cache.getInstance(id) does not contain anything for this id. Will have to search on dao", aggregateRootId);
 			wasDaoCalled.set(true);
-			return dao.getAll(id);
+			return dao.getAll(aggregateRootId);
 		});
 
-		logger.debug("id {} wasDaoCalled ? {}", id, wasDaoCalled.get());
+		logger.debug("id {} wasDaoCalled ? {}", aggregateRootId, wasDaoCalled.get());
 
 		if (wasDaoCalled.get()) {
 			return new Snapshot<>(tracker.applyEvents(flatMap(cachedUowList)).currentState(), lastVersion(cachedUowList));
@@ -63,19 +63,19 @@ public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotRe
 		final Version lastVersion = lastVersion(cachedUowList);
 
 		logger.debug("id {} cached lastSnapshotData has version {}. will check if there any version beyond it",
-						id, lastVersion);
+            aggregateRootId, lastVersion);
 
-		final List<UnitOfWork> nonCachedUowList = dao.getAllAfterVersion(id, lastVersion);
+		final List<UnitOfWork> nonCachedUowList = dao.getAllAfterVersion(aggregateRootId, lastVersion);
 
 		logger.debug("id {} found {} pending transactions. Last version is now {}",
-						id, nonCachedUowList.size(), lastVersion);
+            aggregateRootId, nonCachedUowList.size(), lastVersion);
 
 		final List<UnitOfWork> cachedPlusNonCachedUowList = Stream.of(cachedUowList, nonCachedUowList)
 						.flatMap(x -> x.stream()).collect(Collectors.toList());
 
 		final Version finalVersion = lastVersion(cachedPlusNonCachedUowList);
 
-		cache.put(id, cachedPlusNonCachedUowList);
+		cache.put(aggregateRootId, cachedPlusNonCachedUowList);
 
 		return new Snapshot<>(tracker.applyEvents(flatMap(cachedPlusNonCachedUowList)).currentState(), finalVersion);
 	}
