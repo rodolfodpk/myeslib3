@@ -12,6 +12,7 @@ import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.DeactivateCustomerCmd;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -25,6 +26,7 @@ import static org.apache.commons.lang3.Validate.validState;
 
 public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
+  @Inject
   public CustomerCmdHandler(BiFunction<Event, Customer, Customer> stateTransitionFn, Function<Customer, Customer> dependencyInjectionFn) {
     super(stateTransitionFn, dependencyInjectionFn);
   }
@@ -35,7 +37,7 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
     final UnitOfWork uow = Match(cmd).of(
 
             Case(instanceOf(CreateCustomerCmd.class), (command) -> {
-              validState(targetVersion == Version.create(0),
+              validState(targetVersion.equals(Version.create(0)),
                       "before create the instance must be version= 0");
               return create(cmd, targetVersion.nextVersion(),
                       targetInstance.create(command.getTargetId(), command.getName()));

@@ -1,9 +1,6 @@
 package myeslib3.example1.aggregates.customer;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Value;
 import lombok.experimental.Wither;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Event;
@@ -19,11 +16,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.Validate.validState;
 
-@AllArgsConstructor
+@Value
 @Wither
-@EqualsAndHashCode(exclude = {"service"})
-@ToString
-@Getter
 public class Customer implements AggregateRoot {
 
   transient SupplierHelperService service;

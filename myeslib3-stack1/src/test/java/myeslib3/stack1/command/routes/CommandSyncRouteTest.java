@@ -4,9 +4,9 @@ import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import myeslib3.core.data.Command;
-import myeslib3.core.data.Event;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
+import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
 import myeslib3.example1.aggregates.customer.CustomerModule;
@@ -33,30 +33,26 @@ import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static myeslib3.stack1.Headers.AGGREGATE_ROOT_ID;
 import static myeslib3.stack1.Headers.COMMAND_ID;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class CommandSyncRouteTest extends CamelTestSupport {
 
-	static final Injector injector = Guice.createInjector(new CustomerModule());
+	static final Injector injector = Guice.createInjector(new CustomerModule(), new Example1Module());
   static final DefaultCamelContext context = new DefaultCamelContext();
 
-  @Produce(uri = "direct://handle-create_customer_cmd")
+  @Produce(uri = "direct://handle-cmd-customer")
   protected ProducerTemplate template;
 
   @Inject
 	Supplier<Customer> supplier;
-	@Inject
-	Function<Customer, Customer> dependencyInjectionFn;
-	@Inject
-  BiFunction<Event, Customer, Customer> stateTransitionFn;
 	@Inject
   CustomerCmdHandler commandHandlerFn;
 	@Inject
@@ -84,9 +80,9 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     when(snapshotReader.getSnapshot(anyString()))
             .thenReturn(new Snapshot<>(supplier.get(), new Version(0)));
 
-    CreateCustomerCmd c = new CreateCustomerCmd(UUID.randomUUID(), "c1", "customer1");
+    CreateCustomerCmd c = new CreateCustomerCmd(UUID.randomUUID(), customerId, "customer1");
 
-    String asJson =  gson.toJson(c, Command.class);
+    String asJson = gson.toJson(c, Command.class);
 
     Map<String, Object> headers = new HashMap<>();
     headers.put(AGGREGATE_ROOT_ID, customerId);

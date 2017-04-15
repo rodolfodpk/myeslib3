@@ -39,7 +39,7 @@ public class CommandSyncRoute<A extends AggregateRoot> extends RouteBuilder {
   public void configure() throws Exception {
 
     fromF("direct:handle-cmd-%s", aggregateRootId(aggregateRootClass))
-      .routeId(aggregateRootId(aggregateRootClass))
+      .routeId("handle-cmd-" + aggregateRootId(aggregateRootClass))
       .log("as json: ${body}")
       .doTry()
         .process(e -> {
