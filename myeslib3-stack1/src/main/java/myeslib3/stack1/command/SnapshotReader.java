@@ -13,5 +13,9 @@ public interface SnapshotReader<A extends AggregateRoot> {
 	class Snapshot<A> {
 		final A instance;
 		final Version version;
-	}
+
+    public Version nextVersion() {
+    	return version.nextVersion();
+    }
+  }
 }

@@ -1,7 +1,9 @@
 package myeslib3.stack1.query.routes;
 
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import myeslib3.core.data.UnitOfWork;
+import myeslib3.stack1.Headers;
 import myeslib3.stack1.query.EventsProjector;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -13,19 +15,16 @@ import java.util.List;
 @AllArgsConstructor
 public class EventsProjectorRoute extends RouteBuilder {
 
-	static final String AGGREGATE_ROOT_ID = "aggregateRootId";
-
-	final String eventsChannelId;
-	final EventsProjector eventsProjector;
-	final int intervalInMilliseconds;
+	@NonNull final String eventsChannelId;
+	@NonNull final EventsProjector eventsProjector;
+	@NonNull final int intervalInMilliseconds;
 
 	@Override
 	public void configure() throws Exception {
 
 		fromF("seda:%s-events-projector", eventsChannelId)
 			.routeId(eventsChannelId + "-events-projector")
-			.setHeader(AGGREGATE_ROOT_ID, simple("${body.getAggregateRootId()"))
-			.aggregate(header(AGGREGATE_ROOT_ID), new Strategy())
+			.aggregate(header(Headers.AGGREGATE_ROOT_ID), new Strategy())
 						.completionInterval(intervalInMilliseconds).aggregationRepository(new MemoryAggregationRepository())
 			.wireTap(String.format("direct:%s-events-projector-write", eventsChannelId))
 			.log("${body}")
@@ -35,7 +34,6 @@ public class EventsProjectorRoute extends RouteBuilder {
 			.routeId(eventsChannelId + "-events-projector-write")
 			.threads(10)
 			.process(e -> {
-				// final String aggregateRootId = e.getIn().getHeader(AGGREGATE_ROOT_ID, String.class);
 				final List<UnitOfWork> list = e.getIn().getBody(List.class);
 				for (UnitOfWork uow: list) {
 					eventsProjector.apply(uow);

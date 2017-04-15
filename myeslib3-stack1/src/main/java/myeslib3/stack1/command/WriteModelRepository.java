@@ -1,21 +1,22 @@
 package myeslib3.stack1.command;
 
-import myeslib3.core.data.Command;
+import javaslang.Tuple2;
+import javaslang.collection.List;
+import myeslib3.core.data.Event;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 
 public interface WriteModelRepository  {
 
-	void append(UnitOfWork unitOfWork, Command causeCommand, Function<Command, String> commandId);
+	void append(UnitOfWork unitOfWork);
 
-	UnitOfWork get(UUID uowId);
+	Optional<UnitOfWork> get(UUID uowId);
 
-	List<UnitOfWork> getAll(String id);
+	Tuple2<Version, List<Event>> getAll(String id);
 
-	List<UnitOfWork> getAllAfterVersion(String id, Version version);
+	Tuple2<Version, List<Event>> getAllAfterVersion(String id, Version version);
 
 }

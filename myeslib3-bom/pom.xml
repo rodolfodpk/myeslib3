@@ -70,13 +70,6 @@
 
         <dependencies>
 
-            <dependency>
-                <groupId>org.derive4j</groupId>
-                <artifactId>derive4j</artifactId>
-                <version>0.10.2</version>
-                <optional>true</optional>
-            </dependency>
-
             <!-- own -->
             <dependency>
                 <groupId>rodolfodpk</groupId>
@@ -90,7 +83,19 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- own -->
+            <!-- util -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.5</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.javaslang</groupId>
+                <artifactId>javaslang</artifactId>
+                <version>2.0.5</version>
+            </dependency>
+
             <!-- config/ guice -->
             <dependency>
                 <groupId>org.aeonbits.owner</groupId>

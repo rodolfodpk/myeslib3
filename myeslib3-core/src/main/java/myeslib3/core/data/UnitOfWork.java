@@ -11,13 +11,16 @@ import java.util.UUID;
 public class UnitOfWork {
 
 	@NonNull final UUID unitOfWorkId;
-	@NonNull final String aggregateRootId;
+	@NonNull final Command command;
 	@NonNull final Version version;
 	@NonNull final List<Event> events;
 	@NonNull final LocalDateTime timestamp;
 
-	public static UnitOfWork create(String aggregateRootId, Version version, List<Event> events) {
-		return new UnitOfWork(UUID.randomUUID(), aggregateRootId, version, events, LocalDateTime.now());
+	public static UnitOfWork create(Command command, Version version, List<Event> events) {
+		return new UnitOfWork(UUID.randomUUID(), command, version, events, LocalDateTime.now());
 	}
 
+	public String getTargetId() {
+		return command.getTargetId();
+	}
 }

@@ -2,12 +2,11 @@ package myeslib3.core;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.StateTransitionFn;
-import myeslib3.example1.core.aggregates.customer.Customer;
-import myeslib3.example1.core.aggregates.customer.CustomerActivated;
-import myeslib3.example1.core.aggregates.customer.CustomerCreated;
-import myeslib3.examples.example1.runtime.CustomerModule;
+import myeslib3.core.data.Event;
+import myeslib3.example1.aggregates.customer.Customer;
+import myeslib3.example1.aggregates.customer.CustomerModule;
+import myeslib3.example1.aggregates.customer.events.CustomerActivated;
+import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,9 +29,9 @@ public class StateTransitionsTrackerTest {
   @Inject
   Supplier<Customer> supplier;
   @Inject
-  DependencyInjectionFn<Customer> dependencyInjectionFn;
+  Function<Customer, Customer> dependencyInjectionFn;
   @Inject
-  StateTransitionFn<Customer> stateTransitionFn;
+  BiFunction<Event, Customer, Customer> stateTransitionFn;
 
   StateTransitionsTracker<Customer> tracker;
 
@@ -69,8 +70,7 @@ public class StateTransitionsTrackerTest {
     public class WhenAddingNewEvent {
 
       private CustomerCreated createdEvent = new CustomerCreated("c1","customer-1");
-      private Customer expectedCustomer = new Customer("c1", "customer-1", false,
-              null, null, null);
+      private Customer expectedCustomer = Customer.create("c1", "customer-1", false,null);
 
       @BeforeEach
       void apply_create_event() {
@@ -93,8 +93,8 @@ public class StateTransitionsTrackerTest {
       public class WhenAddingActivateEvent {
 
         private CustomerActivated customerActivated = new CustomerActivated("is ok", LocalDateTime.now());
-        private Customer expectedCustomer = new Customer("c1", "customer-1", true,
-                customerActivated.getDate(), null, customerActivated.getReason());
+        private Customer expectedCustomer = Customer.create("c1", "customer-1", true,
+                customerActivated.getReason());
 
         @BeforeEach
         void apply_activate_event() {
