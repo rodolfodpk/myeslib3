@@ -8,6 +8,7 @@ import myeslib3.core.AggregateRootCmdHandler;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
+import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Exchange;
@@ -101,7 +102,7 @@ public class CommandSyncRoute<A extends AggregateRoot> extends RouteBuilder {
     public void process(Exchange e) throws Exception {
 
       final Command command = e.getIn().getBody(Command.class);
-      final SnapshotReader.Snapshot<A> snapshot = snapshotReader.getSnapshot(command.getTargetId());
+      final Snapshot<A> snapshot = snapshotReader.getSnapshot(command.getTargetId());
       Either<Exception, Optional<UnitOfWork>> result ;
       try {
         result = Either.right(handler.handle(command, snapshot.getInstance(), snapshot.getVersion()));

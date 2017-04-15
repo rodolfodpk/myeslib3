@@ -15,6 +15,7 @@ import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.DeactivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Produce;
@@ -81,7 +82,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	  String commandId = "1";
 
     when(snapshotReader.getSnapshot(anyString()))
-            .thenReturn(new SnapshotReader.Snapshot<>(supplier.get(), new Version(0)));
+            .thenReturn(new Snapshot<>(supplier.get(), new Version(0)));
 
     CreateCustomerCmd c = new CreateCustomerCmd(UUID.randomUUID(), "c1", "customer1");
 

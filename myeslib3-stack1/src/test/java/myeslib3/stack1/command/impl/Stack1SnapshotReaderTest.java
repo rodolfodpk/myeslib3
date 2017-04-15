@@ -9,7 +9,10 @@ import myeslib3.core.data.Event;
 import myeslib3.core.data.Version;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerModule;
-import myeslib3.stack1.command.SnapshotReader;
+import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
+import myeslib3.example1.aggregates.customer.events.CustomerActivated;
+import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
@@ -20,6 +23,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -57,8 +62,8 @@ public class Stack1SnapshotReaderTest {
 
 			String id = "customer#1";
 
-			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-							new SnapshotReader.Snapshot<>(supplier.get(), new Version(0L));
+			final Snapshot<Customer> expectedSnapshot =
+							new Snapshot<>(supplier.get(), new Version(0L));
 
 			final Tuple2<Version, List<Event>> expectedHistory = Tuple.of(new Version(0), List.empty());
 
@@ -74,113 +79,105 @@ public class Stack1SnapshotReaderTest {
 			verifyNoMoreInteractions(dao);
 
     }
-//
-//    @Test
-//    public void on_empty_cache_then_returns_version_from_db() {
-//
-//			final String id = "customer#1";
-//			final String name =  "customer#1 name";
-//
-//			final Customer expectedInstance = new Customer(id, name, false, null, null, null);
-//
-//			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-//								new SnapshotReader.Snapshot<>(expectedInstance, Version.create(1L));
-//
-//			final CreateCustomerCmd command = new CreateCustomerCmd(name);
-//
-//			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
-//																				new Version(1L),
-//																				asList(new CustomerCreated(id, command.getName())),
-//																				LocalDateTime.now());
-//
-//			final List<UnitOfWork> expectedHistory = Lists.newArrayList(newUow);
-//
-//			when(dao.getAll(id)).thenReturn(expectedHistory);
-//
-//			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
-//							dependencyInjectionFn, stateTransitionFn);
-//
-//			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
-//
-//			verify(dao).getAll(id);
-//
-//			verifyNoMoreInteractions(dao);
-//
-//
-//    }
-//
-//    @Test
-//    public void on_cache_then_hits_db_to_check_newer_version() {
-//
-//			final String id = "customer#1";
-//			final String name =  "customer#1 name";
-//
-//			final CreateCustomerCmd command = new CreateCustomerCmd(name);
-//
-//			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
-//							new Version(1L),
-//							asList(new CustomerCreated(id, command.getName())),
-//							LocalDateTime.now());
-//
-//			final List<UnitOfWork> expectedHistory = Lists.newArrayList(newUow);
-//
-//			when(dao.getAll(id)).thenReturn(expectedHistory);
-//
-//			cache.put(id, expectedHistory);
-//
-//			verifyNoMoreInteractions(dao);
-//
-//    }
-//
-//    @Test
-//    public void on_both_cache_and_db_then_hits_db_to_compose_history() {
-//
-//			final String id = "customer#1";
-//			final String name =  "customer#1 name";
-//			final String reason = "because yes";
-//
-//			final Version cachedVersion = new Version(1L);
-//			final Version expectedVersion = new Version(2L);
-//			final LocalDateTime activated_on = LocalDateTime.now();
-//
-//			final Customer expectedInstance =
-//							new Customer(id, name, true, activated_on, null, reason);
-//
-//			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-//							new SnapshotReader.Snapshot<>(expectedInstance, expectedVersion);
-//
-//			// cached history
-//			final CreateCustomerCmd command1 = new CreateCustomerCmd(name);
-//			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
-//							cachedVersion,
-//							asList(new CustomerCreated(id, command1.getName())),
-//							LocalDateTime.now());
-//			final List<UnitOfWork> cachedHistory = Lists.newArrayList(newUow);
-//
-//			// non cached history (on db)
-//			final UnitOfWork uow2 = new UnitOfWork(UUID.randomUUID(), id,
-//							expectedVersion,
-//							asList(new CustomerActivated(reason, activated_on)),
-//							activated_on);
-//			final List<UnitOfWork> nonCachedHistory = Lists.newArrayList(uow2);
-//
-//			// prepare
-//
-//			when(dao.getAll(id)).thenReturn(cachedHistory);
-//			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
-//
-//			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
-//							dependencyInjectionFn, stateTransitionFn);
-//
-//			cache.put(id, cachedHistory);
-//
-//			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
-//
-//			verify(dao).getAllAfterVersion(eq(id), eq(cachedVersion));
-//
-//			verifyNoMoreInteractions(dao);
-//
-//    }
+
+    @Test
+    public void on_empty_cache_then_returns_version_from_db() {
+
+			final String id = "customer#1";
+			final String name =  "customer#1 name";
+
+			final Customer expectedInstance = Customer.create(id, name, false, null);
+
+			final Snapshot<Customer> expectedSnapshot =
+								new Snapshot<>(expectedInstance, Version.create(1L));
+
+			final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
+
+      final Tuple2<Version, List<Event>> expectedHistory =
+              Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
+
+			when(dao.getAll(id)).thenReturn(expectedHistory);
+
+			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+							dependencyInjectionFn, stateTransitionFn);
+
+			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
+
+			verify(dao).getAll(id);
+
+			verifyNoMoreInteractions(dao);
+
+
+    }
+
+    @Test
+    public void on_cache_then_hits_db_to_check_newer_version() {
+
+			final String id = "customer#1";
+			final String name =  "customer#1 name";
+
+			final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
+
+      final Tuple2<Version, List<Event>> expectedHistory =
+              Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
+
+			when(dao.getAll(id)).thenReturn(expectedHistory);
+
+			cache.put(id, expectedHistory);
+
+			verifyNoMoreInteractions(dao);
+
+    }
+
+    @Test
+    public void on_both_cache_and_db_then_hits_db_to_compose_history() {
+
+			final String id = "customer#1";
+			final String name =  "customer#1 name";
+			final String reason = "because yes";
+
+			final Version cachedVersion = new Version(1L);
+			final Version expectedVersion = new Version(2L);
+			final LocalDateTime activated_on = LocalDateTime.now();
+
+			final Customer expectedInstance = Customer.create(id, name, true, reason);
+
+			final Snapshot<Customer> expectedSnapshot =
+							new Snapshot<>(expectedInstance, expectedVersion);
+
+			// cached history
+			final CreateCustomerCmd command1 = new CreateCustomerCmd(UUID.randomUUID(), id, name);
+
+      final Tuple2<Version, List<Event>> cachedHistory =
+              Tuple.of(new Version(1), List.of(new CustomerCreated(id, command1.getName())));
+
+      final Tuple2<Version, List<Event>> nonCachedHistory =
+              Tuple.of(new Version(2), List.of(new CustomerActivated(reason, activated_on)));
+
+      // prepare
+
+			when(dao.getAll(id)).thenReturn(cachedHistory);
+			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
+
+			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+							dependencyInjectionFn, stateTransitionFn);
+
+			cache.put(id, cachedHistory);
+
+			Snapshot<Customer> snapshot = reader.getSnapshot(id);
+
+//			assertThat(snapshot).isEqualTo(expectedSnapshot);
+
+      assertThat(snapshot.getInstance().getId()).isEqualTo(expectedSnapshot.getInstance().getId());
+      assertThat(snapshot.getInstance().getName()).isEqualTo(expectedSnapshot.getInstance().getName());
+      assertThat(snapshot.getInstance().isActive()).isEqualTo(expectedSnapshot.getInstance().isActive());
+      assertThat(snapshot.getInstance().getReason()).isEqualTo(expectedSnapshot.getInstance().getReason());
+
+      verify(dao).getAllAfterVersion(eq(id), eq(cachedVersion));
+
+			verifyNoMoreInteractions(dao);
+
+    }
 
 }
 

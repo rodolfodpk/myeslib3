@@ -16,7 +16,7 @@ public class CustomerStateTransitionFn implements BiFunction<Event, Customer, Cu
   public Customer apply(Event event, Customer instance) {
     return Match(event).of(
             Case(instanceOf(CustomerCreated.class), (e) -> instance.withId(e.getId()).withName(e.getName())),
-            Case(instanceOf(CustomerActivated.class), (e) -> instance.withReason(e.getReason()))
+            Case(instanceOf(CustomerActivated.class), (e) -> instance.withReason(e.getReason()).withActive(true))
     );
   }
 }

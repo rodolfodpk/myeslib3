@@ -10,6 +10,7 @@ import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Event;
 import myeslib3.core.data.Version;
+import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
