@@ -5,7 +5,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import myeslib3.core.AggregateRootCmdHandler;
 import myeslib3.core.data.Event;
-import myeslib3.example1.services.SupplierHelperServiceImpl;
+import myeslib3.example1.services.SampleServiceImpl;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -26,13 +26,13 @@ public class CustomerModule extends AbstractModule {
 
   @Provides
   @Singleton
-  Function<Customer, Customer> dependencyInjectionFn(final SupplierHelperServiceImpl service) {
+  Function<Customer, Customer> dependencyInjectionFn(final SampleServiceImpl service) {
     return (c) -> c.withService(service);
   }
 
   @Provides
   @Singleton
-  BiFunction<Event, Customer, Customer> stateTransitionFn(final SupplierHelperServiceImpl service) {
+  BiFunction<Event, Customer, Customer> stateTransitionFn(final SampleServiceImpl service) {
     return new CustomerStateTransitionFn();
   }
 

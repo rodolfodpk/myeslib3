@@ -9,7 +9,7 @@ import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;
 import myeslib3.example1.aggregates.customer.events.DeactivatedCmdScheduled;
-import myeslib3.example1.services.SupplierHelperService;
+import myeslib3.example1.services.SampleService;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ import static org.apache.commons.lang3.Validate.validState;
 @Wither
 public class Customer implements AggregateRoot {
 
-  transient SupplierHelperService service;
+  transient SampleService service;
 
   String id;
   String name;

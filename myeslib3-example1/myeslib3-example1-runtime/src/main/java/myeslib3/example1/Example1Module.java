@@ -18,8 +18,8 @@ import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;
 import myeslib3.example1.aggregates.customer.events.DeactivatedCmdScheduled;
 import myeslib3.example1.gson.RuntimeTypeAdapterFactory;
-import myeslib3.example1.services.SupplierHelperService;
-import myeslib3.example1.services.SupplierHelperServiceImpl;
+import myeslib3.example1.services.SampleService;
+import myeslib3.example1.services.SampleServiceImpl;
 import net.dongliu.gson.GsonJava8TypeAdapterFactory;
 
 public class Example1Module extends AbstractModule {
@@ -27,7 +27,7 @@ public class Example1Module extends AbstractModule {
   @Override
   protected void configure() {
 
-    bind(SupplierHelperService.class).to(SupplierHelperServiceImpl.class).asEagerSingleton();
+    bind(SampleService.class).to(SampleServiceImpl.class).asEagerSingleton();
   }
 
   @Provides
