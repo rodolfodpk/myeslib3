@@ -4,7 +4,7 @@ package myeslib3.stack1.query.routes;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.impossibl.postgres.jdbc.PGDataSource;
-import myeslib3.examples.example1.runtime.CustomerModule;
+import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.stack1.Stack1Module;
 import myeslib3.stack1.stack1infra.DatabaseConfig;
 import myeslib3.stack1.stack1infra.DatabaseModule;

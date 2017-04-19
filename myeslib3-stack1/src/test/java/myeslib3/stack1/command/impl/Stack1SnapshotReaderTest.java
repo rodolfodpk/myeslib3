@@ -2,20 +2,20 @@ package myeslib3.stack1.command.impl;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.data.UnitOfWork;
+import javaslang.Tuple;
+import javaslang.Tuple2;
+import javaslang.collection.List;
+import myeslib3.core.data.Event;
 import myeslib3.core.data.Version;
-import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.StateTransitionFn;
-import myeslib3.example1.core.aggregates.customer.CreateCustomerCmd;
-import myeslib3.example1.core.aggregates.customer.Customer;
-import myeslib3.example1.core.aggregates.customer.CustomerActivated;
-import myeslib3.example1.core.aggregates.customer.CustomerCreated;
-import myeslib3.examples.example1.runtime.CustomerModule;
-import myeslib3.stack1.command.SnapshotReader;
+import myeslib3.example1.aggregates.customer.Customer;
+import myeslib3.example1.aggregates.customer.CustomerModule;
+import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
+import myeslib3.example1.aggregates.customer.events.CustomerActivated;
+import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,13 +24,12 @@ import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -42,14 +41,14 @@ public class Stack1SnapshotReaderTest {
     @Inject
     Supplier<Customer> supplier;
     @Inject
-    DependencyInjectionFn<Customer> dependencyInjectionFn;
+		Function<Customer, Customer> dependencyInjectionFn;
     @Inject
-    StateTransitionFn<Customer> stateTransitionFn;
+		BiFunction<Event, Customer, Customer> stateTransitionFn;
 
     @Mock
     WriteModelRepository dao;
 
-    Cache<String, List<UnitOfWork>> cache;
+    Cache<String, Tuple2<Version, List<Event>>> cache;
 
     @BeforeEach
     public void init() throws Exception {
@@ -63,10 +62,10 @@ public class Stack1SnapshotReaderTest {
 
 			String id = "customer#1";
 
-			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-							new SnapshotReader.Snapshot<>(supplier.get(), new Version(0L));
+			final Snapshot<Customer> expectedSnapshot =
+							new Snapshot<>(supplier.get(), new Version(0L));
 
-			final List<UnitOfWork> expectedHistory = new ArrayList<>();
+			final Tuple2<Version, List<Event>> expectedHistory = Tuple.of(new Version(0), List.empty());
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
@@ -87,19 +86,15 @@ public class Stack1SnapshotReaderTest {
 			final String id = "customer#1";
 			final String name =  "customer#1 name";
 
-			final Customer expectedInstance = new Customer(id, name, false, null, null, null);
+			final Customer expectedInstance = Customer.create(id, name, false, null);
 
-			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-								new SnapshotReader.Snapshot<>(expectedInstance, Version.create(1L));
+			final Snapshot<Customer> expectedSnapshot =
+								new Snapshot<>(expectedInstance, Version.create(1L));
 
-			final CreateCustomerCmd command = new CreateCustomerCmd(name);
+			final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
-																				new Version(1L),
-																				asList(new CustomerCreated(id, command.getName())),
-																				LocalDateTime.now());
-
-			final List<UnitOfWork> expectedHistory = Lists.newArrayList(newUow);
+      final Tuple2<Version, List<Event>> expectedHistory =
+              Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
@@ -121,14 +116,10 @@ public class Stack1SnapshotReaderTest {
 			final String id = "customer#1";
 			final String name =  "customer#1 name";
 
-			final CreateCustomerCmd command = new CreateCustomerCmd(name);
+			final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
-							new Version(1L),
-							asList(new CustomerCreated(id, command.getName())),
-							LocalDateTime.now());
-
-			final List<UnitOfWork> expectedHistory = Lists.newArrayList(newUow);
+      final Tuple2<Version, List<Event>> expectedHistory =
+              Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
@@ -149,28 +140,21 @@ public class Stack1SnapshotReaderTest {
 			final Version expectedVersion = new Version(2L);
 			final LocalDateTime activated_on = LocalDateTime.now();
 
-			final Customer expectedInstance =
-							new Customer(id, name, true, activated_on, null, reason);
+			final Customer expectedInstance = Customer.create(id, name, true, reason);
 
-			final SnapshotReader.Snapshot<Customer> expectedSnapshot =
-							new SnapshotReader.Snapshot<>(expectedInstance, expectedVersion);
+			final Snapshot<Customer> expectedSnapshot =
+							new Snapshot<>(expectedInstance, expectedVersion);
 
 			// cached history
-			final CreateCustomerCmd command1 = new CreateCustomerCmd(name);
-			final UnitOfWork newUow = new UnitOfWork(UUID.randomUUID(), id,
-							cachedVersion,
-							asList(new CustomerCreated(id, command1.getName())),
-							LocalDateTime.now());
-			final List<UnitOfWork> cachedHistory = Lists.newArrayList(newUow);
+			final CreateCustomerCmd command1 = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-			// non cached history (on db)
-			final UnitOfWork uow2 = new UnitOfWork(UUID.randomUUID(), id,
-							expectedVersion,
-							asList(new CustomerActivated(reason, activated_on)),
-							activated_on);
-			final List<UnitOfWork> nonCachedHistory = Lists.newArrayList(uow2);
+      final Tuple2<Version, List<Event>> cachedHistory =
+              Tuple.of(new Version(1), List.of(new CustomerCreated(id, command1.getName())));
 
-			// prepare
+      final Tuple2<Version, List<Event>> nonCachedHistory =
+              Tuple.of(new Version(2), List.of(new CustomerActivated(reason, activated_on)));
+
+      // prepare
 
 			when(dao.getAll(id)).thenReturn(cachedHistory);
 			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
@@ -180,9 +164,16 @@ public class Stack1SnapshotReaderTest {
 
 			cache.put(id, cachedHistory);
 
-			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
+			Snapshot<Customer> snapshot = reader.getSnapshot(id);
 
-			verify(dao).getAllAfterVersion(eq(id), eq(cachedVersion));
+//			assertThat(snapshot).isEqualTo(expectedSnapshot);
+
+      assertThat(snapshot.getInstance().getId()).isEqualTo(expectedSnapshot.getInstance().getId());
+      assertThat(snapshot.getInstance().getName()).isEqualTo(expectedSnapshot.getInstance().getName());
+      assertThat(snapshot.getInstance().isActive()).isEqualTo(expectedSnapshot.getInstance().isActive());
+      assertThat(snapshot.getInstance().getReason()).isEqualTo(expectedSnapshot.getInstance().getReason());
+
+      verify(dao).getAllAfterVersion(eq(id), eq(cachedVersion));
 
 			verifyNoMoreInteractions(dao);
 

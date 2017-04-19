@@ -14,6 +14,7 @@
     <modules>
         <module>myeslib3-bom</module>
         <module>myeslib3-core</module>
+        <module>myeslib3-example1</module>
         <module>myeslib3-stack1</module>
     </modules>
 

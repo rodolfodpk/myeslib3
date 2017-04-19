@@ -1,7 +1,12 @@
 package myeslib3.stack1.command.impl;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import javaslang.Tuple;
+import javaslang.Tuple2;
+import javaslang.collection.List;
 import myeslib3.core.data.Command;
+import myeslib3.core.data.Event;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.stack1.command.WriteModelRepository;
@@ -9,20 +14,22 @@ import myeslib3.stack1.stack1infra.jdbi.DbConcurrencyException;
 import myeslib3.stack1.stack1infra.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.tweak.HandleCallback;
+import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.util.LongColumnMapper;
 import org.skife.jdbi.v2.util.StringColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
@@ -39,6 +46,8 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   private final String insertAggRootSql;
   private final String updateAggRootSql;
   private final String insertUowSql;
+
+  private final TypeToken<java.util.List<Event>> listTypeToken = new TypeToken<java.util.List<Event>>() {};
 
   public Stack1WriteModelRepository(String eventsChannelId, String aggregateRootId, Gson gson, DBI dbi) {
 
@@ -77,7 +86,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
 
   @Override
-  public UnitOfWork get(UUID uowId) {
+  public Optional<UnitOfWork> get(UUID uowId) {
 
     final String uowAsJson = dbi
       .withHandle(new HandleCallback<String>() {
@@ -92,87 +101,87 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       }
       );
 
-    return uowAsJson == null ? null : gson.fromJson(uowAsJson, UnitOfWork.class);
+    return uowAsJson == null ? Optional.empty() : Optional.of(gson.fromJson(uowAsJson, UnitOfWork.class));
 
   }
 
   @Override
-  public List<UnitOfWork> getAll(String id) {
+  public Tuple2<Version, List<Event>> getAll(String id) {
     return getAllAfterVersion(id, new Version(0L));
   }
 
   @Override
-  public List<UnitOfWork> getAllAfterVersion(String id, Version version) {
+  public Tuple2<Version, List<Event>> getAllAfterVersion(String id, Version version) {
 
     requireNonNull(id);
     requireNonNull(version);
 
-    final List<UnitOfWork> arh = new ArrayList<>();
-
     logger.debug("will load {} from {}", id, dbMetadata.aggregateRootTable);
 
-    final List<String> unitsOfWork = dbi
-      .withHandle(new HandleCallback<List<String>>() {
+    final java.util.List<Tuple2<Long, String>> eventsListAsJson = dbi
+      .withHandle(new HandleCallback<java.util.List<Tuple2<Long, String>>>() {
 
-        String sql = String.format("select uow_data " +
+        String sql = String.format("select version, uow_events " +
                 "from %s where target_id = :id " +
                 " and version > :version " +
                 "order by version", dbMetadata.unitOfWorkTable);
 
-        public List<String> withHandle(Handle h) {
+        public java.util.List<Tuple2<Long, String>> withHandle(Handle h) {
           return h.createQuery(sql)
                   .bind("id", id.toString())
                   .bind("version", version.getVersion())
-                  .map(StringColumnMapper.INSTANCE).list();
+                  .map(new EventsMapper()).list();
         }
       }
       );
 
-    if (unitsOfWork == null) {
+    if (eventsListAsJson == null) {
 
       logger.debug("found none unit of work for id {} and version > {} on {}",
               id.toString(), version.getVersion(), dbMetadata.unitOfWorkTable);
 
-      return new ArrayList<>();
+      return new Tuple2<>(Version.create(0), List.empty());
 
     }
 
     logger.debug("found {} units of work for id {} and version > {} on {}",
-            unitsOfWork.size(), id.toString(), version.getVersion(), dbMetadata.unitOfWorkTable);
+            eventsListAsJson.size(), id.toString(), version.getVersion(), dbMetadata.unitOfWorkTable);
 
-    for (String uowAsJson : unitsOfWork) {
-      logger.debug("converting to uow from {}", uowAsJson);
-      final UnitOfWork uow = gson.fromJson(uowAsJson, UnitOfWork.class);
-      logger.debug(uow.toString());
-      arh.add(uow);
+    final ArrayList<Event> result = new ArrayList<>();
+    Long finalVersion = 0L;
+
+    for (Tuple2<Long, String> tuple : eventsListAsJson) {
+      logger.debug("converting to List<Event> from {}", tuple);
+      final List<Event> events = gson.fromJson(tuple._2(), listTypeToken.getType());
+      logger.debug(events.toString());
+      events.forEach(e -> result.add(e));
+      finalVersion = tuple._1();
     }
 
-    return Collections.unmodifiableList(arh);
+    return Tuple.of(new Version(finalVersion), List.ofAll(result));
+
   }
 
   @Override
-  public void append(final UnitOfWork unitOfWork, final Command command, final Function<Command, String> commandIdFn)
-          throws DbConcurrencyException {
+  public void append(final UnitOfWork unitOfWork) throws DbConcurrencyException {
 
     requireNonNull(unitOfWork);
-    requireNonNull(unitOfWork.getAggregateRootId());
-    requireNonNull(commandIdFn);
 
-    final String uowAsJson = gson.toJson(unitOfWork, UnitOfWork.class);
-    final String cmdAsJson = gson.toJson(command, Command.class);
+    final String cmdAsJson = gson.toJson(unitOfWork.getCommand(), Command.class);
+    final String eventsAsJson = gson.toJson(unitOfWork.getEvents(), listTypeToken.getType());
 
-    logger.debug("appending uow to {} with id {}", dbMetadata.aggregateRootTable, unitOfWork.getAggregateRootId());
+    logger.debug("appending uow to {} with id {}", dbMetadata.aggregateRootTable, unitOfWork.getTargetId());
 
     dbi.inTransaction(TransactionIsolationLevel.SERIALIZABLE, (conn, status) -> {
 
       final Long currentVersion = conn.createQuery(selectAggRootSql)
-              .bind("id", unitOfWork.getAggregateRootId())
+              .bind("id", unitOfWork.getTargetId())
               .map(LongColumnMapper.WRAPPER).first();
 
       if ((currentVersion == null ? 0 : currentVersion) != unitOfWork.getVersion().getVersion() - 1) {
         throw new DbConcurrencyException(
                 String.format("id = [%s], current_version = %d, new_version = %d",
-                        unitOfWork.getAggregateRootId(),
+                        unitOfWork.getTargetId(),
                         currentVersion, unitOfWork.getVersion().getVersion()));
       }
 
@@ -181,7 +190,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       if (currentVersion == null) {
 
         result1 = conn.createStatement(insertAggRootSql)
-                .bind("id", unitOfWork.getAggregateRootId())
+                .bind("id", unitOfWork.getTargetId())
                 .bind("new_version", unitOfWork.getVersion().getVersion())
                 .bind("last_update", new Timestamp(Instant.now().getEpochSecond()))
                 .execute();
@@ -189,7 +198,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       } else {
 
         result1 = conn.createStatement(updateAggRootSql)
-                .bind("id", unitOfWork.getAggregateRootId())
+                .bind("id", unitOfWork.getTargetId())
                 .bind("new_version", unitOfWork.getVersion().getVersion())
                 .bind("curr_version", unitOfWork.getVersion().getVersion() - 1)
                 .bind("last_update", new Timestamp(Instant.now().getEpochSecond()))
@@ -198,10 +207,10 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
       int result2 = conn.createStatement(insertUowSql)
               .bind("uow_id", unitOfWork.getUnitOfWorkId().toString())
-              .bind("uow_data", uowAsJson)
-              .bind("cmd_id", commandIdFn.apply(command))
+              .bind("uow_events", eventsAsJson)
+              .bind("cmd_id", unitOfWork.getCommand().getCommandId())
               .bind("cmd_data", cmdAsJson)
-              .bind("target_id", unitOfWork.getAggregateRootId())
+              .bind("target_id", unitOfWork.getTargetId())
               .bind("version", unitOfWork.getVersion().getVersion())
               .bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
               .execute();
@@ -226,7 +235,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
       throw new DbConcurrencyException(
               String.format("id = [%s], current_version = %d, new_version = %d",
-                      unitOfWork.getAggregateRootId(),
+                      unitOfWork.getTargetId(),
                       currentVersion, unitOfWork.getVersion().getVersion()));
 
     }
@@ -234,7 +243,6 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
     );
 
   }
-
 
   static class DbMetadata {
 
@@ -250,4 +258,11 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
   }
 
+}
+
+class EventsMapper implements ResultSetMapper<Tuple2<Long, String>> {
+  @Override
+  public Tuple2<Long, String> map(int i, ResultSet resultSet, StatementContext statementContext) throws SQLException {
+    return Tuple.of(resultSet.getLong("version"), resultSet.getString("uow_events"));
+  }
 }

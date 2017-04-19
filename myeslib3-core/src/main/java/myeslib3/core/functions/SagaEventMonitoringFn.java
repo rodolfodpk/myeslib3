@@ -11,3 +11,4 @@ public interface SagaEventMonitoringFn {
 	Optional<Command> apply(Event event);
 
 }
+

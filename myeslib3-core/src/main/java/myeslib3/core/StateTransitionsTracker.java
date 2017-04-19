@@ -1,34 +1,25 @@
 package myeslib3.core;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.Event;
-import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.StateTransitionFn;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
+@AllArgsConstructor
 public class StateTransitionsTracker<A extends AggregateRoot> {
 
-	final A originalInstance;
-	final StateTransitionFn<A> applyEventsFn;
-	final DependencyInjectionFn<A> dependencyInjectionFn;
-	final List<StateTransition<A>> stateTransitions;
-
-	public StateTransitionsTracker(A originalInstance,
-																 StateTransitionFn<A> applyEventsFn,
-																 DependencyInjectionFn<A> dependencyInjectionFn) {
-		requireNonNull(originalInstance);
-		requireNonNull(applyEventsFn);
-		requireNonNull(dependencyInjectionFn);
-		this.originalInstance = originalInstance;
-		this.applyEventsFn = applyEventsFn;
-		this.dependencyInjectionFn = dependencyInjectionFn;
-		this.stateTransitions = new ArrayList<>();
-	}
+	@NonNull final A originalInstance;
+	@NonNull final BiFunction<Event, A, A> applyEventsFn;
+	@NonNull final Function<A, A> dependencyInjectionFn;
+	final List<StateTransition<A>> stateTransitions = new ArrayList<>();
 
 	public StateTransitionsTracker<A> applyEvents(List<Event> events) {
 		requireNonNull(events);
@@ -39,14 +30,14 @@ public class StateTransitionsTracker<A extends AggregateRoot> {
 		return this;
 	}
 
-	public List<Event> collectedEvents() {
+	public List<Event> getEvents() {
 		return stateTransitions.stream().map(t -> t.afterThisEvent).collect(Collectors.toList());
 	}
 
 	public A currentState() {
 		final A current = stateTransitions.size() == 0 ?
 						originalInstance : stateTransitions.get(stateTransitions.size() - 1).newInstance;
-		return dependencyInjectionFn.inject(current);
+		return dependencyInjectionFn.apply(current);
 	}
 
   public boolean isEmpty() {

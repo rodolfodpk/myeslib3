@@ -6,11 +6,16 @@ import com.google.inject.Injector;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
-import myeslib3.core.functions.CommandHandlerFn;
-import myeslib3.core.functions.DependencyInjectionFn;
-import myeslib3.core.functions.StateTransitionFn;
-import myeslib3.example1.core.aggregates.customer.*;
-import myeslib3.examples.example1.runtime.CustomerModule;
+import myeslib3.example1.Example1Module;
+import myeslib3.example1.aggregates.customer.Customer;
+import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
+import myeslib3.example1.aggregates.customer.CustomerModule;
+import myeslib3.example1.aggregates.customer.commands.ActivateCustomerCmd;
+import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
+import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
+import myeslib3.example1.aggregates.customer.commands.DeactivateCustomerCmd;
+import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Produce;
@@ -27,34 +32,29 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import java.util.function.Supplier;
 
-import static org.mockito.ArgumentMatchers.any;
+import static myeslib3.stack1.Headers.AGGREGATE_ROOT_ID;
+import static myeslib3.stack1.Headers.COMMAND_ID;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class CommandSyncRouteTest extends CamelTestSupport {
 
-	static final Injector injector = Guice.createInjector(new CustomerModule());
+	static final Injector injector = Guice.createInjector(new CustomerModule(), new Example1Module());
   static final DefaultCamelContext context = new DefaultCamelContext();
 
-  @Produce(uri = "direct://handle-create_customer_cmd")
+  @Produce(uri = "direct://handle-cmd-customer")
   protected ProducerTemplate template;
 
   @Inject
 	Supplier<Customer> supplier;
 	@Inject
-	DependencyInjectionFn<Customer> dependencyInjectionFn;
-	@Inject
-  StateTransitionFn<Customer> stateTransitionFn;
-	@Inject
-	CommandHandlerFn<Customer, CustomerCommand> commandHandlerFn;
+  CustomerCmdHandler commandHandlerFn;
 	@Inject
 	Gson gson;
 
@@ -78,28 +78,28 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	  String commandId = "1";
 
     when(snapshotReader.getSnapshot(anyString()))
-            .thenReturn(new SnapshotReader.Snapshot<>(supplier.get(), new Version(0)));
+            .thenReturn(new Snapshot<>(supplier.get(), new Version(0)));
 
-    CustomerCommand c = new CreateCustomerCmd("customer1");
+    CreateCustomerCmd c = new CreateCustomerCmd(UUID.randomUUID(), customerId, "customer1");
 
-    String asJson =  gson.toJson(c, Command.class);
+    String asJson = gson.toJson(c, Command.class);
 
     Map<String, Object> headers = new HashMap<>();
-    headers.put(CommandRestPostSyncRoute.AGGREGATE_ROOT_ID, customerId);
-    headers.put(CommandRestPostSyncRoute.COMMAND_ID, commandId);
+    headers.put(AGGREGATE_ROOT_ID, customerId);
+    headers.put(COMMAND_ID, commandId);
 
     template.requestBodyAndHeaders(asJson, headers);
 
     verify(snapshotReader).getSnapshot(eq(customerId));
 
     CustomerCreated expectedEvent = new CustomerCreated(customerId, "customer1");
-    UnitOfWork result = UnitOfWork.create(customerId, new Version(1), Arrays.asList(expectedEvent));
+    UnitOfWork result = UnitOfWork.create(c, new Version(1), Arrays.asList(expectedEvent));
 
     ArgumentCaptor<UnitOfWork> argument = ArgumentCaptor.forClass(UnitOfWork.class);
 
-    verify(writeModelRepository).append(argument.capture(), eq(c), any(Function.class));
+    verify(writeModelRepository).append(argument.capture());
 
-    assertEquals(argument.getValue().getAggregateRootId(), result.getAggregateRootId());
+    assertEquals(argument.getValue().getCommand(), result.getCommand());
     assertEquals(argument.getValue().getEvents(), result.getEvents());
     assertEquals(argument.getValue().getVersion(), result.getVersion());
 
@@ -112,16 +112,16 @@ public class CommandSyncRouteTest extends CamelTestSupport {
   protected RouteBuilder createRouteBuilder() {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
-    final CommandSyncRoute<Customer, CustomerCommand> route =
-            new CommandSyncRoute<>(Customer.class, commandsList(), commandHandlerFn, dependencyInjectionFn,
-                    stateTransitionFn, snapshotReader, writeModelRepository, gson, new MemoryIdempotentRepository());
+    final CommandSyncRoute<Customer> route =
+            new CommandSyncRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
+                    new MemoryIdempotentRepository());
     return route;
   }
 
 	List<Class<?>> commandsList() {
 
 		return Arrays.asList(CreateCustomerCmd.class, ActivateCustomerCmd.class,
-						DeactivateCustomerCmd.class, CreateActivatedCustomerCmd.class);
+						DeactivateCustomerCmd.class, CreateActivateCustomerCmd.class);
 
 	}
 

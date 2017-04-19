@@ -10,18 +10,14 @@ import org.apache.camel.model.rest.RestParamType;
 
 import java.util.List;
 
+import static myeslib3.stack1.Headers.*;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.*;
 
 @AllArgsConstructor
 public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuilder {
 
-  static final String AGGREGATE_ROOT_ID = "aggregate_root_id";
-  static final String COMMAND_ID = "command_id";
-  static final String APPLICATION_JSON = "application/json";
-
 	@NonNull final Class<A> aggregateRootClass;
 	@NonNull final List<Class<?>> commandsClasses;
-
 
   @Override
   public void configure() throws Exception {
@@ -50,7 +46,7 @@ public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuil
         .endParam()
         .param()
           .name(COMMAND_ID).description("the id of the requested functions")
-          .type(RestParamType.query).dataType("String")
+          .type(RestParamType.query).dataType("java.util.String")
         .endParam()
       .produces(APPLICATION_JSON)
         .responseMessage()
