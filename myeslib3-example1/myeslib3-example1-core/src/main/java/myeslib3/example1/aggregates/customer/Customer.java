@@ -31,6 +31,7 @@ public class Customer implements AggregateRoot {
 
     validState(this.id == null,
             "customer already exists! customerId should be null");
+
     return asList(new CustomerCreated(targetId, name));
   }
 

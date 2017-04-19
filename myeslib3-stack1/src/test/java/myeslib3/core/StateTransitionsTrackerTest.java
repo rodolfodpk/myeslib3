@@ -84,8 +84,8 @@ public class StateTransitionsTrackerTest {
 
       @Test
       void has_only_create_event() {
-        assertThat(tracker.collectedEvents()).contains(createdEvent);
-        assertThat(tracker.collectedEvents().size()).isEqualTo(1);
+        assertThat(tracker.getEvents()).contains(createdEvent);
+        assertThat(tracker.getEvents().size()).isEqualTo(1);
       }
 
       @Nested
@@ -108,9 +108,9 @@ public class StateTransitionsTrackerTest {
 
         @Test
         void has_both_create_and_activated_evenst() {
-          assertThat(tracker.collectedEvents().get(0)).isEqualTo(createdEvent);
-          assertThat(tracker.collectedEvents().get(1)).isEqualTo(customerActivated);
-          assertThat(tracker.collectedEvents().size()).isEqualTo(2);
+          assertThat(tracker.getEvents().get(0)).isEqualTo(createdEvent);
+          assertThat(tracker.getEvents().get(1)).isEqualTo(customerActivated);
+          assertThat(tracker.getEvents().size()).isEqualTo(2);
         }
 
       }

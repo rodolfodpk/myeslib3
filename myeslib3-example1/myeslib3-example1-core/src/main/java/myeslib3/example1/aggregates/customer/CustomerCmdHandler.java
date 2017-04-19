@@ -55,7 +55,7 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
               final List<Event> events = tracker
                       .applyEvents(targetInstance.create(cmd.getTargetId(), command.getName()))
                       .applyEvents(tracker.currentState().activate(command.getReason()))
-                      .collectedEvents();
+                      .getEvents();
               return create(cmd, targetVersion.nextVersion(), events);
             })
     );

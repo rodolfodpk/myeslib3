@@ -30,7 +30,7 @@ public class StateTransitionsTracker<A extends AggregateRoot> {
 		return this;
 	}
 
-	public List<Event> collectedEvents() {
+	public List<Event> getEvents() {
 		return stateTransitions.stream().map(t -> t.afterThisEvent).collect(Collectors.toList());
 	}
 
