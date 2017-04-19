@@ -1,2 +1,2 @@
 # myeslib3
-Yet another Event Sourcing experiment
+ Yet another Event Sourcing experiment
