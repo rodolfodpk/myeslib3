@@ -53,7 +53,7 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
               val tracker = new StateTransitionsTracker<Customer>(targetInstance,
                       stateTransitionFn, dependencyInjectionFn);
               final List<Event> events = tracker
-                      .applyEvents(targetInstance.create(cmd.getTargetId(), command.getName()))
+                      .applyEvents(targetInstance.create((CustomerId) cmd.getTargetId(), command.getName()))
                       .applyEvents(tracker.currentState().activate(command.getReason()))
                       .getEvents();
               return create(cmd, targetVersion.nextVersion(), events);

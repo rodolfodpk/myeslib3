@@ -7,8 +7,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import lombok.val;
+import myeslib3.core.data.AggregateRootId;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.Event;
+import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.ActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
@@ -34,6 +36,9 @@ public class Example1Module extends AbstractModule {
   @Singleton
   Gson gson() {
 
+    RuntimeTypeAdapterFactory<AggregateRootId> rtaIds  = RuntimeTypeAdapterFactory.of(AggregateRootId.class)
+            .registerSubtype(CustomerId.class);
+
     RuntimeTypeAdapterFactory<Command> rtaCommands  = RuntimeTypeAdapterFactory.of(Command.class)
             .registerSubtype(CreateCustomerCmd.class)
             .registerSubtype(ActivateCustomerCmd.class)
@@ -50,6 +55,7 @@ public class Example1Module extends AbstractModule {
 
     gsonBuilder.setPrettyPrinting();
     gsonBuilder.registerTypeAdapterFactory(new GsonJava8TypeAdapterFactory());
+    gsonBuilder.registerTypeAdapterFactory(rtaIds);
     gsonBuilder.registerTypeAdapterFactory(rtaCommands);
     gsonBuilder.registerTypeAdapterFactory(rtaEvents);
 

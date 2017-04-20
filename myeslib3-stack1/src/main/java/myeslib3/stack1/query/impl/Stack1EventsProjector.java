@@ -50,9 +50,9 @@ public class Stack1EventsProjector implements EventsProjector {
 	}
 
 	public void apply(final UnitOfWork unitOfWork) {
-//		final Integer targetExecutor = cache.getInstance(unitOfWork.getAggregateRootId(), instanceId ->
+//		final Integer targetExecutor = cache.getInstance(unitOfWork.getTargetId(), instanceId ->
 //						ThreadLocalRandom.current().nextInt(0, executors.size() + 1));
-//		cache.put(unitOfWork.getAggregateRootId(), targetExecutor);
+//		cache.put(unitOfWork.getTargetId(), targetExecutor);
 //		final ExecutorService e = executors.getInstance(targetExecutor);
 //		e.apply(() -> projectionSideEffect.accept(unitOfWork));
 	}

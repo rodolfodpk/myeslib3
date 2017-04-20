@@ -6,5 +6,6 @@ public interface Command {
 
   UUID getCommandId();
 
-  String getTargetId();
+  AggregateRootId getTargetId();
+
 }

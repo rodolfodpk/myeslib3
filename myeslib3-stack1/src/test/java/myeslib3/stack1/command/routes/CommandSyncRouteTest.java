@@ -9,6 +9,7 @@ import myeslib3.core.data.Version;
 import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
+import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.ActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
@@ -37,11 +38,9 @@ import java.util.function.Supplier;
 
 import static myeslib3.stack1.Headers.AGGREGATE_ROOT_ID;
 import static myeslib3.stack1.Headers.COMMAND_ID;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class CommandSyncRouteTest extends CamelTestSupport {
 
@@ -59,9 +58,9 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	Gson gson;
 
 	@Mock
-	SnapshotReader<Customer> snapshotReader;
+	SnapshotReader<CustomerId, Customer> snapshotReader;
 	@Mock
-	WriteModelRepository writeModelRepository;
+	WriteModelRepository<CustomerId> writeModelRepository;
 
 	@Before
 	public void init() throws Exception {
@@ -74,10 +73,10 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	@Test
 	public void test1() {
 
-    String customerId = "1";
+    CustomerId customerId = new CustomerId("customer#1");
 	  String commandId = "1";
 
-    when(snapshotReader.getSnapshot(anyString()))
+    when(snapshotReader.getSnapshot(any(CustomerId.class)))
             .thenReturn(new Snapshot<>(supplier.get(), new Version(0)));
 
     CreateCustomerCmd c = new CreateCustomerCmd(UUID.randomUUID(), customerId, "customer1");
@@ -112,7 +111,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
   protected RouteBuilder createRouteBuilder() {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
-    final CommandSyncRoute<Customer> route =
+    final CommandSyncRoute<CustomerId, Customer> route =
             new CommandSyncRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
                     new MemoryIdempotentRepository());
     return route;

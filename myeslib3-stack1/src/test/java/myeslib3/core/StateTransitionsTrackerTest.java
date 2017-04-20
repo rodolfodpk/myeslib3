@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import myeslib3.core.data.Event;
 import myeslib3.example1.aggregates.customer.Customer;
+import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
@@ -69,8 +70,9 @@ public class StateTransitionsTrackerTest {
     @DisplayName("when adding a create customer event")
     public class WhenAddingNewEvent {
 
-      private CustomerCreated createdEvent = new CustomerCreated("c1","customer-1");
-      private Customer expectedCustomer = Customer.create("c1", "customer-1", false,null);
+      final CustomerId id = new CustomerId("c1");
+      private CustomerCreated createdEvent = new CustomerCreated(id,"customer-1");
+      private Customer expectedCustomer = Customer.create(id, "customer-1", false,null);
 
       @BeforeEach
       void apply_create_event() {
@@ -93,7 +95,7 @@ public class StateTransitionsTrackerTest {
       public class WhenAddingActivateEvent {
 
         private CustomerActivated customerActivated = new CustomerActivated("is ok", LocalDateTime.now());
-        private Customer expectedCustomer = Customer.create("c1", "customer-1", true,
+        private Customer expectedCustomer = Customer.create(id, "customer-1", true,
                 customerActivated.getReason());
 
         @BeforeEach

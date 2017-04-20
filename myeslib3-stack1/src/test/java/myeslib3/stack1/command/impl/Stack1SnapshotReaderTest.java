@@ -8,6 +8,7 @@ import javaslang.collection.List;
 import myeslib3.core.data.Event;
 import myeslib3.core.data.Version;
 import myeslib3.example1.aggregates.customer.Customer;
+import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
@@ -46,9 +47,9 @@ public class Stack1SnapshotReaderTest {
 		BiFunction<Event, Customer, Customer> stateTransitionFn;
 
     @Mock
-    WriteModelRepository dao;
+    WriteModelRepository<CustomerId> dao;
 
-    Cache<String, Tuple2<Version, List<Event>>> cache;
+    Cache<CustomerId, Tuple2<Version, List<Event>>> cache;
 
     @BeforeEach
     public void init() throws Exception {
@@ -60,7 +61,7 @@ public class Stack1SnapshotReaderTest {
     @Test
     public void on_empty_history_then_returns_version_0() throws ExecutionException {
 
-			String id = "customer#1";
+			final CustomerId id = new CustomerId("customer#1");
 
 			final Snapshot<Customer> expectedSnapshot =
 							new Snapshot<>(supplier.get(), new Version(0L));
@@ -69,7 +70,7 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+			final Stack1SnapshotReader<CustomerId, Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
 							dependencyInjectionFn, stateTransitionFn);
 
 			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
@@ -83,7 +84,7 @@ public class Stack1SnapshotReaderTest {
     @Test
     public void on_empty_cache_then_returns_version_from_db() {
 
-			final String id = "customer#1";
+			final CustomerId id = new CustomerId("customer#1");
 			final String name =  "customer#1 name";
 
 			final Customer expectedInstance = Customer.create(id, name, false, null);
@@ -98,7 +99,7 @@ public class Stack1SnapshotReaderTest {
 
 			when(dao.getAll(id)).thenReturn(expectedHistory);
 
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+			final Stack1SnapshotReader<CustomerId, Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
 							dependencyInjectionFn, stateTransitionFn);
 
 			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
@@ -113,7 +114,7 @@ public class Stack1SnapshotReaderTest {
     @Test
     public void on_cache_then_hits_db_to_check_newer_version() {
 
-			final String id = "customer#1";
+			final CustomerId id = new CustomerId("customer#1");
 			final String name =  "customer#1 name";
 
 			final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
@@ -132,7 +133,7 @@ public class Stack1SnapshotReaderTest {
     @Test
     public void on_both_cache_and_db_then_hits_db_to_compose_history() {
 
-			final String id = "customer#1";
+			final CustomerId id = new CustomerId("customer#1");
 			final String name =  "customer#1 name";
 			final String reason = "because yes";
 
@@ -159,7 +160,7 @@ public class Stack1SnapshotReaderTest {
 			when(dao.getAll(id)).thenReturn(cachedHistory);
 			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
 
-			final Stack1SnapshotReader<Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
+			final Stack1SnapshotReader<CustomerId, Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
 							dependencyInjectionFn, stateTransitionFn);
 
 			cache.put(id, cachedHistory);

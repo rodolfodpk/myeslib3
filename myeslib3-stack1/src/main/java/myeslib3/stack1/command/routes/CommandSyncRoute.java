@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import myeslib3.core.AggregateRootCmdHandler;
 import myeslib3.core.data.AggregateRoot;
+import myeslib3.core.data.AggregateRootId;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.stack1.command.Snapshot;
@@ -24,14 +25,14 @@ import static myeslib3.stack1.Headers.COMMAND_ID;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.aggregateRootId;
 
 @AllArgsConstructor
-public class CommandSyncRoute<A extends AggregateRoot> extends RouteBuilder {
+public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoot> extends RouteBuilder {
 
   static final String RESULT = "result";
 
   @NonNull final Class<A> aggregateRootClass;
-  @NonNull final SnapshotReader<A> snapshotReader;
+  @NonNull final SnapshotReader<ID, A> snapshotReader;
   @NonNull final AggregateRootCmdHandler<A> handler;
-  @NonNull final WriteModelRepository writeModelRepo;
+  @NonNull final WriteModelRepository<ID> writeModelRepo;
   @NonNull final Gson gson ;
   @NonNull final IdempotentRepository<String> idempotentRepo;
 
@@ -102,7 +103,7 @@ public class CommandSyncRoute<A extends AggregateRoot> extends RouteBuilder {
     public void process(Exchange e) throws Exception {
 
       final Command command = e.getIn().getBody(Command.class);
-      final Snapshot<A> snapshot = snapshotReader.getSnapshot(command.getTargetId());
+      final Snapshot<A> snapshot = snapshotReader.getSnapshot((ID) command.getTargetId());
       Either<Exception, Optional<UnitOfWork>> result ;
       try {
         result = Either.right(handler.handle(command, snapshot.getInstance(), snapshot.getVersion()));

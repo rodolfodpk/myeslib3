@@ -5,10 +5,7 @@ import com.google.gson.Gson;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import javaslang.collection.List;
-import myeslib3.core.data.Command;
-import myeslib3.core.data.Event;
-import myeslib3.core.data.UnitOfWork;
-import myeslib3.core.data.Version;
+import myeslib3.core.data.*;
 import myeslib3.stack1.command.WriteModelRepository;
 import myeslib3.stack1.stack1infra.jdbi.DbConcurrencyException;
 import myeslib3.stack1.stack1infra.jdbi.LocalDateTimeMapper;
@@ -33,7 +30,7 @@ import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 
-public class Stack1WriteModelRepository implements WriteModelRepository {
+public class Stack1WriteModelRepository<ID extends AggregateRootId> implements WriteModelRepository<ID> {
 
   static final Logger logger = LoggerFactory.getLogger(Stack1WriteModelRepository.class);
 
@@ -49,15 +46,15 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
   private final TypeToken<java.util.List<Event>> listTypeToken = new TypeToken<java.util.List<Event>>() {};
 
-  public Stack1WriteModelRepository(String eventsChannelId, String aggregateRootId, Gson gson, DBI dbi) {
+  public Stack1WriteModelRepository(String eventsChannelId, String aggregateRootName, Gson gson, DBI dbi) {
 
-    requireNonNull(aggregateRootId);
+    requireNonNull(aggregateRootName);
     requireNonNull(eventsChannelId);
     requireNonNull(gson);
     requireNonNull(dbi);
 
     this.eventsChannelId = eventsChannelId;
-    this.dbMetadata = new DbMetadata(aggregateRootId);
+    this.dbMetadata = new DbMetadata(aggregateRootName);
     this.gson = gson;
     this.dbi = dbi;
     this.dbi.registerColumnMapper(new LocalDateTimeMapper());
@@ -106,12 +103,12 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   }
 
   @Override
-  public Tuple2<Version, List<Event>> getAll(String id) {
+  public Tuple2<Version, List<Event>> getAll(ID id) {
     return getAllAfterVersion(id, new Version(0L));
   }
 
   @Override
-  public Tuple2<Version, List<Event>> getAllAfterVersion(String id, Version version) {
+  public Tuple2<Version, List<Event>> getAllAfterVersion(ID id, Version version) {
 
     requireNonNull(id);
     requireNonNull(version);

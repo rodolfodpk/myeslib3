@@ -2,9 +2,10 @@ package myeslib3.example1.aggregates.customer.events;
 
 import lombok.Value;
 import myeslib3.core.data.Event;
+import myeslib3.example1.aggregates.customer.CustomerId;
 
 @Value
 public class CustomerCreated implements Event {
-  String id;
+  CustomerId id;
   String name;
 }

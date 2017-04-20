@@ -5,6 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
+import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
@@ -44,11 +45,10 @@ public class Stack1WriteModelRepositoryIt {
 	@Test @Ignore
 	public void append() {
 
-		String id = "c1";
-		String cmdId = "cmd1";
-		CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), "c1", "customer1");
-		CustomerCreated event = new CustomerCreated(id, command.getName());
-		UnitOfWork uow1 = UnitOfWork.create(command, Version.create(1), Arrays.asList(event));
+		final CustomerId id = new CustomerId("customer#1");
+		final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, "customer1");
+		final CustomerCreated event = new CustomerCreated(id, command.getName());
+		final UnitOfWork uow1 = UnitOfWork.create(command, Version.create(1), Arrays.asList(event));
 
 		repo.append(uow1);
 

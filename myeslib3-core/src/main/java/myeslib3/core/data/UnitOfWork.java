@@ -20,7 +20,8 @@ public class UnitOfWork {
 		return new UnitOfWork(UUID.randomUUID(), command, version, events, LocalDateTime.now());
 	}
 
-	public String getTargetId() {
+	public AggregateRootId getTargetId() {
 		return command.getTargetId();
 	}
+
 }

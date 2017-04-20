@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
+import myeslib3.core.data.AggregateRootId;
 import myeslib3.core.data.Event;
 import myeslib3.core.data.Version;
 import myeslib3.stack1.command.Snapshot;
@@ -26,18 +27,18 @@ import static java.util.Objects.requireNonNull;
 import static myeslib3.stack1.stack1infra.utils.EventsHelper.lastVersion;
 
 @AllArgsConstructor
-public class Stack1SnapshotReader<A extends AggregateRoot> implements SnapshotReader<A> {
+public class Stack1SnapshotReader<ID extends AggregateRootId, A extends AggregateRoot> implements SnapshotReader<ID, A> {
 
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
-	@NonNull final Cache<String, Tuple2<Version, List<Event>>> cache;
+	@NonNull final Cache<ID, Tuple2<Version, List<Event>>> cache;
 	@NonNull final WriteModelRepository dao;
   @NonNull final Supplier<A> supplier;
   @NonNull final Function<A, A> dependencyInjectionFn;
   @NonNull final BiFunction<Event, A, A> stateTransitionFn;
 
   @Override
-	public Snapshot<A> getSnapshot(String aggregateRootId) {
+	public Snapshot<A> getSnapshot(ID aggregateRootId) {
 
 		requireNonNull(aggregateRootId);
 
