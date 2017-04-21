@@ -18,6 +18,7 @@ import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.EndpointInject;
+import org.apache.camel.Exchange;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
@@ -34,7 +35,6 @@ import org.mockito.MockitoAnnotations;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -117,6 +117,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 
     resultEndpoint.assertIsSatisfied();
 
+    assertEquals(resultEndpoint.getExchanges().get(0).getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 201);
   }
 
   @Test
@@ -141,6 +142,8 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     val expectedBody = gson.toJson(Arrays.asList("customer already created"), List.class);
 
     resultEndpoint.expectedMessageCount(1);
+
+    assertEquals(resultEndpoint.getExchanges().get(0).getIn().getHeader(Exchange.HTTP_RESPONSE_CODE), 400);
 
     val receivedBody = resultEndpoint.getExchanges().get(0).getIn().getBody(String.class);
 
