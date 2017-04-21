@@ -3,6 +3,7 @@ package myeslib3.stack1.command.routes;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import lombok.val;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
@@ -11,18 +12,16 @@ import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
-import myeslib3.example1.aggregates.customer.commands.ActivateCustomerCmd;
-import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
-import myeslib3.example1.aggregates.customer.commands.DeactivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
+import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.processor.idempotent.MemoryIdempotentRepository;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.After;
@@ -33,21 +32,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Arrays;
+import java.util.UUID;
 import java.util.function.Supplier;
 
-import static myeslib3.stack1.Headers.AGGREGATE_ROOT_ID;
-import static myeslib3.stack1.Headers.COMMAND_ID;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class CommandSyncRouteTest extends CamelTestSupport {
 
 	static final Injector injector = Guice.createInjector(new CustomerModule(), new Example1Module());
-  static final DefaultCamelContext context = new DefaultCamelContext();
 
-  @Produce(uri = "direct://handle-cmd-customer")
+  @EndpointInject(uri = "mock:result")
+  protected MockEndpoint resultEndpoint;
+
+  @Produce(uri = "direct:start")
   protected ProducerTemplate template;
 
   @Inject
@@ -64,6 +63,11 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 
 	@Before
 	public void init() throws Exception {
+    injector.injectMembers(this);
+    MockitoAnnotations.initMocks(this);
+    val route = new CommandSyncRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
+            new MemoryIdempotentRepository());
+    context.addRoutes(route);
 	}
 
 	@After
@@ -71,57 +75,49 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	}
 
 	@Test
-	public void test1() {
+	public void create_customer_command_should_work() {
 
-    CustomerId customerId = new CustomerId("customer#1");
-	  String commandId = "1";
+    val customerId = new CustomerId("customer#1");
 
-    when(snapshotReader.getSnapshot(any(CustomerId.class)))
+    when(snapshotReader.getSnapshot(eq(customerId)))
             .thenReturn(new Snapshot<>(supplier.get(), new Version(0)));
 
-    CreateCustomerCmd c = new CreateCustomerCmd(UUID.randomUUID(), customerId, "customer1");
+    val createCustomerCmd = new CreateCustomerCmd(UUID.randomUUID(), customerId, "customer1");
 
-    String asJson = gson.toJson(c, Command.class);
+    val asJson = gson.toJson(createCustomerCmd, Command.class);
 
-    Map<String, Object> headers = new HashMap<>();
-    headers.put(AGGREGATE_ROOT_ID, customerId);
-    headers.put(COMMAND_ID, commandId);
-
-    template.requestBodyAndHeaders(asJson, headers);
+    template.requestBody(asJson);
 
     verify(snapshotReader).getSnapshot(eq(customerId));
 
-    CustomerCreated expectedEvent = new CustomerCreated(customerId, "customer1");
-    UnitOfWork result = UnitOfWork.create(c, new Version(1), Arrays.asList(expectedEvent));
+    val expectedEvent = new CustomerCreated(customerId, "customer1");
+    val expectedUow = UnitOfWork.create(createCustomerCmd, new Version(1), Arrays.asList(expectedEvent));
 
     ArgumentCaptor<UnitOfWork> argument = ArgumentCaptor.forClass(UnitOfWork.class);
 
     verify(writeModelRepository).append(argument.capture());
 
-    assertEquals(argument.getValue().getCommand(), result.getCommand());
-    assertEquals(argument.getValue().getEvents(), result.getEvents());
-    assertEquals(argument.getValue().getVersion(), result.getVersion());
+    assertEquals(argument.getValue().getCommand(), expectedUow.getCommand());
+    assertEquals(argument.getValue().getEvents(), expectedUow.getEvents());
+    assertEquals(argument.getValue().getVersion(), expectedUow.getVersion());
 
     verifyNoMoreInteractions(snapshotReader, writeModelRepository);
 
-    //System.out.println(uowAsJson);
+    String expectedBody = gson.toJson(argument.getValue(), UnitOfWork.class);
+
+    resultEndpoint.expectedBodiesReceived(expectedBody);
+
   }
 
   @Override
   protected RouteBuilder createRouteBuilder() {
-    injector.injectMembers(this);
-    MockitoAnnotations.initMocks(this);
-    final CommandSyncRoute<CustomerId, Customer> route =
-            new CommandSyncRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
-                    new MemoryIdempotentRepository());
-    return route;
+    return new RouteBuilder() {
+      public void configure() {
+        from("direct:start")
+        .to("direct:handle-cmd-customer")
+        .to("mock:result");
+      }
+    };
   }
-
-	List<Class<?>> commandsList() {
-
-		return Arrays.asList(CreateCustomerCmd.class, ActivateCustomerCmd.class,
-						DeactivateCustomerCmd.class, CreateActivateCustomerCmd.class);
-
-	}
 
 }

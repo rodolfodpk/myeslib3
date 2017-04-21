@@ -87,7 +87,7 @@ public class Stack1SnapshotReaderTest {
 			final CustomerId id = new CustomerId("customer#1");
 			final String name =  "customer#1 name";
 
-			final Customer expectedInstance = Customer.create(id, name, false, null);
+			final Customer expectedInstance = Customer.of(id, name, false, null);
 
 			final Snapshot<Customer> expectedSnapshot =
 								new Snapshot<>(expectedInstance, Version.create(1L));
@@ -141,7 +141,7 @@ public class Stack1SnapshotReaderTest {
 			final Version expectedVersion = new Version(2L);
 			final LocalDateTime activated_on = LocalDateTime.now();
 
-			final Customer expectedInstance = Customer.create(id, name, true, reason);
+			final Customer expectedInstance = Customer.of(id, name, true, reason);
 
 			final Snapshot<Customer> expectedSnapshot =
 							new Snapshot<>(expectedInstance, expectedVersion);

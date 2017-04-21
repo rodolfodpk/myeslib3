@@ -27,36 +27,37 @@ import static java.util.Objects.requireNonNull;
 import static myeslib3.stack1.stack1infra.utils.EventsHelper.lastVersion;
 
 @AllArgsConstructor
-public class Stack1SnapshotReader<ID extends AggregateRootId, A extends AggregateRoot> implements SnapshotReader<ID, A> {
+public class Stack1SnapshotReader<ID extends AggregateRootId, A extends AggregateRoot>
+				implements SnapshotReader<ID, A> {
 
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
 	@NonNull final Cache<ID, Tuple2<Version, List<Event>>> cache;
-	@NonNull final WriteModelRepository dao;
+	@NonNull final WriteModelRepository<ID> dao;
   @NonNull final Supplier<A> supplier;
   @NonNull final Function<A, A> dependencyInjectionFn;
   @NonNull final BiFunction<Event, A, A> stateTransitionFn;
 
   @Override
-	public Snapshot<A> getSnapshot(ID aggregateRootId) {
+	public Snapshot<A> getSnapshot(ID id) {
 
-		requireNonNull(aggregateRootId);
+		requireNonNull(id);
 
-		logger.debug("id {} cache.getInstance(id)", aggregateRootId);
+		logger.debug("id {} cache.getInstance(id)", id);
 
     final StateTransitionsTracker<A> tracker = new StateTransitionsTracker<>(supplier.get(),
             stateTransitionFn, dependencyInjectionFn);
 
 		final AtomicBoolean wasDaoCalled = new AtomicBoolean(false);
 
-		final Tuple2<Version, List<Event>> cachedUowList = cache.get(aggregateRootId, s -> {
+		final Tuple2<Version, List<Event>> cachedUowList = cache.get(id, s -> {
 			logger.debug("id {} cache.getInstance(id) does not contain anything for this id. Will have to search on dao",
-							aggregateRootId);
+							id);
 			wasDaoCalled.set(true);
-			return dao.getAll(aggregateRootId);
+			return dao.getAll(id);
 		});
 
-		logger.debug("id {} wasDaoCalled ? {}", aggregateRootId, wasDaoCalled.get());
+		logger.debug("id {} wasDaoCalled ? {}", id, wasDaoCalled.get());
 
 		if (wasDaoCalled.get()) {
 			return new Snapshot<>(tracker.applyEvents(cachedUowList._2().toJavaList()).currentState(), cachedUowList._1());
@@ -65,20 +66,20 @@ public class Stack1SnapshotReader<ID extends AggregateRootId, A extends Aggregat
 		final Version lastVersion = lastVersion(cachedUowList);
 
 		logger.debug("id {} cached lastSnapshotData has version {}. will check if there any version beyond it",
-            aggregateRootId, lastVersion);
+						id, lastVersion);
 
 		final Tuple2<Version, List<Event>> nonCachedUowList =
-						dao.getAllAfterVersion(aggregateRootId, lastVersion);
+						dao.getAllAfterVersion(id, lastVersion);
 
 		logger.debug("id {} found {} pending transactions. Last version is now {}",
-            aggregateRootId, nonCachedUowList._2().size(), lastVersion);
+						id, nonCachedUowList._2().size(), lastVersion);
 
 		final List<Event> cachedPlusNonCachedList = cachedUowList._2()
 						.appendAll(nonCachedUowList._2());
 
 		final Version finalVersion = nonCachedUowList._1();
 
-		cache.put(aggregateRootId, Tuple.of(finalVersion, cachedPlusNonCachedList));
+		cache.put(id, Tuple.of(finalVersion, cachedPlusNonCachedList));
 
 		return new Snapshot<>(tracker.applyEvents(cachedPlusNonCachedList.toJavaList()).currentState(), finalVersion);
 

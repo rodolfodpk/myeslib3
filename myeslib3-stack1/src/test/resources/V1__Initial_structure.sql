@@ -19,7 +19,7 @@ drop table if exists public.customer_uow ;
 create table
 	public.customer_uow (
 	  uow_id varchar(36) primary key not null,
-      uow_data json not null,
+      uow_events json not null,
       uow_seq_number serial,
       cmd_id varchar(36) not null,
       cmd_data json not null,

@@ -43,7 +43,8 @@ public class Customer implements AggregateRoot {
     return asList(new CustomerDeactivated(reason, service.now()));
   }
 
-  public static Customer create(CustomerId id, String name, boolean isActive, String reason) {
+  public static Customer of(CustomerId id, String name, boolean isActive, String reason) {
+
     return new Customer(null, id, name, isActive, reason);
   }
 

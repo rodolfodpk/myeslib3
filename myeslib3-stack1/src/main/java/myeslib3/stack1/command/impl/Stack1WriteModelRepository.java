@@ -245,10 +245,8 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
 
     final String aggregateRootTable;
     final String unitOfWorkTable;
-    private final String aggregateRootName;
 
     public DbMetadata(String aggregateRootName) {
-      this.aggregateRootName = aggregateRootName;
       this.aggregateRootTable = aggregateRootName.concat("_AR");
       this.unitOfWorkTable = aggregateRootName.concat("_UOW");
     }

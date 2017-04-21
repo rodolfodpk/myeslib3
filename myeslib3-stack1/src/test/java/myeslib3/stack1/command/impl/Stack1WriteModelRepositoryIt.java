@@ -38,8 +38,8 @@ public class Stack1WriteModelRepositoryIt {
 
 	@Before
 	public void setup() {
-			injector.injectMembers(this);
-			repo = new Stack1WriteModelRepository("example1_uow_channel", "customer", gson, dbi);
+		injector.injectMembers(this);
+		repo = new Stack1WriteModelRepository("example1_uow_channel", "customer", gson, dbi);
 	}
 
 	@Test @Ignore
@@ -52,7 +52,7 @@ public class Stack1WriteModelRepositoryIt {
 
 		repo.append(uow1);
 
-		assertThat(repo.get(uow1.getUnitOfWorkId())).isEqualTo(uow1);
+		assertThat(repo.get(uow1.getUnitOfWorkId()).get()).isEqualTo(uow1);
 
 	}
 }

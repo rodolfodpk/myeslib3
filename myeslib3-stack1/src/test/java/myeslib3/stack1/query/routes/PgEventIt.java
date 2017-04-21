@@ -28,7 +28,7 @@ public class PgEventIt {
 		main = new Main();
 		main.bind("test", ds);
 		main.addRouteBuilder(buildConsumer());
-	//	main.addRouteBuilder(buildProducer());
+		main.addRouteBuilder(buildProducer());
 
 		main.run();
 
@@ -41,6 +41,7 @@ public class PgEventIt {
 			public void configure() throws Exception {
 				fromF("pgevent://%s:%s/%s/testchannel?user=%s&pass=%s",
 								dc.db_host(), dc.db_port(), dc.db_name(), dc.db_user(), dc.db_password())
+//								.log("${body}")
 								.to("log:org.apache.camel.pgevent.PgEventConsumer?level=INFO");
 			}
 		};
@@ -57,6 +58,7 @@ public class PgEventIt {
 								.setBody(header(Exchange.TIMER_FIRED_TIME))
 								.toF("pgevent://%s:%s/%s/testchannel?user=%s&pass=%s",
 												dc.db_host(), dc.db_port(), dc.db_name(), dc.db_user(), dc.db_password())
+//								.log("${body}")
 								.to("log:org.apache.camel.pgevent.PgProducer?level=INFO");
 			}
 		};

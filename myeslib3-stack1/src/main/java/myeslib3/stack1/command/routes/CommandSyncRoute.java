@@ -13,6 +13,7 @@ import myeslib3.stack1.command.Snapshot;
 import myeslib3.stack1.command.SnapshotReader;
 import myeslib3.stack1.command.WriteModelRepository;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.spi.IdempotentRepository;
@@ -51,7 +52,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
         })
         .log("as java: ${body}")
       .doCatch(Exception.class)
-        .log("*** error ")
+        .log(LoggingLevel.ERROR, "error ")
         .setBody(constant(Arrays.asList("gson serialization error")))
         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(400))
         .process(e -> {
@@ -59,7 +60,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
           final String asJson = gson.toJson(instance, List.class);
           e.getOut().setBody(asJson, String.class);
         })
-        .log("as json error: ${body}")
+        .log(LoggingLevel.ERROR, "as json error: ${body}")
         .stop()
       .end()
       .hystrix()
@@ -69,13 +70,14 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
         .end()
         .process(new CommandProcessor())
         .toF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
-        .log("*** after save : ${body}")
+        .log("after save : ${body}")
         .process(e -> {
           final UnitOfWork instance = e.getIn().getBody(UnitOfWork.class);
           final String asJson = gson.toJson(instance, UnitOfWork.class);
           e.getOut().setBody(asJson, String.class);
           e.getOut().setHeaders(e.getIn().getHeaders());
         })
+        .log("UnitOfWork as json result: ${body}")
       .onFallback()
         .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
@@ -85,8 +87,8 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
           e.getOut().setBody(asJson, String.class);
           e.getOut().setHeaders(e.getIn().getHeaders());
         })
+        .log("Errors as json result: ${body}")
       .end()
-      .log("UnitOfWork as json result: ${body}")
     ;
 
     fromF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
@@ -111,7 +113,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
         result = Either.left(ex);
       }
       e.getOut().setBody(command, Command.class);
-      e.getOut().setHeaders(e.getIn().getHeaders());
+      e.getOut().setHeader(COMMAND_ID, command.getCommandId());
       e.getOut().setHeader(RESULT, result);
     }
   }

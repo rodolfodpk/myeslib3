@@ -36,28 +36,28 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
     final UnitOfWork uow = Match(cmd).of(
 
-            Case(instanceOf(CreateCustomerCmd.class), (command) -> {
-              validState(targetVersion.equals(Version.create(0)),
-                      "before create the instance must be version= 0");
-              return create(cmd, targetVersion.nextVersion(),
-                      targetInstance.create(command.getTargetId(), command.getName()));
-            }),
+      Case(instanceOf(CreateCustomerCmd.class), (command) -> {
+        validState(targetVersion.equals(Version.create(0)),
+                "before create the instance must be version= 0");
+        return create(cmd, targetVersion.nextVersion(),
+                targetInstance.create(command.getTargetId(), command.getName()));
+      }),
 
-            Case(instanceOf(ActivateCustomerCmd.class), (command) ->
-              create(cmd, targetVersion.nextVersion(), targetInstance.activate(command.getReason()))),
+      Case(instanceOf(ActivateCustomerCmd.class), (command) ->
+        create(cmd, targetVersion.nextVersion(), targetInstance.activate(command.getReason()))),
 
-            Case(instanceOf(DeactivateCustomerCmd.class), (command) ->
-              create(cmd, targetVersion.nextVersion(), targetInstance.deactivate(command.getReason()))),
+      Case(instanceOf(DeactivateCustomerCmd.class), (command) ->
+        create(cmd, targetVersion.nextVersion(), targetInstance.deactivate(command.getReason()))),
 
-            Case(instanceOf(CreateActivateCustomerCmd.class), (command) -> {
-              val tracker = new StateTransitionsTracker<Customer>(targetInstance,
-                      stateTransitionFn, dependencyInjectionFn);
-              final List<Event> events = tracker
-                      .applyEvents(targetInstance.create((CustomerId) cmd.getTargetId(), command.getName()))
-                      .applyEvents(tracker.currentState().activate(command.getReason()))
-                      .getEvents();
-              return create(cmd, targetVersion.nextVersion(), events);
-            })
+      Case(instanceOf(CreateActivateCustomerCmd.class), (command) -> {
+        val tracker = new StateTransitionsTracker<Customer>(targetInstance,
+                stateTransitionFn, dependencyInjectionFn);
+        final List<Event> events = tracker
+                .applyEvents(targetInstance.create((CustomerId) cmd.getTargetId(), command.getName()))
+                .applyEvents(tracker.currentState().activate(command.getReason()))
+                .getEvents();
+        return create(cmd, targetVersion.nextVersion(), events);
+      })
     );
 
     return uow == null ? Optional.empty() : Optional.of(uow);
