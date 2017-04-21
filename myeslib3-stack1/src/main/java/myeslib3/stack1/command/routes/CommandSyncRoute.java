@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import javaslang.control.Either;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.val;
 import myeslib3.core.AggregateRootCmdHandler;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.AggregateRootId;
@@ -29,6 +30,7 @@ import static myeslib3.stack1.stack1infra.utils.StringHelper.aggregateRootId;
 public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoot> extends RouteBuilder {
 
   static final String RESULT = "result";
+  static final String IS_ERROR = "IS_ERROR";
 
   @NonNull final Class<A> aggregateRootClass;
   @NonNull final SnapshotReader<ID, A> snapshotReader;
@@ -42,7 +44,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
 
     fromF("direct:handle-cmd-%s", aggregateRootId(aggregateRootClass))
       .routeId("handle-cmd-" + aggregateRootId(aggregateRootClass))
-      .log("as json: ${body}")
+      .log("received command as json: ${body}")
       .doTry()
         .process(e -> {
           final String asJson = e.getIn().getBody(String.class);
@@ -50,7 +52,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
           e.getOut().setBody(instance, Command.class);
           e.getOut().setHeaders(e.getIn().getHeaders());
         })
-        .log("as java: ${body}")
+        .log("command as java: ${body}")
       .doCatch(Exception.class)
         .log(LoggingLevel.ERROR, "error ")
         .setBody(constant(Arrays.asList("gson serialization error")))
@@ -60,7 +62,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
           final String asJson = gson.toJson(instance, List.class);
           e.getOut().setBody(asJson, String.class);
         })
-        .log(LoggingLevel.ERROR, "as json error: ${body}")
+        .log(LoggingLevel.ERROR, "error as json: ${body}")
         .stop()
       .end()
       .hystrix()
@@ -69,17 +71,9 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
           .executionTimeoutInMilliseconds(5000).circuitBreakerSleepWindowInMilliseconds(10000)
         .end()
         .process(new CommandProcessor())
-        .toF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
-        .log("after save : ${body}")
-        .process(e -> {
-          final UnitOfWork instance = e.getIn().getBody(UnitOfWork.class);
-          final String asJson = gson.toJson(instance, UnitOfWork.class);
-          e.getOut().setBody(asJson, String.class);
-          e.getOut().setHeaders(e.getIn().getHeaders());
-        })
-        .log("UnitOfWork as json result: ${body}")
+        .toF("direct:process-results-%s", aggregateRootId(aggregateRootClass))
       .onFallback()
-        .transform().constant(Arrays.asList("fallback - circuit breaker seems to be open"))
+        .setBody(constant(Arrays.asList("fallback - circuit breaker seems to be open")))
         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(503))
         .process(e -> {
           final List instance = e.getIn().getBody(List.class);
@@ -87,13 +81,38 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
           e.getOut().setBody(asJson, String.class);
           e.getOut().setHeaders(e.getIn().getHeaders());
         })
-        .log("Errors as json result: ${body}")
+      .end()
+      .log("result as json: ${body}")
+    ;
+
+    fromF("direct:process-results-%s", aggregateRootId(aggregateRootClass))
+      .routeId("process-results-" + aggregateRootId(aggregateRootClass))
+      .choice()
+        .when(header(IS_ERROR).isEqualTo(false))
+          .toF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
+          .process(e -> {
+            final Either<Exception, Optional<UnitOfWork>> result = e.getIn().getHeader(RESULT, Either.class);
+            if (result.get().isPresent()) {
+              val asJson = gson.toJson(result.get().get());
+              e.getOut().setBody(asJson, String.class);
+              e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+            } else {
+              e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+            }
+          })
+        .otherwise()
+          .process(e -> {
+            final Either<Exception, Optional<UnitOfWork>> result = e.getIn().getHeader(RESULT, Either.class);
+            val asJson = gson.toJson(Arrays.asList(result.getLeft().getMessage()), List.class);
+            e.getOut().setBody(asJson);
+            e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+          })
       .end()
     ;
 
     fromF("direct:save-events-%s", aggregateRootId(aggregateRootClass))
       .routeId("save-events-" + aggregateRootId(aggregateRootClass))
-      .log("${header.command_id}")
+      .log(LoggingLevel.DEBUG, "${header.command_id}")
       .idempotentConsumer(header(COMMAND_ID)).messageIdRepository(idempotentRepo)
       .process(new SaveEventsProcessor())
       ;
@@ -113,6 +132,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
         result = Either.left(ex);
       }
       e.getOut().setBody(command, Command.class);
+      e.getOut().setHeader(IS_ERROR, result.isLeft());
       e.getOut().setHeader(COMMAND_ID, command.getCommandId());
       e.getOut().setHeader(RESULT, result);
     }
@@ -125,21 +145,11 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
 
       final Either<Exception, Optional<UnitOfWork>> result = e.getIn().getHeader(RESULT, Either.class);
 
-      if (result.isRight()) {
-        if (result.get().isPresent()) {
+      if (result.isRight() && result.get().isPresent()) {
           writeModelRepo.append(result.get().get());
-          e.getOut().setBody(result.get().get(), UnitOfWork.class);
-          e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-        } else {
-          e.getOut().setBody(Arrays.asList("unknown command"), List.class);
-          e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
         }
-      } else {
-        e.getOut().setBody(Arrays.asList(result.getLeft().getMessage()), List.class);
-        e.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
       }
 
-    }
   }
 
 }

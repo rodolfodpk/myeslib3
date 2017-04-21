@@ -33,6 +33,8 @@ import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -75,7 +77,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	}
 
 	@Test
-	public void create_customer_command_should_work() {
+	public void vald_command_must_return_valid_unit_of_work() throws InterruptedException {
 
     val customerId = new CustomerId("customer#1");
 
@@ -97,15 +99,54 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 
     verify(writeModelRepository).append(argument.capture());
 
-    assertEquals(argument.getValue().getCommand(), expectedUow.getCommand());
-    assertEquals(argument.getValue().getEvents(), expectedUow.getEvents());
-    assertEquals(argument.getValue().getVersion(), expectedUow.getVersion());
+    val resultingUow = argument.getValue();
+
+    assertEquals(resultingUow.getCommand(), expectedUow.getCommand());
+    assertEquals(resultingUow.getEvents(), expectedUow.getEvents());
+    assertEquals(resultingUow.getVersion(), expectedUow.getVersion());
 
     verifyNoMoreInteractions(snapshotReader, writeModelRepository);
 
-    String expectedBody = gson.toJson(argument.getValue(), UnitOfWork.class);
+    val expectedBody = gson.toJson(resultingUow);
 
-    resultEndpoint.expectedBodiesReceived(expectedBody);
+    resultEndpoint.expectedMessageCount(1);
+
+    val receivedBody = resultEndpoint.getExchanges().get(0).getIn().getBody(String.class);
+
+    assertEquals(expectedBody, receivedBody);
+
+    resultEndpoint.assertIsSatisfied();
+
+  }
+
+  @Test
+  public void invalid_command_must_return_error() throws InterruptedException {
+
+    val customerId = new CustomerId("customer#1");
+    val currentCustomer = Customer.of(customerId, "customer1", false, null);
+
+    when(snapshotReader.getSnapshot(eq(customerId)))
+            .thenReturn(new Snapshot<>(currentCustomer, new Version(1)));
+
+    val createCustomerCmd = new CreateCustomerCmd(UUID.randomUUID(), customerId, "customer1");
+
+    val asJson = gson.toJson(createCustomerCmd, Command.class);
+
+    template.requestBody(asJson);
+
+    verify(snapshotReader).getSnapshot(eq(customerId));
+
+    verifyNoMoreInteractions(snapshotReader, writeModelRepository);
+
+    val expectedBody = gson.toJson(Arrays.asList("customer already created"), List.class);
+
+    resultEndpoint.expectedMessageCount(1);
+
+    val receivedBody = resultEndpoint.getExchanges().get(0).getIn().getBody(String.class);
+
+    assertEquals(expectedBody, receivedBody);
+
+    resultEndpoint.assertIsSatisfied();
 
   }
 
@@ -114,7 +155,9 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     return new RouteBuilder() {
       public void configure() {
         from("direct:start")
+                .streamCaching()
         .to("direct:handle-cmd-customer")
+//        .log("** final result ${body}")
         .to("mock:result");
       }
     };

@@ -22,7 +22,6 @@ import static javaslang.API.Case;
 import static javaslang.API.Match;
 import static javaslang.Predicates.instanceOf;
 import static myeslib3.core.data.UnitOfWork.create;
-import static org.apache.commons.lang3.Validate.validState;
 
 public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
@@ -36,12 +35,10 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
     final UnitOfWork uow = Match(cmd).of(
 
-      Case(instanceOf(CreateCustomerCmd.class), (command) -> {
-        validState(targetVersion.equals(Version.create(0)),
-                "before create the instance must be version= 0");
-        return create(cmd, targetVersion.nextVersion(),
-                targetInstance.create(command.getTargetId(), command.getName()));
-      }),
+      Case(instanceOf(CreateCustomerCmd.class), (command) ->
+        create(cmd, targetVersion.nextVersion(),
+                targetInstance.create(command.getTargetId(), command.getName()))
+      ),
 
       Case(instanceOf(ActivateCustomerCmd.class), (command) ->
         create(cmd, targetVersion.nextVersion(), targetInstance.activate(command.getReason()))),

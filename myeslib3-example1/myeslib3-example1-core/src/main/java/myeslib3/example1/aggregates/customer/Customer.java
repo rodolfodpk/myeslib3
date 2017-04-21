@@ -27,8 +27,7 @@ public class Customer implements AggregateRoot {
 
   List<Event> create(CustomerId id, String name) {
 
-    validState(this.id == null,
-            "customer already exists! customerId should be null");
+    validState(this.id == null, "customer already created");
 
     return asList(new CustomerCreated(id, name));
   }
