@@ -25,7 +25,7 @@ public class EventsFromTopicRoute extends RouteBuilder {
 			.routeId("events-from-topic-" + eventsChannelId)
 			.threads(10)
 			.process(e -> {
-				final String uowId = e.getIn().getHeader(Headers.UNIT_OF_WORK_ID, String.class);
+				final String uowId = e.getIn().getBody(String.class);
 				final Optional<UnitOfWork> unitOfWork = repo.get(UUID.fromString(uowId));
 				e.getOut().setBody(unitOfWork.get(), UnitOfWork.class);
 				e.getOut().setHeader(Headers.UNIT_OF_WORK_ID, uowId);

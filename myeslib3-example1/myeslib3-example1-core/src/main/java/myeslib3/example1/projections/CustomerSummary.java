@@ -7,5 +7,6 @@ import lombok.experimental.Wither;
 @Wither
 public class CustomerSummary {
   String id;
-  int activationsCount;
+  String name;
+  boolean isActive;
 }

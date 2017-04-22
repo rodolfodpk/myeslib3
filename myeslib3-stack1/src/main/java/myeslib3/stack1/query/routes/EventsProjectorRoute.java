@@ -1,25 +1,33 @@
 package myeslib3.stack1.query.routes;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
+import lombok.val;
+import myeslib3.core.data.AggregateRootId;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.stack1.Headers;
-import myeslib3.stack1.query.EventsProjector;
+import myeslib3.stack1.query.EventsDao;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.processor.aggregate.AbstractListAggregationStrategy;
 import org.apache.camel.processor.aggregate.MemoryAggregationRepository;
 
+import javax.inject.Inject;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@AllArgsConstructor
 public class EventsProjectorRoute extends RouteBuilder {
 
-	@NonNull final String eventsChannelId;
-	@NonNull final EventsProjector eventsProjector;
-	@NonNull final int intervalInMilliseconds;
+	final String eventsChannelId;
+	final EventsDao eventsdao;
+  final int intervalInMilliseconds;
 
-	@Override
+  @Inject
+  public EventsProjectorRoute(String eventsChannelId, EventsDao eventsdao, int intervalInMilliseconds) {
+    this.eventsChannelId = eventsChannelId;
+    this.eventsdao = eventsdao;
+    this.intervalInMilliseconds = intervalInMilliseconds;
+  }
+
+  @Override
 	public void configure() throws Exception {
 
 		fromF("seda:%s-events-projector", eventsChannelId)
@@ -35,9 +43,9 @@ public class EventsProjectorRoute extends RouteBuilder {
 			.threads(10)
 			.process(e -> {
 				final List<UnitOfWork> list = e.getIn().getBody(List.class);
-				for (UnitOfWork uow: list) {
-					eventsProjector.apply(uow);
-				}
+        val events = list.stream().flatMap(uow -> uow.getEvents().stream()).collect(Collectors.toList());
+        val id = e.getIn().getHeader(Headers.AGGREGATE_ROOT_ID, AggregateRootId.class);
+        eventsdao.handle(id, events);
 			})
 			.log("${body}");
 
