@@ -158,10 +158,10 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     return new RouteBuilder() {
       public void configure() {
         from("direct:start")
-                .streamCaching()
-        .to("direct:handle-cmd-customer")
-//        .log("** final result ${body}")
-        .to("mock:result");
+          .streamCaching()
+          .to("direct:handle-cmd-customer")
+  //        .log("** final result ${body}")
+          .to("mock:result");
       }
     };
   }

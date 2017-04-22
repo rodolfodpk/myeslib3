@@ -145,7 +145,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
 
       final Either<Exception, Optional<UnitOfWork>> result = e.getIn().getHeader(RESULT, Either.class);
 
-      if (result.isRight() && result.get().isPresent()) {
+      if (result.get().isPresent()) {
           writeModelRepo.append(result.get().get());
         }
       }

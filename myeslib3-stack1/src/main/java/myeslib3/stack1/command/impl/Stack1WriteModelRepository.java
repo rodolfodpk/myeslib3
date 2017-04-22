@@ -72,8 +72,8 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
                     dbMetadata.aggregateRootTable);
 
     this.insertUowSql =
-            String.format("insert into %s (uow_id, uow_data, cmd_data, target_id, version, inserted_on) " +
-                            "values (:uow_id, :uow_data, :cmd_data, :target_id, :version, :inserted_on)",
+            String.format("insert into %s (uow_id, uow_events, cmd_id, cmd_data, target_id, version, inserted_on) " +
+                            "values (:uow_id, :uow_events, :cmd_id, :cmd_data, :target_id, :version, :inserted_on)",
                     dbMetadata.unitOfWorkTable);
 
     logger.debug(updateAggRootSql);
@@ -87,7 +87,7 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
 
     final String uowAsJson = dbi
       .withHandle(new HandleCallback<String>() {
-        final String sql = String.format("select uow_data " +
+        final String sql = String.format("select uow_events " +
                 "from %s where uow_id = :uow_id ", dbMetadata.unitOfWorkTable);
 
         public String withHandle(Handle h) {
@@ -126,7 +126,7 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
         public java.util.List<Tuple2<Long, String>> withHandle(Handle h) {
           return h.createQuery(sql)
                   .bind("id", id.toString())
-                  .bind("version", version.getVersion())
+                  .bind("version", version.getValueAsLong())
                   .map(new EventsMapper()).list();
         }
       }
@@ -135,14 +135,14 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
     if (eventsListAsJson == null) {
 
       logger.debug("found none unit of work for id {} and version > {} on {}",
-              id.toString(), version.getVersion(), dbMetadata.unitOfWorkTable);
+              id.toString(), version.getValueAsLong(), dbMetadata.unitOfWorkTable);
 
       return new Tuple2<>(Version.create(0), List.empty());
 
     }
 
     logger.debug("found {} units of work for id {} and version > {} on {}",
-            eventsListAsJson.size(), id.toString(), version.getVersion(), dbMetadata.unitOfWorkTable);
+            eventsListAsJson.size(), id.toString(), version.getValueAsLong(), dbMetadata.unitOfWorkTable);
 
     final ArrayList<Event> result = new ArrayList<>();
     Long finalVersion = 0L;
@@ -164,22 +164,19 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
 
     requireNonNull(unitOfWork);
 
-    final String cmdAsJson = gson.toJson(unitOfWork.getCommand(), Command.class);
-    final String eventsAsJson = gson.toJson(unitOfWork.getEvents(), listTypeToken.getType());
-
     logger.debug("appending uow to {} with id {}", dbMetadata.aggregateRootTable, unitOfWork.getTargetId());
 
     dbi.inTransaction(TransactionIsolationLevel.SERIALIZABLE, (conn, status) -> {
 
       final Long currentVersion = conn.createQuery(selectAggRootSql)
-              .bind("id", unitOfWork.getTargetId())
+              .bind("id", unitOfWork.getTargetId().getStringValue())
               .map(LongColumnMapper.WRAPPER).first();
 
-      if ((currentVersion == null ? 0 : currentVersion) != unitOfWork.getVersion().getVersion() - 1) {
+      if ((currentVersion == null ? 0 : currentVersion) != unitOfWork.getVersion().getValueAsLong() - 1) {
         throw new DbConcurrencyException(
                 String.format("id = [%s], current_version = %d, new_version = %d",
-                        unitOfWork.getTargetId(),
-                        currentVersion, unitOfWork.getVersion().getVersion()));
+                        unitOfWork.getTargetId().getStringValue(),
+                        currentVersion, unitOfWork.getVersion().getValueAsLong()));
       }
 
       int result1;
@@ -187,37 +184,41 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
       if (currentVersion == null) {
 
         result1 = conn.createStatement(insertAggRootSql)
-                .bind("id", unitOfWork.getTargetId())
-                .bind("new_version", unitOfWork.getVersion().getVersion())
+                .bind("id", unitOfWork.getTargetId().getStringValue())
+                .bind("new_version", unitOfWork.getVersion().getValueAsLong())
                 .bind("last_update", new Timestamp(Instant.now().getEpochSecond()))
                 .execute();
 
       } else {
 
         result1 = conn.createStatement(updateAggRootSql)
-                .bind("id", unitOfWork.getTargetId())
-                .bind("new_version", unitOfWork.getVersion().getVersion())
-                .bind("curr_version", unitOfWork.getVersion().getVersion() - 1)
+                .bind("id", unitOfWork.getTargetId().getStringValue())
+                .bind("new_version", unitOfWork.getVersion().getValueAsLong())
+                .bind("curr_version", unitOfWork.getVersion().getValueAsLong() - 1)
                 .bind("last_update", new Timestamp(Instant.now().getEpochSecond()))
                 .execute();
       }
 
-      int result2 = conn.createStatement(insertUowSql)
-              .bind("uow_id", unitOfWork.getUnitOfWorkId().toString())
-              .bind("uow_events", eventsAsJson)
-              .bind("cmd_id", unitOfWork.getCommand().getCommandId())
-              .bind("cmd_data", cmdAsJson)
-              .bind("target_id", unitOfWork.getTargetId())
-              .bind("version", unitOfWork.getVersion().getVersion())
-              .bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
-              .execute();
+      final String cmdAsJson = gson.toJson(unitOfWork.getCommand(), Command.class);
+      final String eventsAsJson = gson.toJson(unitOfWork.getEvents(), listTypeToken.getType());
 
-      conn.createStatement(
-              String.format(
-                      "SELECT pg_notify('%s', '%s'); ",
-                      eventsChannelId,
-                      unitOfWork.getUnitOfWorkId().toString()))
-              .execute();
+      int result2 = conn.createStatement(insertUowSql)
+        .bind("uow_id", unitOfWork.getUnitOfWorkId().toString())
+        .bind("uow_events", eventsAsJson)
+        .bind("cmd_id", unitOfWork.getCommand().getCommandId().toString())
+        .bind("cmd_data", cmdAsJson)
+        .bind("target_id", unitOfWork.getTargetId().getStringValue())
+        .bind("version", unitOfWork.getVersion().getValueAsLong())
+        .bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
+        .execute();
+
+//      val notify = String.format(
+//              "SELECT pg_notify('%s', '%s'); ",
+//            //   "NOTIFY '%s', '%s' ; ",
+//              eventsChannelId,
+//              unitOfWork.getUnitOfWorkId().toString());
+//
+//      int result3 = conn.createStatement(notify).execute();
 
       // TODO schedular commands emitidos aqui ?? SIM (e remove CommandScheduler)
 
@@ -232,8 +233,8 @@ public class Stack1WriteModelRepository<ID extends AggregateRootId> implements W
 
       throw new DbConcurrencyException(
               String.format("id = [%s], current_version = %d, new_version = %d",
-                      unitOfWork.getTargetId(),
-                      currentVersion, unitOfWork.getVersion().getVersion()));
+                      unitOfWork.getTargetId().getStringValue(),
+                      currentVersion, unitOfWork.getVersion().getValueAsLong()));
 
     }
 

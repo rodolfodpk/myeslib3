@@ -18,7 +18,7 @@ public class EventsMonitorRoute extends RouteBuilder {
   @Override
   public void configure() throws Exception {
 
-//    fromF("seda:%s-events-monitor", eventsChannelId)
+//    fromF("seda:%s-events?multipleConsumers=true", eventsChannelId)
 //      .routeId(eventsChannelId + "-events-monitor")
 //      .process( e-> {
 //        final UnitOfWork unitOfWork = e.getIn().getBody(UnitOfWork.class);

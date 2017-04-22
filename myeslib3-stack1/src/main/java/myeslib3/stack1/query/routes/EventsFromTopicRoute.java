@@ -1,7 +1,5 @@
 package myeslib3.stack1.query.routes;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.stack1.Headers;
 import myeslib3.stack1.command.WriteModelRepository;
@@ -11,17 +9,22 @@ import org.apache.camel.builder.RouteBuilder;
 import java.util.Optional;
 import java.util.UUID;
 
-@AllArgsConstructor
 public class EventsFromTopicRoute extends RouteBuilder {
 
-	@NonNull final String eventsChannelId;
-	@NonNull final WriteModelRepository repo;
-	@NonNull final DatabaseConfig dc;
+	final String eventsChannelId;
+	final WriteModelRepository repo;
+	final DatabaseConfig dc;
+
+	public EventsFromTopicRoute(String eventsChannelId, WriteModelRepository repo, DatabaseConfig dc) {
+		this.eventsChannelId = eventsChannelId;
+		this.repo = repo;
+		this.dc = dc;
+	}
 
 	@Override
 	public void configure() throws Exception {
-
-		fromF("pgevent:%s?database=%s&channel=%s", "pgDatasource", dc.db_name(), eventsChannelId)
+		fromF("pgevent://%s:%s/%s/%s?user=%s&pass=%s",
+						dc.db_host(), dc.db_port(), dc.db_name(), eventsChannelId, dc.db_user(), dc.db_password())
 			.routeId("events-from-topic-" + eventsChannelId)
 			.threads(10)
 			.process(e -> {
@@ -31,8 +34,8 @@ public class EventsFromTopicRoute extends RouteBuilder {
 				e.getOut().setHeader(Headers.UNIT_OF_WORK_ID, uowId);
 				e.getOut().setHeader(Headers.AGGREGATE_ROOT_ID, unitOfWork.get().getTargetId());
 			})
-			.toF("seda:%s-events-projector", eventsChannelId)
-			.toF("seda:%s-events-monitor", eventsChannelId)
+			.log("from db -> ${body}")
+			.toF("seda:%s-events", eventsChannelId)
 		;
 
 	}

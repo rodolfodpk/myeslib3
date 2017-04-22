@@ -10,37 +10,38 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.processor.aggregate.AbstractListAggregationStrategy;
 import org.apache.camel.processor.aggregate.MemoryAggregationRepository;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EventsProjectorRoute extends RouteBuilder {
+public class MultiThreadEventsProjectorRoute extends RouteBuilder {
 
 	final String eventsChannelId;
 	final EventsDao eventsdao;
   final int intervalInMilliseconds;
+  final int threadPoolSize;
 
-  @Inject
-  public EventsProjectorRoute(String eventsChannelId, EventsDao eventsdao, int intervalInMilliseconds) {
+  public MultiThreadEventsProjectorRoute(String eventsChannelId, EventsDao eventsdao,
+                                         int intervalInMilliseconds, int threadPoolSize) {
     this.eventsChannelId = eventsChannelId;
     this.eventsdao = eventsdao;
     this.intervalInMilliseconds = intervalInMilliseconds;
+    this.threadPoolSize = threadPoolSize;
   }
 
   @Override
 	public void configure() throws Exception {
 
-		fromF("seda:%s-events-projector", eventsChannelId)
-			.routeId(eventsChannelId + "-events-projector")
+		fromF("seda:%s-events?multipleConsumers=true", eventsChannelId)
+			.routeId(eventsChannelId + "-mt-events-projector")
 			.aggregate(header(Headers.AGGREGATE_ROOT_ID), new Strategy())
 						.completionInterval(intervalInMilliseconds).aggregationRepository(new MemoryAggregationRepository())
-			.wireTap(String.format("direct:%s-events-projector-write", eventsChannelId))
+			.wireTap(String.format("direct:%s-mt-events-projector-write", eventsChannelId))
 			.log("${body}")
 			;
 
-		fromF("%s-events-projector-write", eventsChannelId)
-			.routeId(eventsChannelId + "-events-projector-write")
-			.threads(10)
+		fromF("%s-mt-events-projector-write", eventsChannelId)
+			.routeId(eventsChannelId + "-mt-events-projector-write")
+			.threads(threadPoolSize)
 			.process(e -> {
 				final List<UnitOfWork> list = e.getIn().getBody(List.class);
         val events = list.stream().flatMap(uow -> uow.getEvents().stream()).collect(Collectors.toList());

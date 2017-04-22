@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml valueAsLong="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -6,7 +6,7 @@
     <parent>
         <groupId>rodolfodpk</groupId>
         <artifactId>myeslib3</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <valueAsLong>1.0-SNAPSHOT</valueAsLong>
     </parent>
 
     <artifactId>myeslib3-bom</artifactId>
@@ -14,13 +14,13 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
-        <lombok.version>1.16.14</lombok.version>
-        <camel.version>2.18.3</camel.version>
-        <guice.version>4.1.0</guice.version>
-        <sl4j.version>1.7.8</sl4j.version>
-        <junit.jupiter.version>5.0.0-M3</junit.jupiter.version>
-        <junit.platform.version>1.0.0-M3</junit.platform.version>
+        <java.valueAsLong>1.8</java.valueAsLong>
+        <lombok.valueAsLong>1.16.14</lombok.valueAsLong>
+        <camel.valueAsLong>2.18.3</camel.valueAsLong>
+        <guice.valueAsLong>4.1.0</guice.valueAsLong>
+        <sl4j.valueAsLong>1.7.8</sl4j.valueAsLong>
+        <junit.jupiter.valueAsLong>5.0.0-M3</junit.jupiter.valueAsLong>
+        <junit.platform.valueAsLong>1.0.0-M3</junit.platform.valueAsLong>
     </properties>
 
     <dependencies>
@@ -28,14 +28,14 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
+            <valueAsLong>${lombok.valueAsLong}</valueAsLong>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
-            <version>1</version>
+            <valueAsLong>1</valueAsLong>
         </dependency>
 
         <!-- logging -->
@@ -48,25 +48,25 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
+            <valueAsLong>${junit.jupiter.valueAsLong}</valueAsLong>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.7.4</version>
+            <valueAsLong>2.7.4</valueAsLong>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.5.0</version>
+            <valueAsLong>3.5.0</valueAsLong>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>2.0.0</version>
+            <valueAsLong>2.0.0</valueAsLong>
             <scope>test</scope>
         </dependency>
 
@@ -80,128 +80,128 @@
             <dependency>
                 <groupId>rodolfodpk</groupId>
                 <artifactId>myeslib3-core</artifactId>
-                <version>${project.version}</version>
+                <valueAsLong>${project.valueAsLong}</valueAsLong>
             </dependency>
 
             <dependency>
                 <groupId>rodolfodpk</groupId>
                 <artifactId>myeslib3-myeslib3.stack</artifactId>
-                <version>${project.version}</version>
+                <valueAsLong>${project.valueAsLong}</valueAsLong>
             </dependency>
 
             <!-- util -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.5</version>
+                <valueAsLong>3.5</valueAsLong>
             </dependency>
 
             <dependency>
                 <groupId>io.javaslang</groupId>
                 <artifactId>javaslang</artifactId>
-                <version>2.0.5</version>
+                <valueAsLong>2.0.5</valueAsLong>
             </dependency>
 
             <!-- config/ guice -->
             <dependency>
                 <groupId>org.aeonbits.owner</groupId>
-                <artifactId>owner</artifactId>
-                <version>1.0.9</version>
+                <artifactId>owner-java8</artifactId>
+                <valueAsLong>1.0.9</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
-                <version>${guice.version}</version>
+                <valueAsLong>${guice.valueAsLong}</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>com.google.inject.extensions</groupId>
                 <artifactId>guice-multibindings</artifactId>
-                <version>${guice.version}</version>
+                <valueAsLong>${guice.valueAsLong}</valueAsLong>
             </dependency>
 
             <!-- logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>${sl4j.version}</version>
+                <valueAsLong>${sl4j.valueAsLong}</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
-                <version>${sl4j.version}</version>
+                <valueAsLong>${sl4j.valueAsLong}</valueAsLong>
             </dependency>
 
             <!-- gson -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>2.8.0</version>
+                <valueAsLong>2.8.0</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>net.dongliu</groupId>
                 <artifactId>gson-java8-datatype</artifactId>
-                <version>1.0.2</version>
+                <valueAsLong>1.0.2</valueAsLong>
             </dependency>
 
             <!-- camel, quartz -->
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-core</artifactId>
-                <version>${camel.version}</version>
+                <valueAsLong>${camel.valueAsLong}</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-hystrix</artifactId>
-                <version>${camel.version}</version>
+                <valueAsLong>${camel.valueAsLong}</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-pgevent</artifactId>
-                <version>${camel.version}</version>
+                <valueAsLong>${camel.valueAsLong}</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
-                <version>2.6.1</version>
+                <valueAsLong>2.6.1</valueAsLong>
             </dependency>
             <dependency>
                 <groupId>com.impossibl.pgjdbc-ng</groupId>
                 <artifactId>pgjdbc-ng</artifactId>
-                <version>0.7</version>
+                <valueAsLong>0.7</valueAsLong>
                 <classifier>complete</classifier>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-undertow</artifactId>
-                <version>${camel.version}</version>
+                <valueAsLong>${camel.valueAsLong}</valueAsLong>
             </dependency>
             <!--<dependency>-->
                 <!--<groupId>org.apache.camel</groupId>-->
                 <!--<artifactId>camel-gson</artifactId>-->
-                <!--<version>${camel.version}</version>-->
+                <valueAsLongsion>${cavalueAsLongsiovalueAsLongsion>-->
             <!--</dependency>-->
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-swagger-java</artifactId>
-                <version>${camel.version}</version>
+                <valueAsLong>${camel.valueAsLong}</valueAsLong>
             </dependency>
             <!--<dependency>-->
                 <!--<groupId>org.apache.camel</groupId>-->
                 <!--<artifactId>camel-quartz2</artifactId>-->
-                <!--<version>${camel.version}</version>-->
+                <valueAsLongsion>${cavalueAsLongsiovalueAsLongsion>-->
             <!--</dependency>-->
 
             <!-- jdbi -->
             <dependency>
                 <groupId>org.jdbi</groupId>
                 <artifactId>jdbi</artifactId>
-                <version>2.78</version>
+                <valueAsLong>2.78</valueAsLong>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-test</artifactId>
-                <version>${camel.version}</version>
+                <valueAsLong>${camel.valueAsLong}</valueAsLong>
                 <scope>test</scope>
             </dependency>
 
@@ -213,13 +213,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <valueAsLong>3.5.1</valueAsLong>
                 <configuration>
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <source>${java.valueAsLong}</source>
+                    <target>${java.valueAsLong}</target>
                 </configuration>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
@@ -247,24 +247,24 @@
 
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19</version>
+                <valueAsLong>2.19</valueAsLong>
                 <dependencies>
                     <dependency>
                         <groupId>org.junit.platform</groupId>
                         <artifactId>junit-platform-surefire-provider</artifactId>
-                        <version>${junit.platform.version}</version>
+                        <valueAsLong>${junit.platform.valueAsLong}</valueAsLong>
                     </dependency>
                     <dependency>
                         <groupId>org.junit.jupiter</groupId>
                         <artifactId>junit-jupiter-engine</artifactId>
-                        <version>${junit.jupiter.version}</version>
+                        <valueAsLong>${junit.jupiter.valueAsLong}</valueAsLong>
                     </dependency>
                 </dependencies>
             </plugin>
 
             <!--<plugin>-->
                 <!--<artifactId>maven-surefire-plugin</artifactId>-->
-                <!--<version>2.19.1</version>-->
+                <valueAsLongsion>2.19valueAsLongsion>-->
                 <!--<configuration>-->
                     <!--<includes>-->
                         <!--<include>**/*Spec*</include>-->
@@ -278,17 +278,17 @@
                     <!--<dependency>-->
                         <!--<groupId>org.junit.platform</groupId>-->
                         <!--<artifactId>junit-platform-surefire-provider</artifactId>-->
-                        <!--<version>${junit.platform.version}</version>-->
+                        <valueAsLongsion>${junit.platfvalueAsLongsiovalueAsLongsion>-->
                     <!--</dependency>-->
                     <!--<dependency>-->
                         <!--<groupId>org.junit.vintage</groupId>-->
                         <!--<artifactId>junit-vintage-engine</artifactId>-->
-                        <!--<version>${junit.vintage.version}</version>-->
+                        <valueAsLongsion>${junit.vintvalueAsLongsiovalueAsLongsion>-->
                     <!--</dependency>-->
                     <!--&lt;!&ndash;<dependency>&ndash;&gt;-->
                     <!--&lt;!&ndash;<groupId>org.junit.jupiter</groupId>&ndash;&gt;-->
                     <!--&lt;!&ndash;<artifactId>junit-jupiter-engine</artifactId>&ndash;&gt;-->
-                    <!--&lt;!&ndash;<version>${junit.jupiter.version}</version>&ndash;&gt;-->
+                    <!--&lt;!&ndavalueAsLongsion>${junit.jupivalueAsLongsiovalueAsLongsion>&ndash;&gt;-->
                     <!--&lt;!&ndash;</dependency>&ndash;&gt;-->
                 <!--</dependencies>-->
             <!--</plugin>-->

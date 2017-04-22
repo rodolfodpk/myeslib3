@@ -5,11 +5,11 @@ import lombok.Value;
 @Value
 public class Version {
 
-  final long version;
+  final long valueAsLong;
 
-	public Version(long version) {
-		if (version <0) throw new IllegalArgumentException("Version must be = zero or positive");
-		this.version = version;
+	public Version(long valueAsLong) {
+		if (valueAsLong <0) throw new IllegalArgumentException("Version must be = zero or positive");
+		this.valueAsLong = valueAsLong;
 	}
 
 	public static Version create(long version) {
@@ -21,7 +21,7 @@ public class Version {
 	}
 
 	public Version nextVersion() {
-		return new Version(version + 1);
+		return new Version(valueAsLong + 1);
 	}
 
 }
