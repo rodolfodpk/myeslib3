@@ -26,7 +26,7 @@ public class PgEventIt {
 	public static void main(String a[]) throws Exception {
 
 		main = new Main();
-		main.bind("test", ds);
+	//	main.bind(dc.db_name(), ds);
 		main.addRouteBuilder(buildConsumer());
 		main.addRouteBuilder(buildProducer());
 
@@ -39,8 +39,7 @@ public class PgEventIt {
 
 			@Override
 			public void configure() throws Exception {
-				fromF("pgevent://%s:%s/%s/testchannel?user=%s&pass=%s",
-								dc.db_host(), dc.db_port(), dc.db_name(), dc.db_user(), dc.db_password())
+				fromF("pgevent:%s/%s/%s", "localhost", dc.db_name(), "testchannel")
 //								.log("${body}")
 								.to("log:org.apache.camel.pgevent.PgEventConsumer?level=INFO");
 			}
@@ -56,8 +55,7 @@ public class PgEventIt {
 			public void configure() throws Exception {
 				from("timer://test?fixedRate=true&period=5000")
 								.setBody(header(Exchange.TIMER_FIRED_TIME))
-								.toF("pgevent://%s:%s/%s/testchannel?user=%s&pass=%s",
-												dc.db_host(), dc.db_port(), dc.db_name(), dc.db_user(), dc.db_password())
+								.toF("pgevent:%s/%s/%s","localhost", dc.db_name(), "testchannel")
 //								.log("${body}")
 								.to("log:org.apache.camel.pgevent.PgProducer?level=INFO");
 			}

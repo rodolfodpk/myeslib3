@@ -35,7 +35,7 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
   @NonNull final Class<A> aggregateRootClass;
   @NonNull final SnapshotReader<ID, A> snapshotReader;
   @NonNull final AggregateRootCmdHandler<A> handler;
-  @NonNull final WriteModelRepository<ID> writeModelRepo;
+  @NonNull final WriteModelRepository writeModelRepo;
   @NonNull final Gson gson ;
   @NonNull final IdempotentRepository<String> idempotentRepo;
 

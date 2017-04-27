@@ -61,7 +61,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	@Mock
 	SnapshotReader<CustomerId, Customer> snapshotReader;
 	@Mock
-	WriteModelRepository<CustomerId> writeModelRepository;
+	WriteModelRepository writeModelRepository;
 
 	@Before
 	public void init() throws Exception {

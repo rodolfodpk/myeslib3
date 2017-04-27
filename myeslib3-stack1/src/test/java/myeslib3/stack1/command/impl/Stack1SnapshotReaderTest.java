@@ -47,7 +47,7 @@ public class Stack1SnapshotReaderTest {
 		BiFunction<Event, Customer, Customer> stateTransitionFn;
 
     @Mock
-    WriteModelRepository<CustomerId> dao;
+    WriteModelRepository dao;
 
     Cache<CustomerId, Tuple2<Version, List<Event>>> cache;
 
@@ -68,14 +68,14 @@ public class Stack1SnapshotReaderTest {
 
 			final Tuple2<Version, List<Event>> expectedHistory = Tuple.of(new Version(0), List.empty());
 
-			when(dao.getAll(id)).thenReturn(expectedHistory);
+			when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
 			final Stack1SnapshotReader<CustomerId, Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
 							dependencyInjectionFn, stateTransitionFn);
 
 			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
 
-			verify(dao).getAll(id);
+			verify(dao).getAll(id.getStringValue());
 
 			verifyNoMoreInteractions(dao);
 
@@ -97,14 +97,14 @@ public class Stack1SnapshotReaderTest {
       final Tuple2<Version, List<Event>> expectedHistory =
               Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
 
-			when(dao.getAll(id)).thenReturn(expectedHistory);
+			when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
 			final Stack1SnapshotReader<CustomerId, Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
 							dependencyInjectionFn, stateTransitionFn);
 
 			assertThat(reader.getSnapshot(id)).isEqualTo(expectedSnapshot);
 
-			verify(dao).getAll(id);
+			verify(dao).getAll(id.getStringValue());
 
 			verifyNoMoreInteractions(dao);
 
@@ -122,7 +122,7 @@ public class Stack1SnapshotReaderTest {
       final Tuple2<Version, List<Event>> expectedHistory =
               Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
 
-			when(dao.getAll(id)).thenReturn(expectedHistory);
+			when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
 			cache.put(id, expectedHistory);
 
@@ -157,8 +157,8 @@ public class Stack1SnapshotReaderTest {
 
       // prepare
 
-			when(dao.getAll(id)).thenReturn(cachedHistory);
-			when(dao.getAllAfterVersion(id, cachedVersion)).thenReturn(nonCachedHistory);
+			when(dao.getAll(id.getStringValue())).thenReturn(cachedHistory);
+			when(dao.getAllAfterVersion(id.getStringValue(), cachedVersion)).thenReturn(nonCachedHistory);
 
 			final Stack1SnapshotReader<CustomerId, Customer> reader = new Stack1SnapshotReader<>(cache, dao, supplier,
 							dependencyInjectionFn, stateTransitionFn);
@@ -174,7 +174,7 @@ public class Stack1SnapshotReaderTest {
       assertThat(snapshot.getInstance().isActive()).isEqualTo(expectedSnapshot.getInstance().isActive());
       assertThat(snapshot.getInstance().getReason()).isEqualTo(expectedSnapshot.getInstance().getReason());
 
-      verify(dao).getAllAfterVersion(eq(id), eq(cachedVersion));
+      verify(dao).getAllAfterVersion(eq(id.getStringValue()), eq(cachedVersion));
 
 			verifyNoMoreInteractions(dao);
 
