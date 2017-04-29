@@ -127,7 +127,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   }
 
   @Test
-  public void after_3_failures_it_must_skip3_pools() throws Exception {
+  public void after_3_failures_it_must_skip_2_pools_and_then_work() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); //, withSettings().verboseLogging());
     val route = new EventsPollingRoute(eventsChannelId, repoMock, config);
