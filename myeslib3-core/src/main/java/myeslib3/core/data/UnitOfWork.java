@@ -16,7 +16,7 @@ public class UnitOfWork {
 	@NonNull final List<Event> events;
 	@NonNull final LocalDateTime timestamp;
 
-	public static UnitOfWork create(Command command, Version version, List<Event> events) {
+	public static UnitOfWork of(Command command, Version version, List<Event> events) {
 		return new UnitOfWork(UUID.randomUUID(), command, version, events, LocalDateTime.now());
 	}
 

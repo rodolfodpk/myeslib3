@@ -21,7 +21,7 @@ import java.util.function.Function;
 import static javaslang.API.Case;
 import static javaslang.API.Match;
 import static javaslang.Predicates.instanceOf;
-import static myeslib3.core.data.UnitOfWork.create;
+import static myeslib3.core.data.UnitOfWork.of;
 
 public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
@@ -36,15 +36,15 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
     final UnitOfWork uow = Match(cmd).of(
 
       Case(instanceOf(CreateCustomerCmd.class), (command) ->
-        create(cmd, targetVersion.nextVersion(),
+        of(cmd, targetVersion.nextVersion(),
                 targetInstance.create(command.getTargetId(), command.getName()))
       ),
 
       Case(instanceOf(ActivateCustomerCmd.class), (command) ->
-        create(cmd, targetVersion.nextVersion(), targetInstance.activate(command.getReason()))),
+        of(cmd, targetVersion.nextVersion(), targetInstance.activate(command.getReason()))),
 
       Case(instanceOf(DeactivateCustomerCmd.class), (command) ->
-        create(cmd, targetVersion.nextVersion(), targetInstance.deactivate(command.getReason()))),
+        of(cmd, targetVersion.nextVersion(), targetInstance.deactivate(command.getReason()))),
 
       Case(instanceOf(CreateActivateCustomerCmd.class), (command) -> {
         val tracker = new StateTransitionsTracker<Customer>(targetInstance,
@@ -53,7 +53,7 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
                 .applyEvents(targetInstance.create((CustomerId) cmd.getTargetId(), command.getName()))
                 .applyEvents(tracker.currentState().activate(command.getReason()))
                 .getEvents();
-        return create(cmd, targetVersion.nextVersion(), events);
+        return of(cmd, targetVersion.nextVersion(), events);
       })
     );
 
