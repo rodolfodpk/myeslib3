@@ -2,11 +2,8 @@ package myeslib3.stack1.query.routes;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import javaslang.Tuple;
-import javaslang.Tuple3;
 import javaslang.collection.List;
 import lombok.val;
-import myeslib3.core.data.Event;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
@@ -24,7 +21,7 @@ import org.junit.Test;
 
 import java.util.UUID;
 
-import static myeslib3.stack1.command.WriteModelRepository.*;
+import static myeslib3.stack1.command.WriteModelRepository.UnitOfWorkData;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -35,10 +32,10 @@ public class EventsSingleProjectionRouteTest extends CamelTestSupport {
   static final Injector injector = Guice.createInjector();
 
   @Produce(uri = "direct:start")
-  protected ProducerTemplate template;
+  ProducerTemplate template;
 
   @EndpointInject(uri = "mock:result")
-  protected MockEndpoint resultEndpoint;
+  MockEndpoint resultEndpoint;
 
   @Before
   public void init() throws Exception {

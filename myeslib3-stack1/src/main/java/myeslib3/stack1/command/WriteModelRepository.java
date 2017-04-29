@@ -1,7 +1,6 @@
 package myeslib3.stack1.command;
 
 import javaslang.Tuple2;
-import javaslang.Tuple3;
 import javaslang.collection.List;
 import lombok.Value;
 import myeslib3.core.data.Event;

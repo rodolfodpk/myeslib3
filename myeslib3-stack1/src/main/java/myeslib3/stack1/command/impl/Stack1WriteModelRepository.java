@@ -20,7 +20,6 @@ import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.tweak.HandleCallback;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.skife.jdbi.v2.util.LongColumnMapper;
-import org.skife.jdbi.v2.util.StringColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,20 +88,22 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   @Override
   public Optional<UnitOfWork> get(UUID uowId) {
 
-    final String uowAsJson = dbi
-      .withHandle(new HandleCallback<String>() {
-        final String sql = String.format("select uow_events " +
-                "from %s where uow_id = :uow_id ", dbMetadata.unitOfWorkTable);
-
-        public String withHandle(Handle h) {
+    final Tuple4<String, String, Long, String> uowTuple = dbi
+      .withHandle(new HandleCallback<Tuple4<String, String, Long, String>>() {
+        final String sql = String.format("select * from %s where uow_id = :uow_id ", dbMetadata.unitOfWorkTable);
+        public Tuple4<String, String, Long, String> withHandle(Handle h) {
           return h.createQuery(sql)
                   .bind("uow_id", uowId.toString())
-                  .map(StringColumnMapper.INSTANCE).first();
+                  .map(new UnitOfWorkMapper()).first();
         }
       }
       );
 
-    return uowAsJson == null ? Optional.empty() : Optional.of(gson.fromJson(uowAsJson, UnitOfWork.class));
+    final Command command = gson.fromJson(uowTuple._2(), Command.class);
+    final java.util.List<Event> events = gson.fromJson(uowTuple._4(), listTypeToken.getType());
+    final UnitOfWork uow = new UnitOfWork(UUID.fromString(uowTuple._1()), command,  new Version(uowTuple._3()), events);
+
+    return uowTuple == null ? Optional.empty() : Optional.of(uow);
 
   }
 
@@ -322,5 +323,16 @@ class ListOfEventsMapper implements ResultSetMapper<Tuple4<String, Long, String,
                     resultSet.getLong("uow_seq_number"),
                     resultSet.getString("target_id"),
                     resultSet.getString("uow_events"));
+  }
+}
+
+class UnitOfWorkMapper implements ResultSetMapper<Tuple4<String, String, Long, String>> {
+  @Override
+  public Tuple4<String, String, Long, String> map(int i, ResultSet resultSet, StatementContext statementContext) throws SQLException {
+    return Tuple.of(resultSet.getString("uow_id"),
+            resultSet.getString("cmd_data"),
+            resultSet.getLong("version"),
+            resultSet.getString("uow_events"));
+
   }
 }

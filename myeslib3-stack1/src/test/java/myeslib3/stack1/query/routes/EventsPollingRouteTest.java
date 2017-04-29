@@ -1,10 +1,7 @@
 package myeslib3.stack1.query.routes;
 
-import javaslang.Tuple;
-import javaslang.Tuple3;
 import javaslang.collection.List;
 import lombok.val;
-import myeslib3.core.data.Event;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
@@ -32,10 +29,10 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   final static String eventsChannelId = "channelExample1";
 
   @Produce(uri = "direct:start")
-  protected ProducerTemplate template;
+  ProducerTemplate template;
 
   @EndpointInject(uri = "mock:result")
-  protected MockEndpoint resultEndpoint;
+  MockEndpoint resultEndpoint;
 
   @Mock
   BoundedContextConfig config;

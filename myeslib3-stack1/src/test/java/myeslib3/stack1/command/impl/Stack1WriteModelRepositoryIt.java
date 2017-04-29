@@ -5,6 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
+import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
@@ -15,6 +16,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.TransactionCallback;
+import org.skife.jdbi.v2.TransactionStatus;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -24,10 +28,10 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class Stack1WriteModelRepositoryIt {
 
-	final static Injector injector = Guice.createInjector(new CustomerModule(),
+	final static Injector injector = Guice.createInjector(
 					new Stack1Module(),
 					new DatabaseModule(),
-					new CustomerModule());
+					new Example1Module());
 
 	@Inject
 	Gson gson;
@@ -40,9 +44,15 @@ public class Stack1WriteModelRepositoryIt {
 	public void setup() {
 		injector.injectMembers(this);
 		repo = new Stack1WriteModelRepository("example1_uow_channel", "customer", gson, dbi);
+		dbi.inTransaction((TransactionCallback<Void>) (handle, transactionStatus) -> {
+      handle.execute("delete from customer_ar");
+      handle.execute("delete from customer_uow");
+      handle.execute("delete from idempotency");
+      return null;
+    });
 	}
 
-	@Test @Ignore
+	@Test
 	public void append() {
 
 		final CustomerId id = new CustomerId("customer#1");
