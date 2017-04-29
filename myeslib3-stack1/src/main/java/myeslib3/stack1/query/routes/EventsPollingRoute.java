@@ -41,26 +41,20 @@ public class EventsPollingRoute extends RouteBuilder {
 
     final Predicate backoffCountBiggerThanZero = exchange -> backoffCount.get() > 0;
 
-    fromF("quartz2://events/%s?cron=%s",
-            eventsChannelId, config.camelized(config.events_cron_polling()))
-      .routeId("pool-events-cron" + eventsChannelId)
-      .startupOrder(10)
-      .threads(1)
-      .log("fired")
-      .toF("direct:pool-events-%s", eventsChannelId);
-
     fromF("direct:pool-events-%s", eventsChannelId)
       .routeId("pool-events-" + eventsChannelId)
+      .log("before -> ${body}")
       .choice()
         .when(hasReachedAnyThreshold)
           .toF("direct:pool-events-open-cb-%s", eventsChannelId)
       .end()
       .doTry()
         .toF("direct:pool-events-perform-%s", eventsChannelId)
-      .doCatch(Exception.class)
-        .log("Failure pooling operations incremented to bean(this, idles.incrementAndGet())")
+      .doCatch(Throwable.class)
+        .setHeader("msg", method(this, "getFailures().incrementAndGet()"))
+        .log("Failure pooling operations incremented to ${header.msg}")
       .end()
-      .log("${body}")
+      .log("after -> ${body}")
     ;
 
     fromF("direct:pool-events-open-cb-%s", eventsChannelId)
@@ -74,31 +68,34 @@ public class EventsPollingRoute extends RouteBuilder {
 
     fromF("direct:pool-events-perform-%s", eventsChannelId)
       .routeId("pool-events-perform-" + eventsChannelId)
-      .streamCaching()
+      .errorHandler(noErrorHandler())
       .choice()
         .when(backoffCountBiggerThanZero)
-          .log("backoffCount was decremented to bean(this, backoffCount.decrementAndGet())")
+          .setHeader("msg", method(this, "getBackoffCount().decrementAndGet()"))
+          .log("backoffCount was decremented to ${header.msg}")
             .choice()
               .when(not(backoffCountBiggerThanZero))
                 .log("circuit breaker is now off")
+                .stop()
+            .otherwise()
+                .stop()
             .endChoice()
         .endChoice()
-      .otherwise()
-        .process(e -> {
-          val unitsOfWork = repo.getAllSince(repo.getLastUowSequence(), config.events_max_rows_query());
-          e.getOut().setHeader(RESULT_SIZE_HEADER, unitsOfWork.size());
-          e.getOut().setBody(unitsOfWork);
-        })
-        .log("--> ${body}")
-        .choice()
-          .when(header(RESULT_SIZE_HEADER).isEqualTo(0))
-            .log("--> 1 ${body}")
-            .log("Idle polling operations incremented to bean(this, idles.incrementAndGet())")
-          .otherwise()
-            .log("--> 2 ${body}")
-            .log("Found ${header.RESULT_SIZE_HEADER} units of work to project")
-            .toF("seda:%s-events", eventsChannelId)
-        .end()
+      .end()
+      .log("--> will pool")
+      .process(e -> {
+        val unitsOfWork = repo.getAllSince(repo.getLastUowSequence(), config.events_max_rows_query());
+        e.getOut().setHeader(RESULT_SIZE_HEADER, unitsOfWork.size());
+        e.getOut().setBody(unitsOfWork);
+      })
+      .log("--> ${body}")
+      .choice()
+        .when(header(RESULT_SIZE_HEADER).isEqualTo(0))
+            .setHeader("msg", method(this, "getIdles().incrementAndGet()"))
+            .log("Failure pooling operations incremented to ${header.msg}")
+        .otherwise()
+          .log("Found ${header.RESULT_SIZE_HEADER} units of work to project")
+          .toF("seda:%s-events", eventsChannelId)
       .end()
     ;
 
