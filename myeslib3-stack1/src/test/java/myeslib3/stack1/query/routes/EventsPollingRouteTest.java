@@ -61,8 +61,8 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<Tuple3<String, String, List<Event>>> tuplesList =
-            List.of(Tuple.of(uowId, aggregateRootId, List.of(event1)));
+    final List<WriteModelRepository.UnitOfWorkData> tuplesList =
+            List.of(new WriteModelRepository.UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
 
     when(repoMock.getLastUowSequence()).thenReturn(0L);
 
@@ -138,8 +138,8 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<Tuple3<String, String, List<Event>>> tuplesList =
-            List.of(Tuple.of(uowId, aggregateRootId, List.of(event1)));
+    final List<WriteModelRepository.UnitOfWorkData> tuplesList =
+            List.of(new WriteModelRepository.UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
 
     when(repoMock.getLastUowSequence()).thenReturn(0L, 0L, 0L, 0L, 0L, 0L, 0L);
 

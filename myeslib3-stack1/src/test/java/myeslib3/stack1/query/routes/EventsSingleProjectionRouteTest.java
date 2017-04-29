@@ -10,6 +10,7 @@ import myeslib3.core.data.Event;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.stack1.command.WriteModelRepository;
 import myeslib3.stack1.query.EventsProjectorDao;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
@@ -23,6 +24,7 @@ import org.junit.Test;
 
 import java.util.UUID;
 
+import static myeslib3.stack1.command.WriteModelRepository.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -55,7 +57,8 @@ public class EventsSingleProjectionRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<Tuple3<String, String, List<Event>>> tuplesList = List.of(Tuple.of(uowId, aggregateRootId, List.of(event1)));
+    final List<WriteModelRepository.UnitOfWorkData> tuplesList =
+            List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
 
     resultEndpoint.expectedBodiesReceived(tuplesList);
 

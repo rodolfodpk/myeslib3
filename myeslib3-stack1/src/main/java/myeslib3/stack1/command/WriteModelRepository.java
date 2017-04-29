@@ -3,6 +3,7 @@ package myeslib3.stack1.command;
 import javaslang.Tuple2;
 import javaslang.Tuple3;
 import javaslang.collection.List;
+import lombok.Value;
 import myeslib3.core.data.Event;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
@@ -16,12 +17,20 @@ public interface WriteModelRepository  {
 
 	Optional<UnitOfWork> get(UUID uowId);
 
-	List<Tuple3<String, String, List<Event>>> getAllSince(long sinceUowSequence, int maxResultSize);
+	List<UnitOfWorkData> getAllSince(long sinceUowSequence, int maxResultSize);
 
 	Long getLastUowSequence();
 
 	Tuple2<Version, List<Event>> getAll(String aggregateRootId);
 
 	Tuple2<Version, List<Event>> getAllAfterVersion(String aggregateRootId, Version version);
+
+	@Value
+	class UnitOfWorkData {
+	  String uowId;
+    Long uowSequence;
+	  String targetId;
+    List<Event> events;
+  }
 
 }
