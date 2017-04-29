@@ -48,7 +48,7 @@ public class Stack1WriteModelRepositoryIt {
 		final CustomerId id = new CustomerId("customer#1");
 		final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, "customer1");
 		final CustomerCreated event = new CustomerCreated(id, command.getName());
-		final UnitOfWork uow1 = UnitOfWork.create(command, Version.create(1), Arrays.asList(event));
+		final UnitOfWork uow1 = UnitOfWork.of(command, Version.create(1), Arrays.asList(event));
 
 		repo.append(uow1);
 

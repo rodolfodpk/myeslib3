@@ -93,7 +93,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     verify(snapshotReader).getSnapshot(eq(customerId));
 
     val expectedEvent = new CustomerCreated(customerId, "customer1");
-    val expectedUow = UnitOfWork.create(createCustomerCmd, new Version(1), Arrays.asList(expectedEvent));
+    val expectedUow = UnitOfWork.of(createCustomerCmd, new Version(1), Arrays.asList(expectedEvent));
 
     ArgumentCaptor<UnitOfWork> argument = ArgumentCaptor.forClass(UnitOfWork.class);
 

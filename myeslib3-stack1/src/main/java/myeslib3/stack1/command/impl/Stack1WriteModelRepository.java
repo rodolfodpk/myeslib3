@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import javaslang.Tuple;
 import javaslang.Tuple2;
+import javaslang.Tuple3;
 import javaslang.collection.List;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.Event;
@@ -106,18 +107,18 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   }
 
   @Override
-  public List<Tuple2<String, List<Event>>> getAllSince(long sinceUowSequence, int maxResultSize) {
+  public List<Tuple3<String, String, List<Event>>> getAllSince(long sinceUowSequence, int maxResultSize) {
 
     logger.debug("will load a maximum of {} units of work since sequence {}", maxResultSize, sinceUowSequence);
 
-    final java.util.List<Tuple2<String, String>> eventsListAsJson = dbi
-            .withHandle(new HandleCallback<java.util.List<Tuple2<String, String>>>() {
+    final java.util.List<Tuple3<String, String, String>> eventsListAsJson = dbi
+            .withHandle(new HandleCallback<java.util.List<Tuple3<String, String, String>>>() {
 
-                          String sql = String.format("select target_id, uow_events " +
+                          String sql = String.format("select uow_id, target_id, uow_events " +
                                   "from %s where uow_seq_number > %d order by uow_seq_number limit %d",
                                   dbMetadata.unitOfWorkTable, sinceUowSequence, maxResultSize);
 
-                          public java.util.List<Tuple2<String, String>> withHandle(Handle h) {
+                          public java.util.List<Tuple3<String, String, String>> withHandle(Handle h) {
                             return h.createQuery(sql)
                                     .bind("uow_seq_number", sinceUowSequence)
                                     .map(new ListOfEventsMapper()).list();
@@ -135,17 +136,22 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
     logger.info("Found {} units of work since sequence {}", eventsListAsJson.size(), sinceUowSequence);
 
-    final ArrayList<Tuple2<String, List<Event>>> result = new ArrayList<>();
+    final ArrayList<Tuple3<String, String, List<Event>>> result = new ArrayList<>();
 
-    for (Tuple2<String, String> tuple : eventsListAsJson) {
+    for (Tuple3<String, String, String> tuple : eventsListAsJson) {
       logger.info("converting to List<Event> from {}", tuple);
       final List<Event> events = gson.fromJson(tuple._2(), listTypeToken.getType());
       logger.debug(events.toString());
-      events.forEach(e -> result.add(Tuple.of(tuple._1(), events)));
+      events.forEach(e -> result.add(Tuple.of(tuple._1(), tuple._2(), events)));
     }
 
     return List.ofAll(result);
 
+  }
+
+  @Override
+  public Long getLastUowSequence() {
+    return null; // TODO
   }
 
   @Override
@@ -309,9 +315,11 @@ class EventsMapper implements ResultSetMapper<Tuple2<Long, String>> {
   }
 }
 
-class ListOfEventsMapper implements ResultSetMapper<Tuple2<String, String>> {
+class ListOfEventsMapper implements ResultSetMapper<Tuple3<String, String, String>> {
   @Override
-  public Tuple2<String, String> map(int i, ResultSet resultSet, StatementContext statementContext) throws SQLException {
-    return Tuple.of(resultSet.getString("target_id"), resultSet.getString("uow_events"));
+  public Tuple3<String, String, String> map(int i, ResultSet resultSet, StatementContext statementContext) throws SQLException {
+    return Tuple.of(resultSet.getString("uow_id"),
+                    resultSet.getString("target_id"),
+                    resultSet.getString("uow_events"));
   }
 }

@@ -24,9 +24,9 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -77,19 +77,20 @@ public class EventsPgEventRouteTest extends CamelTestSupport {
   @Mock
   WriteModelRepository repo;
 
-  @Before
+  @BeforeEach
   public void init() throws Exception {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
     val route = new EventsPollingRoute(eventsChannelId, repo, bcConfig);
   }
 
-  @Test @Disabled // TODO
+  @Test
+  @Disabled // TODO
   public void producing_uow_should_work() throws InterruptedException {
 
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
-    val uow1 = UnitOfWork.create(cmd1, new Version(1), Arrays.asList(event1));
+    val uow1 = UnitOfWork.of(cmd1, new Version(1), Arrays.asList(event1));
 
     when(repo.get(eq(uow1.getUnitOfWorkId()))).thenReturn(Optional.of(uow1));
 
