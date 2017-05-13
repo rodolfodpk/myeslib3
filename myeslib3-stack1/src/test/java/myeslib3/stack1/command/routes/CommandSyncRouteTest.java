@@ -77,7 +77,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
 	}
 
 	@Test
-	public void vald_command_must_return_valid_unit_of_work() throws InterruptedException {
+	public void valid_command_must_return_valid_unit_of_work() throws InterruptedException {
 
     val customerId = new CustomerId("customer#1");
 

@@ -6,10 +6,12 @@ import javaslang.Tuple;
 import javaslang.Tuple2;
 import javaslang.Tuple4;
 import javaslang.collection.List;
+import lombok.NonNull;
 import myeslib3.core.data.Command;
 import myeslib3.core.data.Event;
 import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
+import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.command.WriteModelRepository;
 import myeslib3.stack1.stack1infra.jdbi.DbConcurrencyException;
 import myeslib3.stack1.stack1infra.jdbi.LocalDateTimeMapper;
@@ -49,12 +51,8 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
   private final TypeToken<java.util.List<Event>> listTypeToken = new TypeToken<java.util.List<Event>>() {};
 
-  public Stack1WriteModelRepository(String eventsChannelId, String aggregateRootName, Gson gson, DBI dbi) {
-
-    requireNonNull(aggregateRootName);
-    requireNonNull(eventsChannelId);
-    requireNonNull(gson);
-    requireNonNull(dbi);
+  public Stack1WriteModelRepository(@NonNull String eventsChannelId, @NonNull String aggregateRootName,
+                                    @NonNull Gson gson, @NonNull DBI dbi) {
 
     this.eventsChannelId = eventsChannelId;
     this.dbMetadata = new DbMetadata(aggregateRootName);
@@ -87,6 +85,9 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
   @Override
   public Optional<UnitOfWork> get(UUID uowId) {
+
+    // TODO
+    // https://www.mail-archive.com/search?l=jooq-user@googlegroups.com&q=subject:%22Fetching+two+or+more+fields+from+different+tables+into+a+Tuple%22&o=newest&f=1
 
     final Tuple4<String, String, Long, String> uowTuple = dbi
       .withHandle(new HandleCallback<Tuple4<String, String, Long, String>>() {
@@ -148,11 +149,6 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
     return List.ofAll(result);
 
-  }
-
-  @Override
-  public Long getLastUowSequence() {
-    return null; // TODO
   }
 
   @Override

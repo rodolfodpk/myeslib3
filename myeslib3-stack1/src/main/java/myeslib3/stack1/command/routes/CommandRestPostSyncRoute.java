@@ -1,6 +1,5 @@
 package myeslib3.stack1.command.routes;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import myeslib3.core.data.AggregateRoot;
 import myeslib3.core.data.UnitOfWork;
@@ -13,11 +12,15 @@ import java.util.List;
 import static myeslib3.stack1.Headers.*;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.*;
 
-@AllArgsConstructor
 public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuilder {
 
-	@NonNull final Class<A> aggregateRootClass;
-	@NonNull final List<Class<?>> commandsClasses;
+	final Class<A> aggregateRootClass;
+	final List<Class<?>> commandsClasses;
+
+  public CommandRestPostSyncRoute(@NonNull Class<A> aggregateRootClass, @NonNull List<Class<?>> commandsClasses) {
+    this.aggregateRootClass = aggregateRootClass;
+    this.commandsClasses = commandsClasses;
+  }
 
   @Override
   public void configure() throws Exception {

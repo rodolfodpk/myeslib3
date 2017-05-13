@@ -4,6 +4,7 @@ package myeslib3.stack1.command.impl;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import javaslang.collection.List;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import myeslib3.core.StateTransitionsTracker;
 import myeslib3.core.data.AggregateRoot;
@@ -37,9 +38,11 @@ public class Stack1SnapshotReader<ID extends AggregateRootId, A extends Aggregat
   final Function<A, A> dependencyInjectionFn;
   final BiFunction<Event, A, A> stateTransitionFn;
 
-	public Stack1SnapshotReader(Cache<ID, Tuple2<Version, List<Event>>> cache, WriteModelRepository dao,
-															Supplier<A> supplier, Function<A, A> dependencyInjectionFn,
-															BiFunction<Event, A, A> stateTransitionFn) {
+	public Stack1SnapshotReader(@NonNull Cache<ID, Tuple2<Version, List<Event>>> cache,
+															@NonNull WriteModelRepository dao,
+															@NonNull Supplier<A> supplier,
+															@NonNull Function<A, A> dependencyInjectionFn,
+															@NonNull BiFunction<Event, A, A> stateTransitionFn) {
 		this.cache = cache;
 		this.dao = dao;
 		this.supplier = supplier;

@@ -5,6 +5,7 @@ import myeslib3.core.data.AggregateRootId;
 
 @Value
 public class CustomerId implements AggregateRootId {
+
   String stringValue;
 
 }

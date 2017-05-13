@@ -1,22 +1,41 @@
 package myeslib3.stack1.query;
 
+import javaslang.Tuple;
 import javaslang.collection.List;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import myeslib3.core.data.Event;
-import org.skife.jdbi.v2.TransactionIsolationLevel;
-import org.skife.jdbi.v2.sqlobject.Transaction;
+import myeslib3.stack1.command.UnitOfWorkData;
+import org.jooq.Configuration;
+import org.jooq.impl.DSL;
 
-/**
- * http://manikandan-k.github.io/2015/05/10/Transactions_in_jdbi.html
- */
-public interface EventsProjectorDao {
+@Slf4j
+public abstract class EventsProjectorDao {
 
-  @Transaction(TransactionIsolationLevel.SERIALIZABLE)
-  default void handle(String id, List<Event> events) {
-    for (Event e : events) {
-      handle(id, e);
-    }
+  @Getter
+  private final String eventsChannelId;
+  private final Configuration jooqCfg;
+
+  public EventsProjectorDao(String eventsChannelId, final Configuration jooqCfg) {
+    this.eventsChannelId = eventsChannelId;
+    this.jooqCfg = jooqCfg;
   }
 
-  void handle(String id, Event event);
+  public Long getLastUowSeq() {
+    return null; // TODO
+  }
+
+  public void handle(final List<UnitOfWorkData> uowList) {
+
+    log.info("writing events for eventsChannelId {}", eventsChannelId);
+
+    DSL.using(jooqCfg)
+      .transaction(ctx -> uowList.flatMap(uowdata -> uowdata.getEvents()
+              .map(e -> Tuple.of(uowdata.getTargetId(), e)))
+              .forEach(tuple -> handle(ctx, tuple._1(), tuple._2())));
+
+  }
+
+  abstract void handle(final Configuration ctx, final String id, final Event event);
 
 }

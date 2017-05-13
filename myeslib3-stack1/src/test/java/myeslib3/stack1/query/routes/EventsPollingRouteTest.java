@@ -5,7 +5,9 @@ import lombok.val;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.command.WriteModelRepository;
+import myeslib3.stack1.query.EventsProjectorDao;
 import myeslib3.stack1.stack1infra.BoundedContextConfig;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
@@ -50,7 +52,9 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void single_events_list() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class, withSettings().verboseLogging());
-    val route = new EventsPollingRoute(eventsChannelId, repoMock, config);
+    val eventDaoMock = mock(EventsProjectorDao.class, withSettings().verboseLogging());
+    when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
+    val route = new EventsPollingRoute(repoMock, config, eventDaoMock);
     context.addRoutes(route);
 
     val uowId = "uow#1";
@@ -58,10 +62,10 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<WriteModelRepository.UnitOfWorkData> tuplesList =
-            List.of(new WriteModelRepository.UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
+    final List<UnitOfWorkData> tuplesList =
+            List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
 
-    when(repoMock.getLastUowSequence()).thenReturn(0L);
+    when(eventDaoMock.getLastUowSeq()).thenReturn(0L);
 
     when(repoMock.getAllSince(eq(0L), eq(10))).thenReturn(tuplesList);
 
@@ -71,7 +75,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
 
     resultEndpoint.assertIsSatisfied(100);
 
-    verify(repoMock).getLastUowSequence();
+    verify(eventDaoMock).getLastUowSeq();
 
     verify(repoMock).getAllSince(eq(0L), eq(10));
 
@@ -83,18 +87,20 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void when_failure_it_must_increase_failures() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); // , withSettings().verboseLogging());
-    val route = new EventsPollingRoute(eventsChannelId, repoMock, config);
+    val eventDaoMock = mock(EventsProjectorDao.class, withSettings().verboseLogging());
+    when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
+    val route = new EventsPollingRoute(repoMock, config, eventDaoMock);
     context.addRoutes(route);
 
-    when(repoMock.getLastUowSequence())
+    when(eventDaoMock.getLastUowSeq())
             .thenThrow(new RuntimeException("fail 1"), new RuntimeException("fail 2"), new RuntimeException("fail 2"))
             ;
 
     template.requestBody(true);
 
-    verify(repoMock).getLastUowSequence();
+    verify(eventDaoMock).getLastUowSeq();
 
-    AssertionsForInterfaceTypes.assertThat(route.getFailures().get()).isEqualTo(1);
+    AssertionsForInterfaceTypes.assertThat(route.failures.get()).isEqualTo(1);
 
     verifyNoMoreInteractions(repoMock);
 
@@ -104,20 +110,22 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void when_idle_it_must_increase_idles() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); // , withSettings().verboseLogging());
-    val route = new EventsPollingRoute(eventsChannelId, repoMock, config);
+    val eventDaoMock = mock(EventsProjectorDao.class, withSettings().verboseLogging());
+    when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
+    val route = new EventsPollingRoute(repoMock, config, eventDaoMock);
     context.addRoutes(route);
 
-    when(repoMock.getLastUowSequence()).thenReturn(0L);
+    when(eventDaoMock.getLastUowSeq()).thenReturn(0L);
 
     when(repoMock.getAllSince(eq(0L), eq(10))).thenReturn(List.empty());
 
     template.requestBody(true);
 
-    verify(repoMock).getLastUowSequence();
+    verify(eventDaoMock).getLastUowSeq();
 
     verify(repoMock).getAllSince(eq(0L), eq(10));
 
-    AssertionsForInterfaceTypes.assertThat(route.getIdles().get()).isEqualTo(1);
+    AssertionsForInterfaceTypes.assertThat(route.idles.get()).isEqualTo(1);
 
     verifyNoMoreInteractions(repoMock);
 
@@ -127,7 +135,9 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void after_3_failures_it_must_skip_2_pools_and_then_work() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); //, withSettings().verboseLogging());
-    val route = new EventsPollingRoute(eventsChannelId, repoMock, config);
+    val eventDaoMock = mock(EventsProjectorDao.class, withSettings().verboseLogging());
+    when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
+    val route = new EventsPollingRoute(repoMock, config, eventDaoMock);
     context.addRoutes(route);
 
     val uowId = "uow#1";
@@ -135,10 +145,10 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<WriteModelRepository.UnitOfWorkData> tuplesList =
-            List.of(new WriteModelRepository.UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
+    final List<UnitOfWorkData> tuplesList =
+            List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
 
-    when(repoMock.getLastUowSequence()).thenReturn(0L, 0L, 0L, 0L, 0L, 0L, 0L);
+    when(eventDaoMock.getLastUowSeq()).thenReturn(0L, 0L, 0L, 0L, 0L, 0L, 0L);
 
     when(repoMock.getAllSince(eq(0L), eq(10)))
       .thenThrow(new RuntimeException("fail 1"), new RuntimeException("fail 2"), new RuntimeException("fail 2"))
@@ -162,7 +172,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
 
     resultEndpoint.assertIsSatisfied(1000);
 
-    verify(repoMock, times(4)).getLastUowSequence();
+    verify(eventDaoMock, times(4)).getLastUowSeq();
 
     verify(repoMock, times(4)).getAllSince(eq(0L), eq(10));
 
@@ -178,7 +188,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
       public void configure() throws Exception {
         from("direct:start")
                 .toF("direct:pool-events-%s", eventsChannelId)
-                .log("*** from pooling: ${header.aggregate_root_id} - ${body}")
+                .log("*** from pooling: ${body}")
                 .to("mock:result");
       }
     };

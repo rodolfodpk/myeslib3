@@ -18,8 +18,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static javaslang.API.Case;
-import static javaslang.API.Match;
+import static javaslang.API.*;
 import static javaslang.Predicates.instanceOf;
 import static myeslib3.core.data.UnitOfWork.of;
 
@@ -54,7 +53,10 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
                 .applyEvents(tracker.currentState().activate(command.getReason()))
                 .getEvents();
         return of(cmd, targetVersion.nextVersion(), events);
-      })
+      }),
+
+      Case($(), o -> null)
+
     );
 
     return uow == null ? Optional.empty() : Optional.of(uow);

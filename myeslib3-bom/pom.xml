@@ -19,8 +19,8 @@
         <camel.version>2.18.3</camel.version>
         <guice.version>4.1.0</guice.version>
         <sl4j.version>1.7.8</sl4j.version>
-        <junit.jupiter.version>5.0.0-M3</junit.jupiter.version>
-        <junit.platform.version>1.0.0-M3</junit.platform.version>
+        <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
+        <junit.platform.version>1.0.0-M4</junit.platform.version>
     </properties>
 
     <dependencies>
@@ -143,7 +143,7 @@
                 <version>1.0.2</version>
             </dependency>
 
-            <!-- camel, quartz -->
+            <!-- camel -->
             <dependency>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-core</artifactId>
@@ -153,22 +153,6 @@
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-hystrix</artifactId>
                 <version>${camel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-pgevent</artifactId>
-                <version>${camel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.zaxxer</groupId>
-                <artifactId>HikariCP</artifactId>
-                <version>2.6.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.impossibl.pgjdbc-ng</groupId>
-                <artifactId>pgjdbc-ng</artifactId>
-                <version>0.7</version>
-                <classifier>complete</classifier>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel</groupId>
@@ -186,11 +170,26 @@
               <version>${camel.version}</version>
             </dependency>
 
-            <!-- jdbi -->
+            <!-- database -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>6.0.6</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>2.6.1</version>
+            </dependency>
             <dependency>
                 <groupId>org.jdbi</groupId>
                 <artifactId>jdbi</artifactId>
                 <version>2.78</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq</artifactId>
+                <version>3.9.2</version>
             </dependency>
 
             <dependency>

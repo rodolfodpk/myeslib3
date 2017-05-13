@@ -1,9 +1,10 @@
 package myeslib3.stack1.query.routes;
 
-import lombok.Getter;
+import javaslang.collection.List;
 import lombok.NonNull;
-import lombok.val;
+import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.command.WriteModelRepository;
+import myeslib3.stack1.query.EventsProjectorDao;
 import myeslib3.stack1.stack1infra.BoundedContextConfig;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
@@ -14,23 +15,21 @@ import static org.apache.camel.builder.PredicateBuilder.not;
 
 public class EventsPollingRoute extends RouteBuilder {
 
-	final String eventsChannelId;
 	final WriteModelRepository repo;
 	final BoundedContextConfig config;
-	@Getter
+	final EventsProjectorDao eventsProjectorDao;
 	final AtomicInteger failures = new AtomicInteger();
-  @Getter
 	final AtomicInteger idles = new AtomicInteger();
-  @Getter
   final AtomicInteger backoffCount = new AtomicInteger();
 
   static final String RESULT_SIZE_HEADER = "RESULT_SIZE_HEADER";
 
-	public EventsPollingRoute(@NonNull String eventsChannelId, @NonNull WriteModelRepository repo,
-                            @NonNull BoundedContextConfig config) {
-		this.eventsChannelId = eventsChannelId;
+	public EventsPollingRoute(@NonNull WriteModelRepository repo,
+                            @NonNull BoundedContextConfig config,
+                            @NonNull EventsProjectorDao eventsProjectorDao) {
 		this.repo = repo;
     this.config = config;
+    this.eventsProjectorDao = eventsProjectorDao;
   }
 
 	@Override
@@ -41,24 +40,24 @@ public class EventsPollingRoute extends RouteBuilder {
 
     final Predicate backoffCountBiggerThanZero = exchange -> backoffCount.get() > 0;
 
-    fromF("direct:pool-events-%s", eventsChannelId)
-      .routeId("pool-events-" + eventsChannelId)
+    fromF("direct:pool-events-%s", eventsProjectorDao.getEventsChannelId())
+      .routeId("pool-events-" + eventsProjectorDao.getEventsChannelId())
       .log("before -> ${body}")
       .choice()
         .when(hasReachedAnyThreshold)
-          .toF("direct:pool-events-open-cb-%s", eventsChannelId)
+          .toF("direct:pool-events-open-cb-%s", eventsProjectorDao.getEventsChannelId())
       .end()
       .doTry()
-        .toF("direct:pool-events-perform-%s", eventsChannelId)
+        .toF("direct:pool-events-perform-%s", eventsProjectorDao.getEventsChannelId())
       .doCatch(Throwable.class)
-        .setHeader("msg", method(this, "getFailures().incrementAndGet()"))
+        .setHeader("msg", method(this, "newFailure()"))
         .log("Failure pooling operations incremented to ${header.msg}")
       .end()
       .log("after -> ${body}")
     ;
 
-    fromF("direct:pool-events-open-cb-%s", eventsChannelId)
-      .routeId("pool-events-open-cb-" + eventsChannelId)
+    fromF("direct:pool-events-open-cb-%s", eventsProjectorDao.getEventsChannelId())
+      .routeId("pool-events-open-cb-" + eventsProjectorDao.getEventsChannelId())
       .process(e -> {
         failures.set(0); idles.set(0);
         backoffCount.updateAndGet(operand -> operand + config.events_backoff_multiplier());
@@ -66,12 +65,12 @@ public class EventsPollingRoute extends RouteBuilder {
     .log("circuit breaker is now open")
     ;
 
-    fromF("direct:pool-events-perform-%s", eventsChannelId)
-      .routeId("pool-events-perform-" + eventsChannelId)
+    fromF("direct:pool-events-perform-%s", eventsProjectorDao.getEventsChannelId())
+      .routeId("pool-events-perform-" + eventsProjectorDao.getEventsChannelId())
       .errorHandler(noErrorHandler())
       .choice()
         .when(backoffCountBiggerThanZero)
-          .setHeader("msg", method(this, "getBackoffCount().decrementAndGet()"))
+          .setHeader("msg", method(this, "ranBackoff()"))
           .log("backoffCount was decremented to ${header.msg}")
             .choice()
               .when(not(backoffCountBiggerThanZero))
@@ -84,20 +83,35 @@ public class EventsPollingRoute extends RouteBuilder {
       .end()
       .log("--> will pool")
       .process(e -> {
-        val unitsOfWork = repo.getAllSince(repo.getLastUowSequence(), config.events_max_rows_query());
+        final List<UnitOfWorkData> unitsOfWork =
+                repo.getAllSince(eventsProjectorDao.getLastUowSeq(), config.events_max_rows_query());
         e.getOut().setHeader(RESULT_SIZE_HEADER, unitsOfWork.size());
         e.getOut().setBody(unitsOfWork);
       })
       .log("--> ${body}")
       .choice()
         .when(header(RESULT_SIZE_HEADER).isEqualTo(0))
-            .setHeader("msg", method(this, "getIdles().incrementAndGet()"))
-            .log("Failure pooling operations incremented to ${header.msg}")
+          .setHeader("msg", method(this, "newIdle()"))
+          .log("Failure pooling operations incremented to ${header.msg}")
         .otherwise()
           .log("Found ${header.RESULT_SIZE_HEADER} units of work to project")
-          .toF("seda:%s-events", eventsChannelId)
+          .split(body())
+          .toF("seda:%s-events", eventsProjectorDao.getEventsChannelId())
       .end()
     ;
 
   }
+
+  public Integer newIdle() {
+	  return idles.incrementAndGet();
+  }
+
+  public Integer newFailure() {
+    return failures.incrementAndGet();
+  }
+
+  public Integer ranBackoff() {
+    return backoffCount.decrementAndGet();
+  }
+
 }

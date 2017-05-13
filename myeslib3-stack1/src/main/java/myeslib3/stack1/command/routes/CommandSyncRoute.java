@@ -2,7 +2,6 @@ package myeslib3.stack1.command.routes;
 
 import com.google.gson.Gson;
 import javaslang.control.Either;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.val;
 import myeslib3.core.AggregateRootCmdHandler;
@@ -26,18 +25,28 @@ import java.util.Optional;
 import static myeslib3.stack1.Headers.COMMAND_ID;
 import static myeslib3.stack1.stack1infra.utils.StringHelper.aggregateRootId;
 
-@AllArgsConstructor
 public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoot> extends RouteBuilder {
 
   static final String RESULT = "result";
   static final String IS_ERROR = "IS_ERROR";
 
-  @NonNull final Class<A> aggregateRootClass;
-  @NonNull final SnapshotReader<ID, A> snapshotReader;
-  @NonNull final AggregateRootCmdHandler<A> handler;
-  @NonNull final WriteModelRepository writeModelRepo;
-  @NonNull final Gson gson ;
-  @NonNull final IdempotentRepository<String> idempotentRepo;
+  final Class<A> aggregateRootClass;
+  final SnapshotReader<ID, A> snapshotReader;
+  final AggregateRootCmdHandler<A> handler;
+  final WriteModelRepository writeModelRepo;
+  final Gson gson ;
+  final IdempotentRepository<String> idempotentRepo;
+
+  public CommandSyncRoute(@NonNull Class<A> aggregateRootClass, @NonNull SnapshotReader<ID, A> snapshotReader,
+                          @NonNull AggregateRootCmdHandler<A> handler, @NonNull WriteModelRepository writeModelRepo,
+                          @NonNull Gson gson, @NonNull IdempotentRepository<String> idempotentRepo) {
+    this.aggregateRootClass = aggregateRootClass;
+    this.snapshotReader = snapshotReader;
+    this.handler = handler;
+    this.writeModelRepo = writeModelRepo;
+    this.gson = gson;
+    this.idempotentRepo = idempotentRepo;
+  }
 
   @Override
   public void configure() throws Exception {

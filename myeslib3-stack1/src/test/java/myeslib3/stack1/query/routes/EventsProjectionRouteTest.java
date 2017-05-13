@@ -7,7 +7,7 @@ import lombok.val;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.stack1.command.WriteModelRepository;
+import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.query.EventsProjectorDao;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
@@ -21,11 +21,10 @@ import org.junit.Test;
 
 import java.util.UUID;
 
-import static myeslib3.stack1.command.WriteModelRepository.UnitOfWorkData;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class EventsSingleProjectionRouteTest extends CamelTestSupport {
+public class EventsProjectionRouteTest extends CamelTestSupport {
 
   final static String eventsChannelId = "channelExample1";
 
@@ -45,8 +44,13 @@ public class EventsSingleProjectionRouteTest extends CamelTestSupport {
   @Test
   public void single_events_list() throws Exception {
 
-    val daoMock= mock(EventsProjectorDao.class, withSettings().verboseLogging());
-    val route = new EventsSingleProjectionRoute(eventsChannelId, daoMock, new MemoryIdempotentRepository(), false);
+    long completionInterval = 100;
+    int completionSize = 1;
+
+    val eventsProjectorMock = mock(EventsProjectorDao.class, withSettings().verboseLogging());
+    when(eventsProjectorMock.getEventsChannelId()).thenReturn(eventsChannelId);
+    val route = new EventsProjectionRoute(eventsProjectorMock , new MemoryIdempotentRepository(),
+            false, completionInterval, completionSize);
     context.addRoutes(route);
 
     val uowId = "uow#1";
@@ -54,18 +58,20 @@ public class EventsSingleProjectionRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<WriteModelRepository.UnitOfWorkData> tuplesList =
+    final List<UnitOfWorkData> tuplesList =
             List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
 
-    resultEndpoint.expectedBodiesReceived(tuplesList);
+    resultEndpoint.expectedBodiesReceived(tuplesList.get(0));
 
-    template.requestBody(tuplesList);
+    template.requestBody(tuplesList.get(0));
 
     resultEndpoint.assertIsSatisfied(1000);
 
-    verify(daoMock).handle(eq(aggregateRootId), eq(List.of(event1)));
+    verify(eventsProjectorMock).handle(eq(tuplesList));
 
-    verifyNoMoreInteractions(daoMock);
+    verify(eventsProjectorMock, times(2)).getEventsChannelId();
+
+    verifyNoMoreInteractions(eventsProjectorMock );
 
   }
 
@@ -77,7 +83,7 @@ public class EventsSingleProjectionRouteTest extends CamelTestSupport {
       public void configure() throws Exception {
       from("direct:start")
         .toF("seda:%s-events?multipleConsumers=%b", eventsChannelId, false)
-        .log("*** from seda: ${header.aggregate_root_id} - ${body}")
+        .log("*** from seda: ${body}")
         .to("mock:result");
       }
     };

@@ -7,18 +7,14 @@ import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.CustomerId;
-import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.stack1.Stack1Module;
 import myeslib3.stack1.stack1infra.DatabaseModule;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
-import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.TransactionCallback;
-import org.skife.jdbi.v2.TransactionStatus;
 
 import javax.inject.Inject;
 import java.util.Arrays;
