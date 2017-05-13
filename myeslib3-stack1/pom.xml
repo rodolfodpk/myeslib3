@@ -13,10 +13,6 @@
     <artifactId>myeslib3-stack1</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <kotlin.version>1.1.1</kotlin.version>
-    </properties>
-
     <dependencies>
 
         <!-- own -->
@@ -26,15 +22,16 @@
             <artifactId>myeslib3-core</artifactId>
         </dependency>
 
+        <!-- util -->
+
         <dependency>
-            <groupId>rodolfodpk</groupId>
-            <artifactId>myeslib3-core</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>rodolfodpk</groupId>
-            <artifactId>myeslib3-example1-runtime</artifactId>
-            <version>${project.version}</version>
+            <groupId>io.javaslang</groupId>
+            <artifactId>javaslang</artifactId>
         </dependency>
 
         <!-- log -->
@@ -115,134 +112,6 @@
             <artifactId>jooq</artifactId>
         </dependency>
 
-        <!-- camel test -->
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-core</artifactId>
-            <version>${camel.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
-
-    <build>
-        <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
-                <configuration>
-                    <compilerArgument>-Xlint:all</compilerArgument>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-                <executions>
-                    <!-- Replacing default-compile as it is treated specially by maven -->
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <!-- Replacing default-testCompile as it is treated specially by maven -->
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>java-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>java-test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>fastTests</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>**/*Test.java</include>
-                                <include>**/*Spec.java</include>
-                            </includes>
-                            <excludes>
-                                <exclude>**/*It.java</exclude>
-                            </excludes>
-                        </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.junit.platform</groupId>
-                                <artifactId>junit-platform-surefire-provider</artifactId>
-                                <version>${junit.platform.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.junit.jupiter</groupId>
-                                <artifactId>junit-jupiter-engine</artifactId>
-                                <version>${junit.jupiter.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>slowTests</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.19</version>
-                        <configuration>
-                            <excludes>
-                                <excludes>**/*Test.java</excludes>
-                                <excludes>**/*Spec.java</excludes>
-                            </excludes>
-                            <includes>
-                                <includes>**/*It.java</includes>
-                            </includes>
-                        </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.junit.platform</groupId>
-                                <artifactId>junit-platform-surefire-provider</artifactId>
-                                <version>${junit.platform.version}</version>
-                            </dependency>
-                            <dependency>
-                                <groupId>org.junit.jupiter</groupId>
-                                <artifactId>junit-jupiter-engine</artifactId>
-                                <version>${junit.jupiter.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>

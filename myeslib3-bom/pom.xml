@@ -19,6 +19,8 @@
         <camel.version>2.18.3</camel.version>
         <guice.version>4.1.0</guice.version>
         <sl4j.version>1.7.8</sl4j.version>
+        <jooq.version>3.9.2</jooq.version>
+        <mysql.version>6.0.6</mysql.version>
         <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
         <junit.platform.version>1.0.0-M4</junit.platform.version>
     </properties>
@@ -85,7 +87,7 @@
 
             <dependency>
                 <groupId>rodolfodpk</groupId>
-                <artifactId>myeslib3-myeslib3.stack</artifactId>
+                <artifactId>myeslib3-stack1</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -174,7 +176,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>6.0.6</version>
+                <version>${mysql.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.zaxxer</groupId>
@@ -189,7 +191,7 @@
             <dependency>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq</artifactId>
-                <version>3.9.2</version>
+                <version>${jooq.version}</version>
             </dependency>
 
             <dependency>
