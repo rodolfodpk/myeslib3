@@ -1,4 +1,4 @@
-package myeslib3.example1.utils;
+package myeslib3.example1;
 
 import myeslib3.example1.utils.config.BoundedContextConfig;
 import myeslib3.example1.utils.config.CamelConfig;

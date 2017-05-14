@@ -21,7 +21,6 @@ import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;
 import myeslib3.example1.aggregates.customer.events.DeactivatedCmdScheduled;
 import myeslib3.example1.services.SampleService;
 import myeslib3.example1.services.SampleServiceImpl;
-import myeslib3.example1.utils.Example1Config;
 import myeslib3.example1.utils.gson.RuntimeTypeAdapterFactory;
 import net.dongliu.gson.GsonJava8TypeAdapterFactory;
 import org.aeonbits.owner.ConfigCache;
