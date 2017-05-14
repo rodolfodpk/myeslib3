@@ -6,6 +6,7 @@ package example1.datamodel;
 
 import example1.datamodel.tables.AggregateRoots;
 import example1.datamodel.tables.CustomerSummary;
+import example1.datamodel.tables.EventsProjectionChannels;
 import example1.datamodel.tables.Idempotency;
 import example1.datamodel.tables.SchemaVersion;
 import example1.datamodel.tables.UnitsOfWork;
@@ -34,7 +35,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Example1db extends SchemaImpl {
 
-    private static final long serialVersionUID = 1762614702;
+    private static final long serialVersionUID = 1321179614;
 
     /**
      * The reference instance of <code>example1db</code>
@@ -50,6 +51,11 @@ public class Example1db extends SchemaImpl {
      * The table <code>example1db.customer_summary</code>.
      */
     public final CustomerSummary CUSTOMER_SUMMARY = example1.datamodel.tables.CustomerSummary.CUSTOMER_SUMMARY;
+
+    /**
+     * The table <code>example1db.events_projection_channels</code>.
+     */
+    public final EventsProjectionChannels EVENTS_PROJECTION_CHANNELS = example1.datamodel.tables.EventsProjectionChannels.EVENTS_PROJECTION_CHANNELS;
 
     /**
      * The table <code>example1db.idempotency</code>.
@@ -93,6 +99,7 @@ public class Example1db extends SchemaImpl {
         return Arrays.<Table<?>>asList(
             AggregateRoots.AGGREGATE_ROOTS,
             CustomerSummary.CUSTOMER_SUMMARY,
+            EventsProjectionChannels.EVENTS_PROJECTION_CHANNELS,
             Idempotency.IDEMPOTENCY,
             SchemaVersion.SCHEMA_VERSION,
             UnitsOfWork.UNITS_OF_WORK);

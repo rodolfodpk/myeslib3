@@ -37,7 +37,7 @@ public class Example1EventsProjectorJooq implements EventsProjector {
   @Override
   public void handle(final List<UnitOfWorkData> uowList) { // TODO interface com apenas este e o de cima
 
-    log.info("writing events for eventsChannelId {}", eventsChannelId);
+    log.info("writing {} events for eventsChannelId {}", uowList.size(), eventsChannelId);
 
     DSL.using(jooqCfg)
       .transaction(ctx -> uowList.flatMap(uowdata -> uowdata.getEvents()
@@ -51,24 +51,26 @@ public class Example1EventsProjectorJooq implements EventsProjector {
 
     Match(event).of(
 
-            Case(instanceOf(CustomerCreated.class), (e) ->
-                    run(() -> DSL.using(ctx).insertInto(CUSTOMER_SUMMARY)
-                            .values(e.getId(), e.getName(), false))
-            ),
+      Case(instanceOf(CustomerCreated.class), (e) ->
+              run(() -> DSL.using(ctx).insertInto(CUSTOMER_SUMMARY)
+                      .values(e.getId(), e.getName(), false))
+      ),
 
-            Case(instanceOf(CustomerActivated.class), (e) ->
-                    run(() -> DSL.using(ctx).update(CUSTOMER_SUMMARY)
-                                            .set(CUSTOMER_SUMMARY.IS_ACTIVE, true))
-            ),
+      Case(instanceOf(CustomerActivated.class), (e) ->
+              run(() -> DSL.using(ctx).update(CUSTOMER_SUMMARY)
+                                      .set(CUSTOMER_SUMMARY.IS_ACTIVE, true))
+      ),
 
-            Case(instanceOf(CustomerDeactivated.class), (e) ->
-                    run(() -> DSL.using(ctx).update(CUSTOMER_SUMMARY)
-                            .set(CUSTOMER_SUMMARY.IS_ACTIVE, false))
-            ),
+      Case(instanceOf(CustomerDeactivated.class), (e) ->
+              run(() -> DSL.using(ctx).update(CUSTOMER_SUMMARY)
+                      .set(CUSTOMER_SUMMARY.IS_ACTIVE, false))
+      ),
 
-            Case($(), e -> run(() -> log.warn("{} does not have any event projection handler", e)))
+      Case($(), e -> run(() -> log.warn("{} does not have any event projection handler", e)))
 
     );
+
+    // TODO update uow_last_seq for this event channel
 
   }
 
