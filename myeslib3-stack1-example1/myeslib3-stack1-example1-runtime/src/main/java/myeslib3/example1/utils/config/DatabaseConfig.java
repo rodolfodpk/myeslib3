@@ -1,23 +1,23 @@
-package myeslib3.stack1.stack1infra;
+package myeslib3.example1.utils.config;
 
 import org.aeonbits.owner.Config;
 import org.aeonbits.owner.Config.DefaultValue;
 
 public interface DatabaseConfig {
 
-  @DefaultValue("com.impossibl.postgres.jdbc.PGDriver")
+  @DefaultValue("com.mysql.jdbc.Driver")
   @Config.Key("database.driver")
   String db_driver();
 
-  @DefaultValue("jdbc:pgsql://localhost:5432/dbname1?applicationName=MyApp&networkTimeout=10000")
+  @DefaultValue("jdbc:mysql://localhost:3306/example1db?serverTimezone=UTC")
   @Config.Key("database.url")
   String db_url();
 
-  @DefaultValue("dbuser")
+  @DefaultValue("root")
   @Config.Key("database.user")
   String db_user();
 
-  @DefaultValue("dbuserpass")
+  @DefaultValue("my-secret-pw")
   @Config.Key("database.password")
   String db_password();
 
@@ -37,7 +37,7 @@ public interface DatabaseConfig {
   @Config.Key("database.host")
   String db_host();
 
-  @DefaultValue("5432")
+  @DefaultValue("3306")
   @Config.Key("database.port")
   int db_port();
 

@@ -4,11 +4,11 @@ import javaslang.collection.List;
 import lombok.NonNull;
 import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.command.WriteModelRepository;
-import myeslib3.stack1.query.EventsProjectorDao;
-import myeslib3.stack1.stack1infra.BoundedContextConfig;
+import myeslib3.stack1.query.EventsProjector;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
 
+import javax.inject.Named;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.camel.builder.PredicateBuilder.not;
@@ -16,8 +16,11 @@ import static org.apache.camel.builder.PredicateBuilder.not;
 public class EventsPollingRoute extends RouteBuilder {
 
 	final WriteModelRepository repo;
-	final BoundedContextConfig config;
-	final EventsProjectorDao eventsProjectorDao;
+	final EventsProjector eventsProjectorDao;
+	final int eventsBackoffFailuresThreshold;
+  final int eventsBackoffIddlesThreshold;
+  final int eventsBackoffMultiplier;
+  final int eventsMaxRowsPerPooling;
 	final AtomicInteger failures = new AtomicInteger();
 	final AtomicInteger idles = new AtomicInteger();
   final AtomicInteger backoffCount = new AtomicInteger();
@@ -25,18 +28,24 @@ public class EventsPollingRoute extends RouteBuilder {
   static final String RESULT_SIZE_HEADER = "RESULT_SIZE_HEADER";
 
 	public EventsPollingRoute(@NonNull WriteModelRepository repo,
-                            @NonNull BoundedContextConfig config,
-                            @NonNull EventsProjectorDao eventsProjectorDao) {
+                            @NonNull EventsProjector eventsProjectorDao,
+                            @NonNull @Named("events_backoff_failure_threshold") int eventsBackoffFailureThreshold,
+                            @NonNull @Named("events_backoff_idle_threshold") int eventsBackoffIdleThreshold,
+                            @NonNull @Named("events_backoff_multiplier") int eventsBackoffMultiplier,
+                            @NonNull @Named("events_max_rows_query") int eventsMaxRowsPerPooling) {
 		this.repo = repo;
-    this.config = config;
     this.eventsProjectorDao = eventsProjectorDao;
+    this.eventsBackoffFailuresThreshold = eventsBackoffFailureThreshold;
+    this.eventsBackoffIddlesThreshold = eventsBackoffIdleThreshold;
+    this.eventsBackoffMultiplier = eventsBackoffMultiplier;
+    this.eventsMaxRowsPerPooling = eventsMaxRowsPerPooling;
   }
 
 	@Override
 	public void configure() throws Exception {
 
-    final Predicate hasReachedAnyThreshold = exchange -> failures.get() >= config.events_backoff_failures_threshold() ||
-            idles.get() >= config.events_backoff_iddle_threshold();
+    final Predicate hasReachedAnyThreshold = exchange -> failures.get() >= eventsBackoffFailuresThreshold ||
+            idles.get() >= eventsBackoffIddlesThreshold;
 
     final Predicate backoffCountBiggerThanZero = exchange -> backoffCount.get() > 0;
 
@@ -60,7 +69,7 @@ public class EventsPollingRoute extends RouteBuilder {
       .routeId("pool-events-open-cb-" + eventsProjectorDao.getEventsChannelId())
       .process(e -> {
         failures.set(0); idles.set(0);
-        backoffCount.updateAndGet(operand -> operand + config.events_backoff_multiplier());
+        backoffCount.updateAndGet(operand -> operand + eventsBackoffMultiplier);
       })
     .log("circuit breaker is now open")
     ;
@@ -84,7 +93,7 @@ public class EventsPollingRoute extends RouteBuilder {
       .log("--> will pool")
       .process(e -> {
         final List<UnitOfWorkData> unitsOfWork =
-                repo.getAllSince(eventsProjectorDao.getLastUowSeq(), config.events_max_rows_query());
+                repo.getAllSince(eventsProjectorDao.getLastUowSeq(), eventsMaxRowsPerPooling);
         e.getOut().setHeader(RESULT_SIZE_HEADER, unitsOfWork.size());
         e.getOut().setBody(unitsOfWork);
       })

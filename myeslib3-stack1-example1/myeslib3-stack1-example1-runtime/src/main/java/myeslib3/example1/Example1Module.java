@@ -19,10 +19,14 @@ import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;
 import myeslib3.example1.aggregates.customer.events.DeactivatedCmdScheduled;
-import myeslib3.example1.gson.RuntimeTypeAdapterFactory;
 import myeslib3.example1.services.SampleService;
 import myeslib3.example1.services.SampleServiceImpl;
+import myeslib3.example1.utils.Example1Config;
+import myeslib3.example1.utils.gson.RuntimeTypeAdapterFactory;
 import net.dongliu.gson.GsonJava8TypeAdapterFactory;
+import org.aeonbits.owner.ConfigCache;
+
+import static myeslib3.example1.utils.config.ConfigHelper.overrideConfigPropsWithSystemVars;
 
 public class Example1Module extends AbstractModule {
 
@@ -30,6 +34,12 @@ public class Example1Module extends AbstractModule {
   protected void configure() {
 
     bind(SampleService.class).to(SampleServiceImpl.class).asEagerSingleton();
+
+    Example1Config config =
+            ConfigCache.getOrCreate(Example1Config.class, System.getProperties(), System.getenv());
+    bind(Example1Config.class).toInstance(config);
+    overrideConfigPropsWithSystemVars(binder(), config);
+
   }
 
   @Provides

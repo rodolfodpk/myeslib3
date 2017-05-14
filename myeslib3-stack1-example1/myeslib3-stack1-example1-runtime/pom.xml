@@ -33,6 +33,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- config -->
+
+        <dependency>
+            <groupId>org.aeonbits.owner</groupId>
+            <artifactId>owner-java8</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

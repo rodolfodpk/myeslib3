@@ -41,11 +41,7 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
 
-        <!-- config/ guice -->
-        <dependency>
-            <groupId>org.aeonbits.owner</groupId>
-            <artifactId>owner-java8</artifactId>
-        </dependency>
+        <!-- guice -->
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
@@ -106,10 +102,6 @@
         <dependency>
             <groupId>org.jdbi</groupId>
             <artifactId>jdbi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jooq</groupId>
-            <artifactId>jooq</artifactId>
         </dependency>
 
     </dependencies>

@@ -1,4 +1,4 @@
-package myeslib3.stack1.stack1infra.gson;
+package myeslib3.example1.utils.gson;
 /*
  * Copyright (C) 2011 Google Inc.
  *

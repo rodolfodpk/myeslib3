@@ -1,4 +1,4 @@
-package myeslib3.stack1.stack1infra;
+package myeslib3.example1.utils.config;
 
 import org.aeonbits.owner.Config;
 

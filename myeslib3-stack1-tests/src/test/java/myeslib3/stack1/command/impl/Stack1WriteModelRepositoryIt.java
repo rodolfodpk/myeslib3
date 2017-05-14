@@ -9,7 +9,6 @@ import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.stack1.Stack1Module;
 import myeslib3.stack1.stack1infra.DatabaseModule;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +24,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 public class Stack1WriteModelRepositoryIt {
 
 	final static Injector injector = Guice.createInjector(
-					new Stack1Module(),
 					new DatabaseModule(),
 					new Example1Module());
 
@@ -39,11 +37,11 @@ public class Stack1WriteModelRepositoryIt {
 	@Before
 	public void setup() {
 		injector.injectMembers(this);
-		repo = new Stack1WriteModelRepository("example1_uow_channel", "customer", gson, dbi);
+		repo = new Stack1WriteModelRepository("customer", gson, dbi);
 		dbi.inTransaction((TransactionCallback<Void>) (handle, transactionStatus) -> {
-      handle.execute("delete from customer_ar");
-      handle.execute("delete from customer_uow");
-      handle.execute("delete from idempotency");
+			handle.execute("delete from idempotency");
+      handle.execute("delete from aggregate_roots");
+      handle.execute("delete from units_of_work");
       return null;
     });
 	}

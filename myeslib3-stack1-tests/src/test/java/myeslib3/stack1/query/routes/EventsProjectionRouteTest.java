@@ -7,8 +7,8 @@ import lombok.val;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
+import myeslib3.example1.projections.Example1EventsProjectorJooq;
 import myeslib3.stack1.command.UnitOfWorkData;
-import myeslib3.stack1.query.EventsProjectorDao;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -47,7 +47,7 @@ public class EventsProjectionRouteTest extends CamelTestSupport {
     long completionInterval = 100;
     int completionSize = 1;
 
-    val eventsProjectorMock = mock(EventsProjectorDao.class, withSettings().verboseLogging());
+    val eventsProjectorMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
     when(eventsProjectorMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsProjectionRoute(eventsProjectorMock , new MemoryIdempotentRepository(),
             false, completionInterval, completionSize);

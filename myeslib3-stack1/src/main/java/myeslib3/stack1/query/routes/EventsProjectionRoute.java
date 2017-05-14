@@ -4,7 +4,7 @@ import javaslang.collection.List;
 import lombok.NonNull;
 import myeslib3.stack1.Headers;
 import myeslib3.stack1.command.UnitOfWorkData;
-import myeslib3.stack1.query.EventsProjectorDao;
+import myeslib3.stack1.query.EventsProjector;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.processor.aggregate.AbstractListAggregationStrategy;
@@ -13,13 +13,13 @@ import org.apache.camel.spi.IdempotentRepository;
 
 public class EventsProjectionRoute extends RouteBuilder {
 
-  final EventsProjectorDao eventsdao;
+  final EventsProjector eventsdao;
   final IdempotentRepository idempotentRepo;
   final boolean multipleConsumers;
   final long completionInterval;
   final int completionSize;
 
-  public EventsProjectionRoute(@NonNull EventsProjectorDao eventsdao,
+  public EventsProjectionRoute(@NonNull EventsProjector eventsdao,
                                @NonNull IdempotentRepository idempotentRepo,
                                boolean multipleConsumers, long completionInterval, int completionSize) {
     this.eventsdao = eventsdao;

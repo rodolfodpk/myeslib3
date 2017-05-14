@@ -41,4 +41,8 @@ public class StringHelper {
 		return sb.toString().toLowerCase();
 	}
 
+	public static String camelizedCron(String cron) {
+		return cron.replace(' ', '+');
+	}
+
 }
