@@ -1,4 +1,4 @@
-package myeslib3.stack1.stack1infra.idempotency;
+package myeslib3.stack1.utils.idempotency;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

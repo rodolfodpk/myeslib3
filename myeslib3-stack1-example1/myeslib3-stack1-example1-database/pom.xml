@@ -110,41 +110,41 @@
                                     <excludes></excludes>
                                     <inputSchema>example1db</inputSchema>
                                     <unsignedTypes>false</unsignedTypes>
-                                    <!--<forcedTypes>-->
-                                    <!--<forcedType>-->
-                                    <!--&lt;!&ndash; Specify any data type from org.jooq.impl.SQLDataType &ndash;&gt;-->
-                                    <!--<name>DECIMAL</name>-->
-                                    <!--&lt;!&ndash; Add a Java regular expression matching fully-qualified columns.-->
-                                    <!--Use the pipe to separate several expressions.-->
-                                    <!--If provided, both "expressions" and "types" must match. &ndash;&gt;-->
-                                    <!--<expressions></expressions>-->
-                                    <!--&lt;!&ndash; Add a Java regular expression matching data types to be forced to-->
-                                    <!--have this type. If provided, both "expressions" and "types" must match. &ndash;&gt;-->
-                                    <!--<types>.*</types>-->
-                                    <!--</forcedType>-->
-                                    <!--<forcedType>-->
-                                    <!--&lt;!&ndash; Specify any data type from org.jooq.impl.SQLDataType &ndash;&gt;-->
-                                    <!--<name>BOOLEAN</name>-->
-                                    <!--&lt;!&ndash; Add a Java regular expression matching fully-qualified columns.-->
-                                    <!--Use the pipe to separate several expressions.-->
-                                    <!--If provided, both "expressions" and "types" must match. &ndash;&gt;-->
-                                    <!--<expressions></expressions>-->
-                                    <!--&lt;!&ndash; Add a Java regular expression matching data types to be forced to-->
-                                    <!--have this type. If provided, both "expressions" and "types" must match. &ndash;&gt;-->
-                                    <!--<types>.*</types>-->
-                                    <!--</forcedType>-->
-                                    <!--<forcedType>-->
-                                    <!--&lt;!&ndash; Specify any data type from org.jooq.impl.SQLDataType &ndash;&gt;-->
-                                    <!--<name>INTEGER</name>-->
-                                    <!--&lt;!&ndash; Add a Java regular expression matching fully-qualified columns.-->
-                                    <!--Use the pipe to separate several expressions.-->
-                                    <!--If provided, both "expressions" and "types" must match. &ndash;&gt;-->
-                                    <!--<expressions>|</expressions>-->
-                                    <!--&lt;!&ndash; Add a Java regular expression matching data types to be forced to-->
-                                    <!--have this type. If provided, both "expressions" and "types" must match. &ndash;&gt;-->
-                                    <!--<types>.*</types>-->
-                                    <!--</forcedType>-->
-                                    <!--</forcedTypes>-->
+                                    <forcedTypes>
+                                        <!--<forcedType>-->
+                                        <!--&lt;!&ndash; Specify any data type from org.jooq.impl.SQLDataType &ndash;&gt;-->
+                                        <!--<name>DECIMAL</name>-->
+                                        <!--&lt;!&ndash; Add a Java regular expression matching fully-qualified columns.-->
+                                        <!--Use the pipe to separate several expressions.-->
+                                        <!--If provided, both "expressions" and "types" must match. &ndash;&gt;-->
+                                        <!--<expressions></expressions>-->
+                                        <!--&lt;!&ndash; Add a Java regular expression matching data types to be forced to-->
+                                        <!--have this type. If provided, both "expressions" and "types" must match. &ndash;&gt;-->
+                                        <!--<types>.*</types>-->
+                                        <!--</forcedType>-->
+                                        <forcedType>
+                                            <!-- Specify any data type from org.jooq.impl.SQLDataType -->
+                                            <name>BOOLEAN</name>
+                                            <!-- Add a Java regular expression matching fully-qualified columns.
+                                            Use the pipe to separate several expressions.
+                                            If provided, both "expressions" and "types" must match. -->
+                                            <expressions>is_active</expressions>
+                                            <!-- Add a Java regular expression matching data types to be forced to
+                                            have this type. If provided, both "expressions" and "types" must match. -->
+                                            <types>.*</types>
+                                        </forcedType>
+                                        <!--<forcedType>-->
+                                        <!--&lt;!&ndash; Specify any data type from org.jooq.impl.SQLDataType &ndash;&gt;-->
+                                        <!--<name>INTEGER</name>-->
+                                        <!--&lt;!&ndash; Add a Java regular expression matching fully-qualified columns.-->
+                                        <!--Use the pipe to separate several expressions.-->
+                                        <!--If provided, both "expressions" and "types" must match. &ndash;&gt;-->
+                                        <!--<expressions>|</expressions>-->
+                                        <!--&lt;!&ndash; Add a Java regular expression matching data types to be forced to-->
+                                        <!--have this type. If provided, both "expressions" and "types" must match. &ndash;&gt;-->
+                                        <!--<types>.*</types>-->
+                                        <!--</forcedType>-->
+                                    </forcedTypes>
                                 </database>
                                 <target>
                                     <packageName>example1.datamodel</packageName>

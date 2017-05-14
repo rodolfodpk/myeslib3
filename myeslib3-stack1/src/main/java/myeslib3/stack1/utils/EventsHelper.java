@@ -1,4 +1,4 @@
-package myeslib3.stack1.stack1infra.utils;
+package myeslib3.stack1.utils;
 
 import javaslang.Tuple2;
 import javaslang.collection.List;

@@ -13,8 +13,8 @@ import myeslib3.core.data.UnitOfWork;
 import myeslib3.core.data.Version;
 import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.command.WriteModelRepository;
-import myeslib3.stack1.stack1infra.jdbi.DbConcurrencyException;
-import myeslib3.stack1.stack1infra.jdbi.LocalDateTimeMapper;
+import myeslib3.stack1.utils.jdbi.DbConcurrencyException;
+import myeslib3.stack1.utils.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.StatementContext;
@@ -76,9 +76,6 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
   @Override
   public Optional<UnitOfWork> get(UUID uowId) {
-
-    // TODO
-    // https://www.mail-archive.com/search?l=jooq-user@googlegroups.com&q=subject:%22Fetching+two+or+more+fields+from+different+tables+into+a+Tuple%22&o=newest&f=1
 
     final Tuple4<String, String, Long, String> uowTuple = dbi
       .withHandle(h -> h.createQuery(getUowSql)
@@ -237,14 +234,6 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
         .bind("version", unitOfWork.getVersion().getValueAsLong())
         .bind("inserted_on", new Timestamp(Instant.now().getEpochSecond()))
         .execute();
-
-//      val notify = String.format(
-//              "SELECT pg_notify('%s', '%s'); ",
-//            //   "NOTIFY '%s', '%s' ; ",
-//              eventsChannelId,
-//              unitOfWork.getUnitOfWorkId().toString());
-//
-//      int result3 = conn.createStatement(notify).execute();
 
       // TODO schedular commands emitidos aqui ?? SIM (e remove CommandScheduler)
 

@@ -5,6 +5,7 @@ package example1.datamodel;
 
 
 import example1.datamodel.tables.AggregateRoots;
+import example1.datamodel.tables.CustomerSummary;
 import example1.datamodel.tables.Idempotency;
 import example1.datamodel.tables.SchemaVersion;
 import example1.datamodel.tables.UnitsOfWork;
@@ -29,6 +30,11 @@ public class Tables {
      * The table <code>example1db.aggregate_roots</code>.
      */
     public static final AggregateRoots AGGREGATE_ROOTS = example1.datamodel.tables.AggregateRoots.AGGREGATE_ROOTS;
+
+    /**
+     * The table <code>example1db.customer_summary</code>.
+     */
+    public static final CustomerSummary CUSTOMER_SUMMARY = example1.datamodel.tables.CustomerSummary.CUSTOMER_SUMMARY;
 
     /**
      * The table <code>example1db.idempotency</code>.

@@ -1,4 +1,4 @@
-package myeslib3.stack1.stack1infra;
+package myeslib3.stack1;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;

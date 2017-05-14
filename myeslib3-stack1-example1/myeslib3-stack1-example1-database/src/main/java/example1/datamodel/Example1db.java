@@ -5,17 +5,20 @@ package example1.datamodel;
 
 
 import example1.datamodel.tables.AggregateRoots;
+import example1.datamodel.tables.CustomerSummary;
 import example1.datamodel.tables.Idempotency;
 import example1.datamodel.tables.SchemaVersion;
 import example1.datamodel.tables.UnitsOfWork;
-import org.jooq.Catalog;
-import org.jooq.Table;
-import org.jooq.impl.SchemaImpl;
 
-import javax.annotation.Generated;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.annotation.Generated;
+
+import org.jooq.Catalog;
+import org.jooq.Table;
+import org.jooq.impl.SchemaImpl;
 
 
 /**
@@ -31,7 +34,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Example1db extends SchemaImpl {
 
-    private static final long serialVersionUID = -1552656968;
+    private static final long serialVersionUID = 1762614702;
 
     /**
      * The reference instance of <code>example1db</code>
@@ -42,6 +45,11 @@ public class Example1db extends SchemaImpl {
      * The table <code>example1db.aggregate_roots</code>.
      */
     public final AggregateRoots AGGREGATE_ROOTS = example1.datamodel.tables.AggregateRoots.AGGREGATE_ROOTS;
+
+    /**
+     * The table <code>example1db.customer_summary</code>.
+     */
+    public final CustomerSummary CUSTOMER_SUMMARY = example1.datamodel.tables.CustomerSummary.CUSTOMER_SUMMARY;
 
     /**
      * The table <code>example1db.idempotency</code>.
@@ -84,6 +92,7 @@ public class Example1db extends SchemaImpl {
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
             AggregateRoots.AGGREGATE_ROOTS,
+            CustomerSummary.CUSTOMER_SUMMARY,
             Idempotency.IDEMPOTENCY,
             SchemaVersion.SCHEMA_VERSION,
             UnitsOfWork.UNITS_OF_WORK);

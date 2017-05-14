@@ -9,8 +9,8 @@ import org.apache.camel.model.rest.RestParamType;
 
 import java.util.List;
 
-import static myeslib3.stack1.Headers.*;
-import static myeslib3.stack1.stack1infra.utils.StringHelper.*;
+import static myeslib3.stack1.utils.Headers.*;
+import static myeslib3.stack1.utils.StringHelper.*;
 
 public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuilder {
 

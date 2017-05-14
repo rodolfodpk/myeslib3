@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static myeslib3.stack1.stack1infra.utils.EventsHelper.lastVersion;
+import static myeslib3.stack1.utils.EventsHelper.lastVersion;
 
 @Slf4j
 public class Stack1SnapshotReader<ID extends AggregateRootId, A extends AggregateRoot>

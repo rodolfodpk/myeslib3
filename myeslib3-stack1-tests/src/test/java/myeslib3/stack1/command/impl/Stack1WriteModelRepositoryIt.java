@@ -9,7 +9,7 @@ import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.stack1.stack1infra.DatabaseModule;
+import myeslib3.stack1.DatabaseModule;
 import org.junit.Before;
 import org.junit.Test;
 import org.skife.jdbi.v2.DBI;

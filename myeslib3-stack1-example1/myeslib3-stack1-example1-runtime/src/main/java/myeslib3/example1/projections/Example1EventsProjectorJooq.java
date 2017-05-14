@@ -13,6 +13,7 @@ import myeslib3.stack1.query.EventsProjector;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 
+import static example1.datamodel.tables.CustomerSummary.CUSTOMER_SUMMARY;
 import static javaslang.API.*;
 import static javaslang.Predicates.instanceOf;
 
@@ -51,15 +52,18 @@ public class Example1EventsProjectorJooq implements EventsProjector {
     Match(event).of(
 
             Case(instanceOf(CustomerCreated.class), (e) ->
-                    run(() -> DSL.using(ctx)) // TODO
+                    run(() -> DSL.using(ctx).insertInto(CUSTOMER_SUMMARY)
+                            .values(e.getId(), e.getName(), false))
             ),
 
             Case(instanceOf(CustomerActivated.class), (e) ->
-                    run(() -> DSL.using(ctx))
+                    run(() -> DSL.using(ctx).update(CUSTOMER_SUMMARY)
+                                            .set(CUSTOMER_SUMMARY.IS_ACTIVE, true))
             ),
 
             Case(instanceOf(CustomerDeactivated.class), (e) ->
-                    run(() -> DSL.using(ctx))
+                    run(() -> DSL.using(ctx).update(CUSTOMER_SUMMARY)
+                            .set(CUSTOMER_SUMMARY.IS_ACTIVE, false))
             ),
 
             Case($(), e -> run(() -> log.warn("{} does not have any event projection handler", e)))

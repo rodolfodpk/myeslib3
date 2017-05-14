@@ -1,4 +1,4 @@
-package myeslib3.stack1.stack1infra.jdbi;
+package myeslib3.stack1.utils.jdbi;
 
 public class DbConcurrencyException extends RuntimeException {
 

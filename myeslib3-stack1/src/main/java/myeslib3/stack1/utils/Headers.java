@@ -1,4 +1,4 @@
-package myeslib3.stack1;
+package myeslib3.stack1.utils;
 
 public class Headers {
   public static final String AGGREGATE_ROOT_ID = "aggregate_root_id";

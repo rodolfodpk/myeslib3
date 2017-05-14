@@ -5,7 +5,7 @@ import org.apache.camel.builder.RouteBuilder;
 
 import javax.inject.Named;
 
-import static myeslib3.stack1.stack1infra.utils.StringHelper.camelizedCron;
+import static myeslib3.stack1.utils.StringHelper.camelizedCron;
 
 public class EventsPollingCronRoute extends RouteBuilder {
 

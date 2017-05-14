@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package myeslib3.stack1.stack1infra.idempotency;
+package myeslib3.stack1.utils.idempotency;
 
 import org.apache.camel.api.management.ManagedOperation;
 import org.apache.camel.api.management.ManagedResource;
@@ -26,11 +26,11 @@ import org.apache.camel.support.ServiceSupport;
  * A database based implementation of {@link IdempotentRepository}.
  */
 @ManagedResource(description = "Memory based idempotent repository")
-public class MyIdempotentRepository extends ServiceSupport implements IdempotentRepository<String> {
+public class CaffeineIdempotentRepository extends ServiceSupport implements IdempotentRepository<String> {
 
 	private final LoadingCache<String, String> cache;
 
-	public MyIdempotentRepository(LoadingCache<String, String> cache) {
+	public CaffeineIdempotentRepository(LoadingCache<String, String> cache) {
 		this.cache = cache;
 	}
 

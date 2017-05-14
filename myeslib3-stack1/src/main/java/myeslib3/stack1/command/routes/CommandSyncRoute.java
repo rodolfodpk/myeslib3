@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static myeslib3.stack1.Headers.COMMAND_ID;
-import static myeslib3.stack1.stack1infra.utils.StringHelper.aggregateRootId;
+import static myeslib3.stack1.utils.Headers.COMMAND_ID;
+import static myeslib3.stack1.utils.StringHelper.aggregateRootId;
 
 public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoot> extends RouteBuilder {
 

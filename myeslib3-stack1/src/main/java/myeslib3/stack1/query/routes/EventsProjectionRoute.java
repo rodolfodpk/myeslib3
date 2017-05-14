@@ -2,7 +2,7 @@ package myeslib3.stack1.query.routes;
 
 import javaslang.collection.List;
 import lombok.NonNull;
-import myeslib3.stack1.Headers;
+import myeslib3.stack1.utils.Headers;
 import myeslib3.stack1.command.UnitOfWorkData;
 import myeslib3.stack1.query.EventsProjector;
 import org.apache.camel.Exchange;
