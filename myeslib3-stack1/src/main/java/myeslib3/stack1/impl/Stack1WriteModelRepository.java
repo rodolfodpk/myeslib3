@@ -179,7 +179,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   }
 
   @Override
-  public void append(final UnitOfWork unitOfWork) throws DbConcurrencyException {
+  public void append(final UnitOfWork unitOfWork) {
 
     requireNonNull(unitOfWork);
 
