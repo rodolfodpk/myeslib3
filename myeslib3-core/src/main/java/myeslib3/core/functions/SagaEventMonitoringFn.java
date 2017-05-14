@@ -8,7 +8,7 @@ import java.util.Optional;
 @FunctionalInterface
 public interface SagaEventMonitoringFn {
 
-	Optional<Command> apply(Event event);
+  Optional<Command> apply(Event event);
 
 }
 

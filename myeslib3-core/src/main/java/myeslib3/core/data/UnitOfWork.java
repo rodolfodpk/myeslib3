@@ -9,18 +9,22 @@ import java.util.UUID;
 @Value
 public class UnitOfWork {
 
-	@NonNull final UUID unitOfWorkId;
-	@NonNull final Command command;
-	@NonNull final Version version;
-	@NonNull final List<Event> events;
+  @NonNull
+  final UUID unitOfWorkId;
+  @NonNull
+  final Command command;
+  @NonNull
+  final Version version;
+  @NonNull
+  final List<Event> events;
 //	@NonNull final LocalDateTime timestamp;
 
-	public static UnitOfWork of(Command command, Version version, List<Event> events) {
-		return new UnitOfWork(UUID.randomUUID(), command, version, events);
-	}
+  public static UnitOfWork of(Command command, Version version, List<Event> events) {
+    return new UnitOfWork(UUID.randomUUID(), command, version, events);
+  }
 
-	public AggregateRootId getTargetId() {
-		return command.getTargetId();
-	}
+  public AggregateRootId getTargetId() {
+    return command.getTargetId();
+  }
 
 }
