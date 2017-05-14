@@ -101,7 +101,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
 
     when(eventDaoMock.getLastUowSeq())
             .thenThrow(new RuntimeException("fail 1"), new RuntimeException("fail 2"), new RuntimeException("fail 2"))
-            ;
+    ;
 
     template.requestBody(true);
 
@@ -166,8 +166,8 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     when(eventDaoMock.getLastUowSeq()).thenReturn(0L, 0L, 0L, 0L, 0L, 0L, 0L);
 
     when(repoMock.getAllSince(eq(0L), eq(10)))
-      .thenThrow(new RuntimeException("fail 1"), new RuntimeException("fail 2"), new RuntimeException("fail 2"))
-      .thenReturn(tuplesList)
+            .thenThrow(new RuntimeException("fail 1"), new RuntimeException("fail 2"), new RuntimeException("fail 2"))
+            .thenReturn(tuplesList)
 
     ;
 

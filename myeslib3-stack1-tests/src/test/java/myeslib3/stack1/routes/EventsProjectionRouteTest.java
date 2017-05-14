@@ -49,7 +49,7 @@ public class EventsProjectionRouteTest extends CamelTestSupport {
 
     val eventsProjectorMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
     when(eventsProjectorMock.getEventsChannelId()).thenReturn(eventsChannelId);
-    val route = new EventsProjectionRoute(eventsProjectorMock , new MemoryIdempotentRepository(),
+    val route = new EventsProjectionRoute(eventsProjectorMock, new MemoryIdempotentRepository(),
             false, completionInterval, completionSize);
     context.addRoutes(route);
 
@@ -71,7 +71,7 @@ public class EventsProjectionRouteTest extends CamelTestSupport {
 
     verify(eventsProjectorMock, times(2)).getEventsChannelId();
 
-    verifyNoMoreInteractions(eventsProjectorMock );
+    verifyNoMoreInteractions(eventsProjectorMock);
 
   }
 
@@ -81,10 +81,10 @@ public class EventsProjectionRouteTest extends CamelTestSupport {
     return new RouteBuilder() {
       @Override
       public void configure() throws Exception {
-      from("direct:start")
-        .toF("seda:%s-events?multipleConsumers=%b", eventsChannelId, false)
-        .log("*** from seda: ${body}")
-        .to("mock:result");
+        from("direct:start")
+                .toF("seda:%s-events?multipleConsumers=%b", eventsChannelId, false)
+                .log("*** from seda: ${body}")
+                .to("mock:result");
       }
     };
 

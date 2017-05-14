@@ -43,7 +43,7 @@ import static org.mockito.Mockito.*;
 
 public class CommandSyncRouteTest extends CamelTestSupport {
 
-	static final Injector injector = Guice.createInjector(new CustomerModule(), new Example1Module());
+  static final Injector injector = Guice.createInjector(new CustomerModule(), new Example1Module());
 
   @EndpointInject(uri = "mock:result")
   protected MockEndpoint resultEndpoint;
@@ -52,32 +52,32 @@ public class CommandSyncRouteTest extends CamelTestSupport {
   protected ProducerTemplate template;
 
   @Inject
-	Supplier<Customer> supplier;
-	@Inject
+  Supplier<Customer> supplier;
+  @Inject
   CustomerCmdHandler commandHandlerFn;
-	@Inject
-	Gson gson;
+  @Inject
+  Gson gson;
 
-	@Mock
-	SnapshotReader<CustomerId, Customer> snapshotReader;
-	@Mock
-	WriteModelRepository writeModelRepository;
+  @Mock
+  SnapshotReader<CustomerId, Customer> snapshotReader;
+  @Mock
+  WriteModelRepository writeModelRepository;
 
-	@Before
-	public void init() throws Exception {
+  @Before
+  public void init() throws Exception {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
     val route = new CommandSyncRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
             new MemoryIdempotentRepository());
     context.addRoutes(route);
-	}
+  }
 
-	@After
-	public void afterRun() throws Exception {
-	}
+  @After
+  public void afterRun() throws Exception {
+  }
 
-	@Test
-	public void valid_command_must_return_valid_unit_of_work() throws InterruptedException {
+  @Test
+  public void valid_command_must_return_valid_unit_of_work() throws InterruptedException {
 
     val customerId = new CustomerId("customer#1");
 
@@ -158,10 +158,10 @@ public class CommandSyncRouteTest extends CamelTestSupport {
     return new RouteBuilder() {
       public void configure() {
         from("direct:start")
-          .streamCaching()
-          .to("direct:handle-cmd-customer")
-  //        .log("** final result ${body}")
-          .to("mock:result");
+                .streamCaching()
+                .to("direct:handle-cmd-customer")
+                //        .log("** final result ${body}")
+                .to("mock:result");
       }
     };
   }

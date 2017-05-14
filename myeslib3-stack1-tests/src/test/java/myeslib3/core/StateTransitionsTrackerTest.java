@@ -71,8 +71,8 @@ public class StateTransitionsTrackerTest {
     public class WhenAddingNewEvent {
 
       final CustomerId id = new CustomerId("c1");
-      private CustomerCreated createdEvent = new CustomerCreated(id,"customer-1");
-      private Customer expectedCustomer = Customer.of(id, "customer-1", false,null);
+      private CustomerCreated createdEvent = new CustomerCreated(id, "customer-1");
+      private Customer expectedCustomer = Customer.of(id, "customer-1", false, null);
 
       @BeforeEach
       void apply_create_event() {
