@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("A StateTransitionsTrackerTest")
+@DisplayName("A StateTransitionsTracker")
 public class StateTransitionsTrackerTest {
 
   final Injector injector = Guice.createInjector(new CustomerModule());

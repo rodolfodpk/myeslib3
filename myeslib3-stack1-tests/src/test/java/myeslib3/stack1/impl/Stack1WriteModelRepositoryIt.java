@@ -10,8 +10,9 @@ import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.stack1.DatabaseModule;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.TransactionCallback;
 
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
+@DisplayName("A Stack1WriteModelRepository")
 public class Stack1WriteModelRepositoryIt {
 
 	final static Injector injector = Guice.createInjector(
@@ -34,7 +36,7 @@ public class Stack1WriteModelRepositoryIt {
 
 	Stack1WriteModelRepository repo ;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		injector.injectMembers(this);
 		repo = new Stack1WriteModelRepository("customer", gson, dbi);
@@ -47,7 +49,7 @@ public class Stack1WriteModelRepositoryIt {
 	}
 
 	@Test
-	public void append() {
+	public void can_append_a_unit_of_work() {
 
 		final CustomerId id = new CustomerId("customer#1");
 		final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, "customer1");
