@@ -8,8 +8,8 @@ import myeslib3.core.data.Event;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;
-import myeslib3.stack1.command.UnitOfWorkData;
-import myeslib3.stack1.query.EventsProjector;
+import myeslib3.stack1.api.EventsProjector;
+import myeslib3.stack1.api.UnitOfWorkData;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 

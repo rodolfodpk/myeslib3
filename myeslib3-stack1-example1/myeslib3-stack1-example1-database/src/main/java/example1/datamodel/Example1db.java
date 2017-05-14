@@ -4,22 +4,15 @@
 package example1.datamodel;
 
 
-import example1.datamodel.tables.AggregateRoots;
-import example1.datamodel.tables.CustomerSummary;
-import example1.datamodel.tables.EventsProjectionChannels;
-import example1.datamodel.tables.Idempotency;
-import example1.datamodel.tables.SchemaVersion;
-import example1.datamodel.tables.UnitsOfWork;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.annotation.Generated;
-
+import example1.datamodel.tables.*;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
+
+import javax.annotation.Generated;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**

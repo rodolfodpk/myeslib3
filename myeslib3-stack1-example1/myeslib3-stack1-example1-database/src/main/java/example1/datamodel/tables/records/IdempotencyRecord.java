@@ -5,16 +5,14 @@ package example1.datamodel.tables.records;
 
 
 import example1.datamodel.tables.Idempotency;
-
-import java.sql.Timestamp;
-
-import javax.annotation.Generated;
-
 import org.jooq.Field;
 import org.jooq.Record2;
 import org.jooq.Record3;
 import org.jooq.Row3;
 import org.jooq.impl.UpdatableRecordImpl;
+
+import javax.annotation.Generated;
+import java.sql.Timestamp;
 
 
 /**
@@ -30,20 +28,20 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class IdempotencyRecord extends UpdatableRecordImpl<IdempotencyRecord> implements Record3<String, String, Timestamp> {
 
-    private static final long serialVersionUID = 1273610997;
+    private static final long serialVersionUID = -1098518625;
 
     /**
-     * Setter for <code>example1db.idempotency.slot_name</code>.
+     * Setter for <code>example1db.idempotency.partition_name</code>.
      */
-    public IdempotencyRecord setSlotName(String value) {
+    public IdempotencyRecord setPartitionName(String value) {
         set(0, value);
         return this;
     }
 
     /**
-     * Getter for <code>example1db.idempotency.slot_name</code>.
+     * Getter for <code>example1db.idempotency.partition_name</code>.
      */
-    public String getSlotName() {
+    public String getPartitionName() {
         return (String) get(0);
     }
 
@@ -114,7 +112,7 @@ public class IdempotencyRecord extends UpdatableRecordImpl<IdempotencyRecord> im
      */
     @Override
     public Field<String> field1() {
-        return Idempotency.IDEMPOTENCY.SLOT_NAME;
+        return Idempotency.IDEMPOTENCY.PARTITION_NAME;
     }
 
     /**
@@ -138,7 +136,7 @@ public class IdempotencyRecord extends UpdatableRecordImpl<IdempotencyRecord> im
      */
     @Override
     public String value1() {
-        return getSlotName();
+        return getPartitionName();
     }
 
     /**
@@ -162,7 +160,7 @@ public class IdempotencyRecord extends UpdatableRecordImpl<IdempotencyRecord> im
      */
     @Override
     public IdempotencyRecord value1(String value) {
-        setSlotName(value);
+        setPartitionName(value);
         return this;
     }
 
@@ -209,10 +207,10 @@ public class IdempotencyRecord extends UpdatableRecordImpl<IdempotencyRecord> im
     /**
      * Create a detached, initialised IdempotencyRecord
      */
-    public IdempotencyRecord(String slotName, String slotId, Timestamp insertedOn) {
+    public IdempotencyRecord(String partitionName, String slotId, Timestamp insertedOn) {
         super(Idempotency.IDEMPOTENCY);
 
-        set(0, slotName);
+        set(0, partitionName);
         set(1, slotId);
         set(2, insertedOn);
     }

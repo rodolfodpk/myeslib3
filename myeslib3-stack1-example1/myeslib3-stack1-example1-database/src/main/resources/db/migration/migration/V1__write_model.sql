@@ -2,12 +2,12 @@
 DROP TABLE if exists idempotency ;
 
 CREATE TABLE idempotency (
-    slot_name VARCHAR(36) NOT NULL,
+    partition_name VARCHAR(36) NOT NULL,
     slot_id VARCHAR(36) NOT NULL,
     inserted_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (slot_name, slot_id)
+    PRIMARY KEY (partition_name, slot_id)
     )
-    PARTITION BY KEY(slot_name)
+    PARTITION BY KEY(partition_name)
     ;
 
 

@@ -4,24 +4,13 @@
 package example1.datamodel;
 
 
-import example1.datamodel.tables.AggregateRoots;
-import example1.datamodel.tables.CustomerSummary;
-import example1.datamodel.tables.EventsProjectionChannels;
-import example1.datamodel.tables.Idempotency;
-import example1.datamodel.tables.SchemaVersion;
-import example1.datamodel.tables.UnitsOfWork;
-import example1.datamodel.tables.records.AggregateRootsRecord;
-import example1.datamodel.tables.records.CustomerSummaryRecord;
-import example1.datamodel.tables.records.EventsProjectionChannelsRecord;
-import example1.datamodel.tables.records.IdempotencyRecord;
-import example1.datamodel.tables.records.SchemaVersionRecord;
-import example1.datamodel.tables.records.UnitsOfWorkRecord;
-
-import javax.annotation.Generated;
-
+import example1.datamodel.tables.*;
+import example1.datamodel.tables.records.*;
 import org.jooq.Identity;
 import org.jooq.UniqueKey;
 import org.jooq.impl.AbstractKeys;
+
+import javax.annotation.Generated;
 
 
 /**
@@ -74,7 +63,7 @@ public class Keys {
         public static final UniqueKey<AggregateRootsRecord> KEY_AGGREGATE_ROOTS_PRIMARY = createUniqueKey(AggregateRoots.AGGREGATE_ROOTS, "KEY_aggregate_roots_PRIMARY", AggregateRoots.AGGREGATE_ROOTS.AR_NAME, AggregateRoots.AGGREGATE_ROOTS.AR_ID);
         public static final UniqueKey<CustomerSummaryRecord> KEY_CUSTOMER_SUMMARY_PRIMARY = createUniqueKey(CustomerSummary.CUSTOMER_SUMMARY, "KEY_customer_summary_PRIMARY", CustomerSummary.CUSTOMER_SUMMARY.ID);
         public static final UniqueKey<EventsProjectionChannelsRecord> KEY_EVENTS_PROJECTION_CHANNELS_PRIMARY = createUniqueKey(EventsProjectionChannels.EVENTS_PROJECTION_CHANNELS, "KEY_events_projection_channels_PRIMARY", EventsProjectionChannels.EVENTS_PROJECTION_CHANNELS.CHANNEL_NAME);
-        public static final UniqueKey<IdempotencyRecord> KEY_IDEMPOTENCY_PRIMARY = createUniqueKey(Idempotency.IDEMPOTENCY, "KEY_idempotency_PRIMARY", Idempotency.IDEMPOTENCY.SLOT_NAME, Idempotency.IDEMPOTENCY.SLOT_ID);
+        public static final UniqueKey<IdempotencyRecord> KEY_IDEMPOTENCY_PRIMARY = createUniqueKey(Idempotency.IDEMPOTENCY, "KEY_idempotency_PRIMARY", Idempotency.IDEMPOTENCY.PARTITION_NAME, Idempotency.IDEMPOTENCY.SLOT_ID);
         public static final UniqueKey<SchemaVersionRecord> KEY_SCHEMA_VERSION_PRIMARY = createUniqueKey(SchemaVersion.SCHEMA_VERSION, "KEY_schema_version_PRIMARY", SchemaVersion.SCHEMA_VERSION.INSTALLED_RANK);
         public static final UniqueKey<UnitsOfWorkRecord> KEY_UNITS_OF_WORK_PRIMARY = createUniqueKey(UnitsOfWork.UNITS_OF_WORK, "KEY_units_of_work_PRIMARY", UnitsOfWork.UNITS_OF_WORK.UOW_SEQ_NUMBER, UnitsOfWork.UNITS_OF_WORK.AR_NAME);
         public static final UniqueKey<UnitsOfWorkRecord> KEY_UNITS_OF_WORK_UOW_ID = createUniqueKey(UnitsOfWork.UNITS_OF_WORK, "KEY_units_of_work_uow_id", UnitsOfWork.UNITS_OF_WORK.UOW_ID, UnitsOfWork.UNITS_OF_WORK.AR_NAME);

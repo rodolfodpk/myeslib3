@@ -7,19 +7,13 @@ package example1.datamodel.tables;
 import example1.datamodel.Example1db;
 import example1.datamodel.Keys;
 import example1.datamodel.tables.records.IdempotencyRecord;
+import org.jooq.*;
+import org.jooq.impl.TableImpl;
 
+import javax.annotation.Generated;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.annotation.Generated;
-
-import org.jooq.Field;
-import org.jooq.Schema;
-import org.jooq.Table;
-import org.jooq.TableField;
-import org.jooq.UniqueKey;
-import org.jooq.impl.TableImpl;
 
 
 /**
@@ -35,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Idempotency extends TableImpl<IdempotencyRecord> {
 
-    private static final long serialVersionUID = 218275133;
+    private static final long serialVersionUID = 451506255;
 
     /**
      * The reference instance of <code>example1db.idempotency</code>
@@ -51,9 +45,9 @@ public class Idempotency extends TableImpl<IdempotencyRecord> {
     }
 
     /**
-     * The column <code>example1db.idempotency.slot_name</code>.
+     * The column <code>example1db.idempotency.partition_name</code>.
      */
-    public final TableField<IdempotencyRecord, String> SLOT_NAME = createField("slot_name", org.jooq.impl.SQLDataType.VARCHAR.length(36).nullable(false), this, "");
+    public final TableField<IdempotencyRecord, String> PARTITION_NAME = createField("partition_name", org.jooq.impl.SQLDataType.VARCHAR.length(36).nullable(false), this, "");
 
     /**
      * The column <code>example1db.idempotency.slot_id</code>.

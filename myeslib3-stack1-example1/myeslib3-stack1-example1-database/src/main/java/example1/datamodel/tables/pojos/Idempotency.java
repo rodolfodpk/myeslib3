@@ -4,10 +4,9 @@
 package example1.datamodel.tables.pojos;
 
 
+import javax.annotation.Generated;
 import java.io.Serializable;
 import java.sql.Timestamp;
-
-import javax.annotation.Generated;
 
 
 /**
@@ -23,36 +22,36 @@ import javax.annotation.Generated;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Idempotency implements Serializable {
 
-    private static final long serialVersionUID = 676623774;
+    private static final long serialVersionUID = 1848478668;
 
-    private String    slotName;
+    private String    partitionName;
     private String    slotId;
     private Timestamp insertedOn;
 
     public Idempotency() {}
 
     public Idempotency(Idempotency value) {
-        this.slotName = value.slotName;
+        this.partitionName = value.partitionName;
         this.slotId = value.slotId;
         this.insertedOn = value.insertedOn;
     }
 
     public Idempotency(
-        String    slotName,
+        String    partitionName,
         String    slotId,
         Timestamp insertedOn
     ) {
-        this.slotName = slotName;
+        this.partitionName = partitionName;
         this.slotId = slotId;
         this.insertedOn = insertedOn;
     }
 
-    public String getSlotName() {
-        return this.slotName;
+    public String getPartitionName() {
+        return this.partitionName;
     }
 
-    public Idempotency setSlotName(String slotName) {
-        this.slotName = slotName;
+    public Idempotency setPartitionName(String partitionName) {
+        this.partitionName = partitionName;
         return this;
     }
 
@@ -78,7 +77,7 @@ public class Idempotency implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder("Idempotency (");
 
-        sb.append(slotName);
+        sb.append(partitionName);
         sb.append(", ").append(slotId);
         sb.append(", ").append(insertedOn);
 

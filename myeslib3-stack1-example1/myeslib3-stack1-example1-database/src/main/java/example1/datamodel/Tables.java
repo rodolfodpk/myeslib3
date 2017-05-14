@@ -4,12 +4,7 @@
 package example1.datamodel;
 
 
-import example1.datamodel.tables.AggregateRoots;
-import example1.datamodel.tables.CustomerSummary;
-import example1.datamodel.tables.EventsProjectionChannels;
-import example1.datamodel.tables.Idempotency;
-import example1.datamodel.tables.SchemaVersion;
-import example1.datamodel.tables.UnitsOfWork;
+import example1.datamodel.tables.*;
 
 import javax.annotation.Generated;
 
