@@ -1,10 +1,13 @@
-package myeslib3.example1.aggregates.customer;
+package myeslib3.example1.aggregates;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import myeslib3.core.model.AggregateRootCmdHandler;
 import myeslib3.core.model.Event;
+import myeslib3.example1.aggregates.customer.Customer;
+import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
+import myeslib3.example1.aggregates.customer.CustomerStateTransitionFn;
 import myeslib3.example1.services.SampleServiceImpl;
 
 import java.util.function.BiFunction;

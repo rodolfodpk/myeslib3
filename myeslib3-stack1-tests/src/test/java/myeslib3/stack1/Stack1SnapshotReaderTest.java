@@ -5,11 +5,11 @@ import com.google.inject.Injector;
 import myeslib3.core.Version;
 import myeslib3.core.model.Event;
 import myeslib3.core.stack.Snapshot;
-import myeslib3.core.stack.VersionedEvents;
+import myeslib3.core.stack.VersionData;
 import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerId;
-import myeslib3.example1.aggregates.customer.CustomerModule;
+import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
@@ -48,7 +48,7 @@ public class Stack1SnapshotReaderTest {
   @Mock
   WriteModelRepository dao;
 
-  Cache<CustomerId, VersionedEvents> cache;
+  Cache<CustomerId, VersionData> cache;
 
   @BeforeEach
   public void init() throws Exception {
@@ -65,7 +65,7 @@ public class Stack1SnapshotReaderTest {
     final Snapshot<Customer> expectedSnapshot =
             new Snapshot<>(supplier.get(), new Version(0L));
 
-    final VersionedEvents expectedHistory = new VersionedEvents(new Version(0), Arrays.asList());
+    final VersionData expectedHistory = new VersionData(new Version(0), Arrays.asList());
 
     when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
@@ -93,8 +93,8 @@ public class Stack1SnapshotReaderTest {
 
     final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-    final VersionedEvents expectedHistory =
-            new VersionedEvents(new Version(1), Arrays.asList(new CustomerCreated(id, command.getName())));
+    final VersionData expectedHistory =
+            new VersionData(new Version(1), Arrays.asList(new CustomerCreated(id, command.getName())));
 
     when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
@@ -118,8 +118,8 @@ public class Stack1SnapshotReaderTest {
 
     final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-    final VersionedEvents expectedHistory =
-            new VersionedEvents(new Version(1), Arrays.asList(new CustomerCreated(id, command.getName())));
+    final VersionData expectedHistory =
+            new VersionData(new Version(1), Arrays.asList(new CustomerCreated(id, command.getName())));
 
     when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
@@ -148,11 +148,11 @@ public class Stack1SnapshotReaderTest {
     // cached history
     final CreateCustomerCmd command1 = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-    final VersionedEvents cachedHistory =
-            new VersionedEvents(new Version(1), Arrays.asList(new CustomerCreated(id, command1.getName())));
+    final VersionData cachedHistory =
+            new VersionData(new Version(1), Arrays.asList(new CustomerCreated(id, command1.getName())));
 
-    final VersionedEvents nonCachedHistory =
-            new VersionedEvents(new Version(2), Arrays.asList(new CustomerActivated(reason, activated_on)));
+    final VersionData nonCachedHistory =
+            new VersionData(new Version(2), Arrays.asList(new CustomerActivated(reason, activated_on)));
 
     // prepare
 

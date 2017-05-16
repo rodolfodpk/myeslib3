@@ -5,7 +5,7 @@ import com.google.inject.Injector;
 import myeslib3.core.model.Event;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerId;
-import myeslib3.example1.aggregates.customer.CustomerModule;
+import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import org.junit.jupiter.api.BeforeEach;

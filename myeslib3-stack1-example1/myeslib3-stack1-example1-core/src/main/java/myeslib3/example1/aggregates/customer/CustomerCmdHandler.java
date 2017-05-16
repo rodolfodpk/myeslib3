@@ -1,5 +1,6 @@
 package myeslib3.example1.aggregates.customer;
 
+import javaslang.API;
 import lombok.val;
 import myeslib3.core.UnitOfWork;
 import myeslib3.core.Version;
@@ -34,18 +35,18 @@ public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
     final UnitOfWork uow = Match(cmd).of(
 
-      Case(instanceOf(CreateCustomerCmd.class), (command) ->
+      API.Case(instanceOf(CreateCustomerCmd.class), (command) ->
         of(cmd, targetVersion.nextVersion(),
                 targetInstance.create(command.getTargetId(), command.getName()))
       ),
 
-      Case(instanceOf(ActivateCustomerCmd.class), (command) ->
+      API.Case(instanceOf(ActivateCustomerCmd.class), (command) ->
         of(cmd, targetVersion.nextVersion(), targetInstance.activate(command.getReason()))),
 
-      Case(instanceOf(DeactivateCustomerCmd.class), (command) ->
+      API.Case(instanceOf(DeactivateCustomerCmd.class), (command) ->
         of(cmd, targetVersion.nextVersion(), targetInstance.deactivate(command.getReason()))),
 
-      Case(instanceOf(CreateActivateCustomerCmd.class), (command) -> {
+      API.Case(instanceOf(CreateActivateCustomerCmd.class), (command) -> {
         val tracker = new StateTransitionsTracker<Customer>(targetInstance,
                 stateTransitionFn, dependencyInjectionFn);
         final List<Event> events = tracker

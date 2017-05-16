@@ -15,9 +15,9 @@ public interface WriteModelRepository  {
 
 	List<ProjectionData> getAllSince(long sinceUowSequence, int maxResultSize);
 
-	VersionedEvents getAll(String aggregateRootId);
+	VersionData getAll(String aggregateRootId);
 
-	VersionedEvents getAllAfterVersion(String aggregateRootId, Version version);
+	VersionData getAllAfterVersion(String aggregateRootId, Version version);
 
   class DbConcurrencyException extends Exception {
 

@@ -23,6 +23,7 @@ public class CustomerStateTransitionFn implements Function2<Event, Customer, Cus
               (e) -> instance.withReason(e.getReason()).withActive(true)),
       Case(instanceOf(CustomerDeactivated.class),
               (e) -> instance.withReason(e.getReason()).withActive(false))
+
     );
   }
 }

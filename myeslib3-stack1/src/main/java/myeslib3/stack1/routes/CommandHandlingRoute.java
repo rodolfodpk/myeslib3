@@ -25,7 +25,7 @@ import java.util.Optional;
 import static myeslib3.stack1.routes.HeadersConstants.COMMAND_ID;
 import static myeslib3.stack1.routes.StringHelper.aggregateRootId;
 
-public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoot> extends RouteBuilder {
+public class CommandHandlingRoute<ID extends AggregateRootId, A extends AggregateRoot> extends RouteBuilder {
 
   static final String RESULT = "result";
   static final String IS_ERROR = "IS_ERROR";
@@ -37,9 +37,9 @@ public class CommandSyncRoute<ID extends AggregateRootId, A extends AggregateRoo
   final Gson gson ;
   final IdempotentRepository<String> idempotentRepo;
 
-  public CommandSyncRoute(@NonNull Class<A> aggregateRootClass, @NonNull SnapshotReader<ID, A> snapshotReader,
-                          @NonNull AggregateRootCmdHandler<A> handler, @NonNull WriteModelRepository writeModelRepo,
-                          @NonNull Gson gson, @NonNull IdempotentRepository<String> idempotentRepo) {
+  public CommandHandlingRoute(@NonNull Class<A> aggregateRootClass, @NonNull SnapshotReader<ID, A> snapshotReader,
+                              @NonNull AggregateRootCmdHandler<A> handler, @NonNull WriteModelRepository writeModelRepo,
+                              @NonNull Gson gson, @NonNull IdempotentRepository<String> idempotentRepo) {
     this.aggregateRootClass = aggregateRootClass;
     this.snapshotReader = snapshotReader;
     this.handler = handler;

@@ -7,7 +7,7 @@ import myeslib3.core.model.Event;
 import java.util.List;
 
 @Value
-public class VersionedEvents {
+public class VersionData {
 
   Version version;
   List<Event> events;

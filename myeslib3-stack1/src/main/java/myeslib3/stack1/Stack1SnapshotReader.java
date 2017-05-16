@@ -24,19 +24,19 @@ import static java.util.Objects.requireNonNull;
 public class Stack1SnapshotReader<ID extends AggregateRootId, A extends AggregateRoot>
 				implements SnapshotReader<ID, A> {
 
-	private static Version lastVersion(final VersionedEvents unitOfWorks) {
+	private static Version lastVersion(final VersionData unitOfWorks) {
 		return unitOfWorks.getEvents().isEmpty() ? Version.create(0L) : unitOfWorks.getVersion();
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(Stack1SnapshotReader.class);
 
-	final Cache<ID, VersionedEvents> cache;
+	final Cache<ID, VersionData> cache;
 	final WriteModelRepository dao;
   final Supplier<A> supplier;
   final Function<A, A> dependencyInjectionFn;
   final BiFunction<Event, A, A> stateTransitionFn;
 
-	public Stack1SnapshotReader(@NonNull Cache<ID, VersionedEvents> cache,
+	public Stack1SnapshotReader(@NonNull Cache<ID, VersionData> cache,
 															@NonNull WriteModelRepository dao,
 															@NonNull Supplier<A> supplier,
 															@NonNull Function<A, A> dependencyInjectionFn,
@@ -60,7 +60,7 @@ public class Stack1SnapshotReader<ID extends AggregateRootId, A extends Aggregat
 
 		final AtomicBoolean wasDaoCalled = new AtomicBoolean(false);
 
-		final VersionedEvents cachedUowList = cache.get(id, s -> {
+		final VersionData cachedUowList = cache.get(id, s -> {
 			logger.debug("id {} cache.getInstance(id) does not contain anything for this id. Will have to search on dao",
 							id);
 			wasDaoCalled.set(true);
@@ -78,7 +78,7 @@ public class Stack1SnapshotReader<ID extends AggregateRootId, A extends Aggregat
 		logger.debug("id {} cached lastSnapshotData has version {}. will check if there any version beyond it",
 						id, lastVersion);
 
-		final VersionedEvents nonCachedUowList =
+		final VersionData nonCachedUowList =
 						dao.getAllAfterVersion(id.getStringValue(), lastVersion);
 
 		logger.debug("id {} found {} pending transactions. Last version is now {}",
@@ -90,9 +90,9 @@ public class Stack1SnapshotReader<ID extends AggregateRootId, A extends Aggregat
 
 		final Version finalVersion = nonCachedUowList.getVersion();
 
-		cache.put(id, new VersionedEvents(finalVersion, cachedPlusNonCachedList));
+		cache.put(id, new VersionData(finalVersion, cachedPlusNonCachedList));
 
-		return new Snapshot<>(tracker.applyEvents(cachedPlusNonCachedList).currentState(), finalVersion);
+		return new Snapshot<A>(tracker.applyEvents(cachedPlusNonCachedList).currentState(), finalVersion);
 
 	}
 

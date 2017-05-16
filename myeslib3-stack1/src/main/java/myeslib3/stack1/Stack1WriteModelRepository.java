@@ -11,7 +11,7 @@ import myeslib3.core.Version;
 import myeslib3.core.model.Command;
 import myeslib3.core.model.Event;
 import myeslib3.core.stack.ProjectionData;
-import myeslib3.core.stack.VersionedEvents;
+import myeslib3.core.stack.VersionData;
 import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.stack1.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
@@ -136,12 +136,12 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   }
 
   @Override
-  public VersionedEvents getAll(String id) {
+  public VersionData getAll(String id) {
     return getAllAfterVersion(id, new Version(0L));
   }
 
   @Override
-  public VersionedEvents getAllAfterVersion(@NonNull String id, @NonNull Version version) {
+  public VersionData getAllAfterVersion(@NonNull String id, @NonNull Version version) {
 
     logger.debug("will load {}", id);
 
@@ -157,7 +157,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       logger.debug("found none unit of work for id {} and version > {}",
               id.toString(), version.getValueAsLong());
 
-      return new VersionedEvents(Version.create(0), new ArrayList<>());
+      return new VersionData(Version.create(0), new ArrayList<>());
 
     }
 
@@ -175,7 +175,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       finalVersion = tuple._1();
     }
 
-    return new VersionedEvents(new Version(finalVersion), result);
+    return new VersionData(new Version(finalVersion), result);
 
   }
 

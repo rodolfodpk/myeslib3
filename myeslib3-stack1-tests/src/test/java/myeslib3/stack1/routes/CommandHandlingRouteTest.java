@@ -14,7 +14,7 @@ import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
 import myeslib3.example1.aggregates.customer.CustomerId;
-import myeslib3.example1.aggregates.customer.CustomerModule;
+import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import org.apache.camel.EndpointInject;
@@ -41,7 +41,7 @@ import java.util.function.Supplier;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class CommandSyncRouteTest extends CamelTestSupport {
+public class CommandHandlingRouteTest extends CamelTestSupport {
 
   static final Injector injector = Guice.createInjector(new CustomerModule(), new Example1Module());
 
@@ -67,7 +67,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
   public void init() throws Exception {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
-    val route = new CommandSyncRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
+    val route = new CommandHandlingRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
             new MemoryIdempotentRepository());
     context.addRoutes(route);
   }
