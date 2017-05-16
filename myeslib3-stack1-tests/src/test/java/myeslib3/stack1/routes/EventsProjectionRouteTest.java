@@ -2,13 +2,12 @@ package myeslib3.stack1.routes;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import javaslang.collection.List;
 import lombok.val;
+import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.ProjectionData;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.example1.projections.Example1EventsProjectorJooq;
-import myeslib3.stack1.api.UnitOfWorkData;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -19,6 +18,8 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,7 +48,7 @@ public class EventsProjectionRouteTest extends CamelTestSupport {
     long completionInterval = 100;
     int completionSize = 1;
 
-    val eventsProjectorMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
+    val eventsProjectorMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventsProjectorMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsProjectionRoute(eventsProjectorMock, new MemoryIdempotentRepository(),
             false, completionInterval, completionSize);
@@ -58,8 +59,9 @@ public class EventsProjectionRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<UnitOfWorkData> tuplesList =
-            List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
+    val projectionData = new ProjectionData(uowId, 1L, aggregateRootId, Arrays.asList(event1));
+
+    final List<ProjectionData> tuplesList = Arrays.asList(projectionData);
 
     resultEndpoint.expectedBodiesReceived(tuplesList.get(0));
 

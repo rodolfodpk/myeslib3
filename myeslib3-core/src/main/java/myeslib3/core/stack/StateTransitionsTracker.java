@@ -1,8 +1,8 @@
-package myeslib3.core;
+package myeslib3.core.stack;
 
 import lombok.NonNull;
-import myeslib3.core.data.AggregateRoot;
-import myeslib3.core.data.Event;
+import myeslib3.core.model.AggregateRoot;
+import myeslib3.core.model.Event;
 
 import java.util.ArrayList;
 import java.util.List;

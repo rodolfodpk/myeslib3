@@ -4,9 +4,12 @@ import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import lombok.val;
-import myeslib3.core.data.Command;
-import myeslib3.core.data.UnitOfWork;
-import myeslib3.core.data.Version;
+import myeslib3.core.UnitOfWork;
+import myeslib3.core.Version;
+import myeslib3.core.model.Command;
+import myeslib3.core.stack.Snapshot;
+import myeslib3.core.stack.SnapshotReader;
+import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
@@ -14,9 +17,6 @@ import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.stack1.api.Snapshot;
-import myeslib3.stack1.api.SnapshotReader;
-import myeslib3.stack1.api.WriteModelRepository;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Produce;
@@ -77,7 +77,7 @@ public class CommandSyncRouteTest extends CamelTestSupport {
   }
 
   @Test
-  public void valid_command_must_return_valid_unit_of_work() throws InterruptedException {
+  public void valid_command_must_return_valid_unit_of_work() throws WriteModelRepository.DbConcurrencyException, InterruptedException {
 
     val customerId = new CustomerId("customer#1");
 

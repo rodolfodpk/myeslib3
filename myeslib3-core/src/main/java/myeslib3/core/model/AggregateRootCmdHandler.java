@@ -1,7 +1,8 @@
-package myeslib3.core;
+package myeslib3.core.model;
 
 import lombok.NonNull;
-import myeslib3.core.data.*;
+import myeslib3.core.UnitOfWork;
+import myeslib3.core.Version;
 
 import java.util.Optional;
 import java.util.function.BiFunction;

@@ -1,15 +1,15 @@
-package myeslib3.stack1.impl;
+package myeslib3.stack1;
 
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.data.UnitOfWork;
-import myeslib3.core.data.Version;
+import myeslib3.core.UnitOfWork;
+import myeslib3.core.Version;
+import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.stack1.DatabaseModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ public class Stack1WriteModelRepositoryIt {
   }
 
   @Test
-  public void can_append_a_unit_of_work() {
+  public void can_append_a_unit_of_work() throws WriteModelRepository.DbConcurrencyException {
 
     final CustomerId id = new CustomerId("customer#1");
     final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, "customer1");

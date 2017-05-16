@@ -1,14 +1,15 @@
 package myeslib3.stack1.routes;
 
-import javaslang.collection.List;
 import lombok.NonNull;
-import myeslib3.stack1.api.EventsProjector;
-import myeslib3.stack1.api.UnitOfWorkData;
+import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.ProjectionData;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.processor.aggregate.AbstractListAggregationStrategy;
 import org.apache.camel.processor.aggregate.MemoryAggregationRepository;
 import org.apache.camel.spi.IdempotentRepository;
+
+import java.util.List;
 
 public class EventsProjectionRoute extends RouteBuilder {
 
@@ -35,7 +36,7 @@ public class EventsProjectionRoute extends RouteBuilder {
       .routeId("st-events-projector" + eventsdao.getEventsChannelId())
       .threads(1)
       .process(e -> {
-        final UnitOfWorkData uow = e.getIn().getBody(UnitOfWorkData.class);
+        final ProjectionData uow = e.getIn().getBody(ProjectionData.class);
         e.getOut().setHeader(HeadersConstants.UNIT_OF_WORK_ID, uow.getUowId());
         e.getOut().setBody(uow);
       })
@@ -45,7 +46,7 @@ public class EventsProjectionRoute extends RouteBuilder {
         .aggregationRepository(new MemoryAggregationRepository())
       .log("will process ${body.class.name}")
       .process(e -> {
-        final List<UnitOfWorkData> list = List.ofAll(e.getIn().getBody(java.util.List.class));
+        final List<ProjectionData> list = e.getIn().getBody(List.class);
         eventsdao.handle(list);
       })
       .log("after st-events-projector: ${body}");
@@ -54,10 +55,10 @@ public class EventsProjectionRoute extends RouteBuilder {
 
 	}
 
-  private class Strategy extends AbstractListAggregationStrategy<UnitOfWorkData> {
+  private class Strategy extends AbstractListAggregationStrategy<ProjectionData> {
     @Override
-    public UnitOfWorkData getValue(Exchange exchange) {
-      return exchange.getIn().getBody(UnitOfWorkData.class);
+    public ProjectionData getValue(Exchange exchange) {
+      return exchange.getIn().getBody(ProjectionData.class);
     }
   }
 

@@ -1,17 +1,18 @@
 package myeslib3.example1.projections;
 
 import javaslang.Tuple;
-import javaslang.collection.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import myeslib3.core.data.Event;
+import myeslib3.core.model.Event;
+import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.ProjectionData;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;
-import myeslib3.stack1.api.EventsProjector;
-import myeslib3.stack1.api.UnitOfWorkData;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
+
+import java.util.List;
 
 import static example1.datamodel.tables.CustomerSummary.CUSTOMER_SUMMARY;
 import static javaslang.API.*;
@@ -35,12 +36,12 @@ public class Example1EventsProjectorJooq implements EventsProjector {
   }
 
   @Override
-  public void handle(final List<UnitOfWorkData> uowList) { // TODO interface com apenas este e o de cima
+  public void handle(final List<ProjectionData> uowList) { // TODO interface com apenas este e o de cima
 
     log.info("writing {} events for eventsChannelId {}", uowList.size(), eventsChannelId);
 
     DSL.using(jooqCfg)
-      .transaction(ctx -> uowList.flatMap(uowdata -> uowdata.getEvents()
+      .transaction(ctx -> uowList.stream().flatMap(uowdata -> uowdata.getEvents().stream()
               .map(e -> Tuple.of(uowdata.getTargetId(), e)))
               .forEach(tuple -> handle(ctx, tuple._1(), tuple._2())));
 

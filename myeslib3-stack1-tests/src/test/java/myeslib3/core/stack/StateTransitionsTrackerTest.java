@@ -1,8 +1,8 @@
-package myeslib3.core;
+package myeslib3.core.stack;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import myeslib3.core.data.Event;
+import myeslib3.core.model.Event;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;

@@ -1,20 +1,18 @@
-package myeslib3.stack1.impl;
+package myeslib3.stack1;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import javaslang.Tuple;
-import javaslang.Tuple2;
-import javaslang.collection.List;
-import myeslib3.core.data.Event;
-import myeslib3.core.data.Version;
+import myeslib3.core.Version;
+import myeslib3.core.model.Event;
+import myeslib3.core.stack.Snapshot;
+import myeslib3.core.stack.VersionedEvents;
+import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.stack1.api.Snapshot;
-import myeslib3.stack1.api.WriteModelRepository;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Cache;
 import org.apache.camel.com.github.benmanes.caffeine.cache.Caffeine;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
@@ -49,7 +48,7 @@ public class Stack1SnapshotReaderTest {
   @Mock
   WriteModelRepository dao;
 
-  Cache<CustomerId, Tuple2<Version, List<Event>>> cache;
+  Cache<CustomerId, VersionedEvents> cache;
 
   @BeforeEach
   public void init() throws Exception {
@@ -66,7 +65,7 @@ public class Stack1SnapshotReaderTest {
     final Snapshot<Customer> expectedSnapshot =
             new Snapshot<>(supplier.get(), new Version(0L));
 
-    final Tuple2<Version, List<Event>> expectedHistory = Tuple.of(new Version(0), List.empty());
+    final VersionedEvents expectedHistory = new VersionedEvents(new Version(0), Arrays.asList());
 
     when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
@@ -94,8 +93,8 @@ public class Stack1SnapshotReaderTest {
 
     final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-    final Tuple2<Version, List<Event>> expectedHistory =
-            Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
+    final VersionedEvents expectedHistory =
+            new VersionedEvents(new Version(1), Arrays.asList(new CustomerCreated(id, command.getName())));
 
     when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
@@ -119,8 +118,8 @@ public class Stack1SnapshotReaderTest {
 
     final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-    final Tuple2<Version, List<Event>> expectedHistory =
-            Tuple.of(new Version(1), List.of(new CustomerCreated(id, command.getName())));
+    final VersionedEvents expectedHistory =
+            new VersionedEvents(new Version(1), Arrays.asList(new CustomerCreated(id, command.getName())));
 
     when(dao.getAll(id.getStringValue())).thenReturn(expectedHistory);
 
@@ -149,11 +148,11 @@ public class Stack1SnapshotReaderTest {
     // cached history
     final CreateCustomerCmd command1 = new CreateCustomerCmd(UUID.randomUUID(), id, name);
 
-    final Tuple2<Version, List<Event>> cachedHistory =
-            Tuple.of(new Version(1), List.of(new CustomerCreated(id, command1.getName())));
+    final VersionedEvents cachedHistory =
+            new VersionedEvents(new Version(1), Arrays.asList(new CustomerCreated(id, command1.getName())));
 
-    final Tuple2<Version, List<Event>> nonCachedHistory =
-            Tuple.of(new Version(2), List.of(new CustomerActivated(reason, activated_on)));
+    final VersionedEvents nonCachedHistory =
+            new VersionedEvents(new Version(2), Arrays.asList(new CustomerActivated(reason, activated_on)));
 
     // prepare
 

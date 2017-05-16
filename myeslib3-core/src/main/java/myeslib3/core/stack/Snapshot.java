@@ -1,7 +1,7 @@
-package myeslib3.stack1.api;
+package myeslib3.core.stack;
 
 import lombok.Value;
-import myeslib3.core.data.Version;
+import myeslib3.core.Version;
 
 @Value
 public class Snapshot<A> {

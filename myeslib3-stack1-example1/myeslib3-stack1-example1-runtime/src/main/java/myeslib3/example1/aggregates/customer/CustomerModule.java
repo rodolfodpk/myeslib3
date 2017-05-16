@@ -3,8 +3,8 @@ package myeslib3.example1.aggregates.customer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import myeslib3.core.AggregateRootCmdHandler;
-import myeslib3.core.data.Event;
+import myeslib3.core.model.AggregateRootCmdHandler;
+import myeslib3.core.model.Event;
 import myeslib3.example1.services.SampleServiceImpl;
 
 import java.util.function.BiFunction;

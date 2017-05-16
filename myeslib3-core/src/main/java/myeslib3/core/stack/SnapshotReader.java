@@ -1,7 +1,7 @@
-package myeslib3.stack1.api;
+package myeslib3.core.stack;
 
-import myeslib3.core.data.AggregateRoot;
-import myeslib3.core.data.AggregateRootId;
+import myeslib3.core.model.AggregateRoot;
+import myeslib3.core.model.AggregateRootId;
 
 @FunctionalInterface
 public interface SnapshotReader<ID extends AggregateRootId, A extends AggregateRoot> {

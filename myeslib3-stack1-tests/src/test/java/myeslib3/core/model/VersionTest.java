@@ -1,5 +1,6 @@
-package myeslib3.core.data;
+package myeslib3.core.model;
 
+import myeslib3.core.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

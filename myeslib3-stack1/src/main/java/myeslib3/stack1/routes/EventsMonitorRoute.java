@@ -2,7 +2,7 @@ package myeslib3.stack1.routes;
 
 import com.google.gson.Gson;
 import lombok.NonNull;
-import myeslib3.core.functions.SagaEventMonitoringFn;
+import myeslib3.core.model.SchedulingMonitoringFn;
 import org.apache.camel.builder.RouteBuilder;
 
 public class EventsMonitorRoute extends RouteBuilder {
@@ -10,14 +10,14 @@ public class EventsMonitorRoute extends RouteBuilder {
   private static final String TARGET_ENDPOINT = "TARGET_ENDPOINT";
 
   @NonNull final String eventsChannelId;
-  @NonNull final SagaEventMonitoringFn sagaEventMonitoringFn;
+  @NonNull final SchedulingMonitoringFn schedulingMonitoringFn;
   @NonNull final Gson gson;
 
   public EventsMonitorRoute(@NonNull String eventsChannelId,
-                            @NonNull SagaEventMonitoringFn sagaEventMonitoringFn,
+                            @NonNull SchedulingMonitoringFn schedulingMonitoringFn,
                             @NonNull Gson gson) {
     this.eventsChannelId = eventsChannelId;
-    this.sagaEventMonitoringFn = sagaEventMonitoringFn;
+    this.schedulingMonitoringFn = schedulingMonitoringFn;
     this.gson = gson;
   }
 
@@ -34,13 +34,13 @@ public class EventsMonitorRoute extends RouteBuilder {
 //      .split(body())
 //      .process(e -> {
 //        final Event event = e.getIn().getBody(Event.class);
-//        final Optional<SagaEventMonitoringFn.CommandMessage> command = sagaEventMonitoringFn.apply(event);
+//        final Optional<SchedulingMonitoringFn.CommandMessage> command = schedulingMonitoringFn.apply(event);
 //        e.getOut().setBody(command.isPresent() ? command.get() : null);
 //        e.getOut().setHeaders(e.getIn().getHeaders());
 //      })
-//      .filter(bodyAs(SagaEventMonitoringFn.CommandMessage.class).isNotNull())
+//      .filter(bodyAs(SchedulingMonitoringFn.CommandMessage.class).isNotNull())
 //      .process(e -> {
-//        final SagaEventMonitoringFn.CommandMessage msg = e.getIn().getBody(SagaEventMonitoringFn.CommandMessage.class);
+//        final SchedulingMonitoringFn.CommandMessage msg = e.getIn().getBody(SchedulingMonitoringFn.CommandMessage.class);
 //        final String cmdAsJson = gson.toJson(msg.getCommand(), Command.class);
 //        final String targetEndpoint = String.format("direct:handle-%s", commandId(msg.getCommandClass()));
 //        e.getOut().setBody(cmdAsJson, String.class);

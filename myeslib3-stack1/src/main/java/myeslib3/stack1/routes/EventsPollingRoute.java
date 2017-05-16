@@ -1,14 +1,14 @@
 package myeslib3.stack1.routes;
 
-import javaslang.collection.List;
 import lombok.NonNull;
-import myeslib3.stack1.api.EventsProjector;
-import myeslib3.stack1.api.UnitOfWorkData;
-import myeslib3.stack1.api.WriteModelRepository;
+import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.ProjectionData;
+import myeslib3.core.stack.WriteModelRepository;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
 
 import javax.inject.Named;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.camel.builder.PredicateBuilder.not;
@@ -92,7 +92,7 @@ public class EventsPollingRoute extends RouteBuilder {
       .end()
       .log("--> will pool")
       .process(e -> {
-        final List<UnitOfWorkData> unitsOfWork =
+        final List<ProjectionData> unitsOfWork =
                 repo.getAllSince(eventsProjectorDao.getLastUowSeq(), eventsMaxRowsPerPooling);
         e.getOut().setHeader(RESULT_SIZE_HEADER, unitsOfWork.size());
         e.getOut().setBody(unitsOfWork);

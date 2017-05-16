@@ -1,14 +1,13 @@
 package myeslib3.stack1.routes;
 
-import javaslang.collection.List;
 import lombok.val;
+import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.ProjectionData;
+import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.example1.projections.Example1EventsProjectorJooq;
 import myeslib3.example1.utils.config.BoundedContextConfig;
-import myeslib3.stack1.api.UnitOfWorkData;
-import myeslib3.stack1.api.WriteModelRepository;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -21,6 +20,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,7 +53,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void single_events_list() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class, withSettings().verboseLogging());
-    val eventDaoMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
+    val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
             config.events_backoff_failures_threshold(),
@@ -65,8 +66,8 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<UnitOfWorkData> tuplesList =
-            List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
+    final List<ProjectionData> tuplesList =
+            Arrays.asList(new ProjectionData(uowId, 1L, aggregateRootId, Arrays.asList(event1)));
 
     when(eventDaoMock.getLastUowSeq()).thenReturn(0L);
 
@@ -90,7 +91,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void when_failure_it_must_increase_failures() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); // , withSettings().verboseLogging());
-    val eventDaoMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
+    val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
             config.events_backoff_failures_threshold(),
@@ -117,7 +118,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void when_idle_it_must_increase_idles() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); // , withSettings().verboseLogging());
-    val eventDaoMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
+    val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
             config.events_backoff_failures_threshold(),
@@ -128,7 +129,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
 
     when(eventDaoMock.getLastUowSeq()).thenReturn(0L);
 
-    when(repoMock.getAllSince(eq(0L), eq(10))).thenReturn(List.empty());
+    when(repoMock.getAllSince(eq(0L), eq(10))).thenReturn(Arrays.asList());
 
     template.requestBody(true);
 
@@ -146,7 +147,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   public void after_3_failures_it_must_skip_2_pools_and_then_work() throws Exception {
 
     val repoMock = mock(WriteModelRepository.class); //, withSettings().verboseLogging());
-    val eventDaoMock = mock(Example1EventsProjectorJooq.class, withSettings().verboseLogging());
+    val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
             config.events_backoff_failures_threshold(),
@@ -160,8 +161,8 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     val cmd1 = new CreateCustomerCmd(UUID.randomUUID(), new CustomerId("c1"), "customer1");
     val event1 = new CustomerCreated(cmd1.getTargetId(), cmd1.getName());
 
-    final List<UnitOfWorkData> tuplesList =
-            List.of(new UnitOfWorkData(uowId, 1L, aggregateRootId, List.of(event1)));
+    final List<ProjectionData> tuplesList =
+            Arrays.asList(new ProjectionData(uowId, 1L, aggregateRootId, Arrays.asList(event1)));
 
     when(eventDaoMock.getLastUowSeq()).thenReturn(0L, 0L, 0L, 0L, 0L, 0L, 0L);
 

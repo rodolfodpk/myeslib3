@@ -2,8 +2,8 @@ package myeslib3.example1.aggregates.customer;
 
 import lombok.Value;
 import lombok.experimental.Wither;
-import myeslib3.core.data.AggregateRoot;
-import myeslib3.core.data.Event;
+import myeslib3.core.model.AggregateRoot;
+import myeslib3.core.model.Event;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;

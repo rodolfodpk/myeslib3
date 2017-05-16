@@ -1,20 +1,19 @@
-package myeslib3.stack1.impl;
+package myeslib3.stack1;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import javaslang.Tuple4;
-import javaslang.collection.List;
 import lombok.NonNull;
-import myeslib3.core.data.Command;
-import myeslib3.core.data.Event;
-import myeslib3.core.data.UnitOfWork;
-import myeslib3.core.data.Version;
-import myeslib3.stack1.api.UnitOfWorkData;
-import myeslib3.stack1.api.WriteModelRepository;
-import myeslib3.stack1.impl.jdbi.DbConcurrencyException;
-import myeslib3.stack1.impl.jdbi.LocalDateTimeMapper;
+import myeslib3.core.UnitOfWork;
+import myeslib3.core.Version;
+import myeslib3.core.model.Command;
+import myeslib3.core.model.Event;
+import myeslib3.core.stack.ProjectionData;
+import myeslib3.core.stack.VersionedEvents;
+import myeslib3.core.stack.WriteModelRepository;
+import myeslib3.stack1.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.StatementContext;
@@ -30,6 +29,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -64,7 +64,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   private final Gson gson;
   private final DBI dbi;
 
-  private final TypeToken<java.util.List<Event>> listTypeToken = new TypeToken<java.util.List<Event>>() {};
+  private final TypeToken<List<Event>> listTypeToken = new TypeToken<List<Event>>() {};
 
   public Stack1WriteModelRepository(String aggregateRootName, @NonNull Gson gson, @NonNull DBI dbi) {
     this.aggregateRootName = aggregateRootName;
@@ -84,7 +84,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       );
 
     final Command command = gson.fromJson(uowTuple._2(), Command.class);
-    final java.util.List<Event> events = gson.fromJson(uowTuple._4(), listTypeToken.getType());
+    final List<Event> events = gson.fromJson(uowTuple._4(), listTypeToken.getType());
     final UnitOfWork uow = new UnitOfWork(UUID.fromString(uowTuple._1()), command,  new Version(uowTuple._3()), events);
 
     return Optional.of(uow);
@@ -92,18 +92,18 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
   }
 
   @Override
-  public List<UnitOfWorkData> getAllSince(long sinceUowSequence, int maxResultSize) {
+  public List<ProjectionData> getAllSince(long sinceUowSequence, int maxResultSize) {
 
     logger.debug("will load a maximum of {} units of work since sequence {}", maxResultSize, sinceUowSequence);
 
-    final java.util.List<Tuple4<String, Long, String, String>> eventsListAsJson = dbi
-            .withHandle(new HandleCallback<java.util.List<Tuple4<String, Long, String, String>>>() {
+    final List<Tuple4<String, Long, String, String>> eventsListAsJson = dbi
+            .withHandle(new HandleCallback<List<Tuple4<String, Long, String, String>>>() {
 
                           final String sql = String.format("select uow_id, uow_seq_number, ar_id, uow_events " +
                                   "from units_of_work where uow_seq_number > %d order by uow_seq_number limit %d",
                                   sinceUowSequence, maxResultSize);
 
-                          public java.util.List<Tuple4<String, Long, String, String>> withHandle(Handle h) {
+                          public List<Tuple4<String, Long, String, String>> withHandle(Handle h) {
                             return h.createQuery(sql)
                                     .bind("uow_seq_number", sinceUowSequence)
                                     .map(new ListOfEventsMapper()).list();
@@ -115,36 +115,37 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
       logger.info("Found none unit of work since sequence {}", sinceUowSequence);
 
-      return List.empty();
+      return new ArrayList<>();
 
     }
 
     logger.info("Found {} units of work since sequence {}", eventsListAsJson.size(), sinceUowSequence);
 
-    final ArrayList<UnitOfWorkData> result = new ArrayList<>();
+    final ArrayList<ProjectionData> result = new ArrayList<>();
 
     for (Tuple4<String, Long, String, String> tuple : eventsListAsJson) {
       logger.info("converting to List<Event> from {}", tuple);
       final List<Event> events = gson.fromJson(tuple._4(), listTypeToken.getType());
       logger.debug(events.toString());
-      events.forEach(e -> result.add(new UnitOfWorkData(tuple._1(), tuple._2(), tuple._3(), events)));
+      events.forEach(e ->
+              result.add(new ProjectionData(tuple._1(), tuple._2(), tuple._3(), events)));
     }
 
-    return List.ofAll(result);
+    return result;
 
   }
 
   @Override
-  public Tuple2<Version, List<Event>> getAll(String id) {
+  public VersionedEvents getAll(String id) {
     return getAllAfterVersion(id, new Version(0L));
   }
 
   @Override
-  public Tuple2<Version, List<Event>> getAllAfterVersion(@NonNull String id, @NonNull Version version) {
+  public VersionedEvents getAllAfterVersion(@NonNull String id, @NonNull Version version) {
 
     logger.debug("will load {}", id);
 
-    final java.util.List<Tuple2<Long, String>> eventsListAsJson = dbi
+    final List<Tuple2<Long, String>> eventsListAsJson = dbi
       .withHandle(h -> h.createQuery(getAllAfterVersionSql)
               .bind("ar_id", id.toString())
               .bind("version", version.getValueAsLong())
@@ -156,7 +157,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       logger.debug("found none unit of work for id {} and version > {}",
               id.toString(), version.getValueAsLong());
 
-      return new Tuple2<>(Version.create(0), List.empty());
+      return new VersionedEvents(Version.create(0), new ArrayList<>());
 
     }
 
@@ -174,12 +175,12 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
       finalVersion = tuple._1();
     }
 
-    return Tuple.of(new Version(finalVersion), List.ofAll(result));
+    return new VersionedEvents(new Version(finalVersion), result);
 
   }
 
   @Override
-  public void append(final UnitOfWork unitOfWork) {
+  public void append(final UnitOfWork unitOfWork) throws DbConcurrencyException {
 
     requireNonNull(unitOfWork);
 

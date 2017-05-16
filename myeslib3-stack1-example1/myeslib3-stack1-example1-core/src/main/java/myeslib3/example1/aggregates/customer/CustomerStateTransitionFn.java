@@ -1,7 +1,7 @@
 package myeslib3.example1.aggregates.customer;
 
 import javaslang.Function2;
-import myeslib3.core.data.Event;
+import myeslib3.core.model.Event;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import myeslib3.example1.aggregates.customer.events.CustomerDeactivated;

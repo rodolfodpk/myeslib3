@@ -1,4 +1,4 @@
-package myeslib3.core.data;
+package myeslib3.core.model;
 
 public interface AggregateRoot {
 

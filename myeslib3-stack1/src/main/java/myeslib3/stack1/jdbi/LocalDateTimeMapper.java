@@ -1,4 +1,4 @@
-package myeslib3.stack1.impl.jdbi;
+package myeslib3.stack1.jdbi;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultColumnMapper;

@@ -1,12 +1,12 @@
 package myeslib3.example1.aggregates.customer;
 
 import lombok.val;
-import myeslib3.core.AggregateRootCmdHandler;
-import myeslib3.core.StateTransitionsTracker;
-import myeslib3.core.data.Command;
-import myeslib3.core.data.Event;
-import myeslib3.core.data.UnitOfWork;
-import myeslib3.core.data.Version;
+import myeslib3.core.UnitOfWork;
+import myeslib3.core.Version;
+import myeslib3.core.model.AggregateRootCmdHandler;
+import myeslib3.core.model.Command;
+import myeslib3.core.model.Event;
+import myeslib3.core.stack.StateTransitionsTracker;
 import myeslib3.example1.aggregates.customer.commands.ActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateActivateCustomerCmd;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 
 import static javaslang.API.*;
 import static javaslang.Predicates.instanceOf;
-import static myeslib3.core.data.UnitOfWork.of;
+import static myeslib3.core.UnitOfWork.of;
 
 public class CustomerCmdHandler extends AggregateRootCmdHandler<Customer> {
 
