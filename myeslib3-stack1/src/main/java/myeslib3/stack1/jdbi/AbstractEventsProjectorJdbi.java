@@ -1,4 +1,4 @@
-package myeslib3.stack1;
+package myeslib3.stack1.jdbi;
 
 import javaslang.Tuple;
 import lombok.Getter;
@@ -15,13 +15,13 @@ import java.util.List;
 // http://manikandan-k.github.io/2015/05/10/Transactions_in_jdbi.html
 
 @Slf4j
-public abstract class EventsProjectorJdbi implements EventsProjector {
+public abstract class AbstractEventsProjectorJdbi implements EventsProjector {
 
   @Getter
   private final String eventsChannelId;
   private final DBI dbi;
 
-  public EventsProjectorJdbi(String eventsChannelId, final DBI dbi) {
+  public AbstractEventsProjectorJdbi(String eventsChannelId, final DBI dbi) {
     this.eventsChannelId = eventsChannelId;
     this.dbi = dbi;
   }
