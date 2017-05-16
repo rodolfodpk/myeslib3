@@ -5,7 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import myeslib3.core.UnitOfWork;
 import myeslib3.core.Version;
-import myeslib3.core.stack.WriteModelRepository;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.example1.Example1Module;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
@@ -22,8 +22,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@DisplayName("A Stack1WriteModelRepository")
-public class Stack1WriteModelRepositoryIt {
+@DisplayName("A Stack1EventRepository")
+public class Stack1EventRepositoryIt {
 
   final static Injector injector = Guice.createInjector(
           new DatabaseModule(),
@@ -34,12 +34,12 @@ public class Stack1WriteModelRepositoryIt {
   @Inject
   DBI dbi;
 
-  Stack1WriteModelRepository repo;
+  Stack1EventRepository repo;
 
   @BeforeEach
   public void setup() {
     injector.injectMembers(this);
-    repo = new Stack1WriteModelRepository("customer", gson, dbi);
+    repo = new Stack1EventRepository("customer", gson, dbi);
     dbi.inTransaction((TransactionCallback<Void>) (handle, transactionStatus) -> {
       handle.execute("delete from idempotency");
       handle.execute("delete from aggregate_roots");
@@ -49,7 +49,7 @@ public class Stack1WriteModelRepositoryIt {
   }
 
   @Test
-  public void can_append_a_unit_of_work() throws WriteModelRepository.DbConcurrencyException {
+  public void can_append_a_unit_of_work() throws EventRepository.DbConcurrencyException {
 
     final CustomerId id = new CustomerId("customer#1");
     final CreateCustomerCmd command = new CreateCustomerCmd(UUID.randomUUID(), id, "customer1");

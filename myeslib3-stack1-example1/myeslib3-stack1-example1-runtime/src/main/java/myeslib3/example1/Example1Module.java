@@ -6,6 +6,9 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Names;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import lombok.val;
 import myeslib3.core.model.AggregateRootId;
 import myeslib3.core.model.Command;
@@ -23,9 +26,8 @@ import myeslib3.example1.services.SampleService;
 import myeslib3.example1.services.SampleServiceImpl;
 import myeslib3.example1.utils.gson.RuntimeTypeAdapterFactory;
 import net.dongliu.gson.GsonJava8TypeAdapterFactory;
-import org.aeonbits.owner.ConfigCache;
 
-import static myeslib3.example1.utils.config.ConfigHelper.overrideConfigPropsWithSystemVars;
+import java.util.Properties;
 
 public class Example1Module extends AbstractModule {
 
@@ -34,10 +36,18 @@ public class Example1Module extends AbstractModule {
 
     bind(SampleService.class).to(SampleServiceImpl.class).asEagerSingleton();
 
-    Example1Config config =
-            ConfigCache.getOrCreate(Example1Config.class, System.getProperties(), System.getenv());
-    bind(Example1Config.class).toInstance(config);
-    overrideConfigPropsWithSystemVars(binder(), config);
+    Config config = ConfigFactory.load();
+
+    Properties props =  new Properties();
+
+    config.entrySet().forEach(e -> {
+      final String key = e.getKey().replace("myeslib3-stack1.", "");
+      final String value = e.getValue().render().replace("\"", "");
+      System.out.println(key + "=" + value);
+      props.put(key, value);
+    });
+
+    Names.bindProperties(binder(), props);
 
   }
 

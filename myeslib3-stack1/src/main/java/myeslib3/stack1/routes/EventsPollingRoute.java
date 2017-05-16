@@ -2,8 +2,8 @@ package myeslib3.stack1.routes;
 
 import lombok.NonNull;
 import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.core.stack.ProjectionData;
-import myeslib3.core.stack.WriteModelRepository;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
 
@@ -15,10 +15,10 @@ import static org.apache.camel.builder.PredicateBuilder.not;
 
 public class EventsPollingRoute extends RouteBuilder {
 
-	final WriteModelRepository repo;
+	final EventRepository repo;
 	final EventsProjector eventsProjectorDao;
 	final int eventsBackoffFailuresThreshold;
-  final int eventsBackoffIddlesThreshold;
+  final int eventsBackoffIdlesThreshold;
   final int eventsBackoffMultiplier;
   final int eventsMaxRowsPerPooling;
 	final AtomicInteger failures = new AtomicInteger();
@@ -27,16 +27,16 @@ public class EventsPollingRoute extends RouteBuilder {
 
   static final String RESULT_SIZE_HEADER = "RESULT_SIZE_HEADER";
 
-	public EventsPollingRoute(@NonNull WriteModelRepository repo,
+	public EventsPollingRoute(@NonNull EventRepository repo,
                             @NonNull EventsProjector eventsProjectorDao,
-                            @NonNull @Named("events_backoff_failure_threshold") Integer eventsBackoffFailureThreshold,
-                            @NonNull @Named("events_backoff_idle_threshold") Integer eventsBackoffIdleThreshold,
-                            @NonNull @Named("events_backoff_multiplier") Integer eventsBackoffMultiplier,
-                            @NonNull @Named("events_max_rows_query") Integer eventsMaxRowsPerPooling) {
+                            @NonNull @Named("events.backoff.failure.threshold") Integer eventsBackoffFailureThreshold,
+                            @NonNull @Named("events.backoff.idle.threshold") Integer eventsBackoffIdleThreshold,
+                            @NonNull @Named("events.backoff.multiplier") Integer eventsBackoffMultiplier,
+                            @NonNull @Named("events.max.rows.query") Integer eventsMaxRowsPerPooling) {
 		this.repo = repo;
     this.eventsProjectorDao = eventsProjectorDao;
     this.eventsBackoffFailuresThreshold = eventsBackoffFailureThreshold;
-    this.eventsBackoffIddlesThreshold = eventsBackoffIdleThreshold;
+    this.eventsBackoffIdlesThreshold = eventsBackoffIdleThreshold;
     this.eventsBackoffMultiplier = eventsBackoffMultiplier;
     this.eventsMaxRowsPerPooling = eventsMaxRowsPerPooling;
   }
@@ -45,7 +45,7 @@ public class EventsPollingRoute extends RouteBuilder {
 	public void configure() throws Exception {
 
     final Predicate hasReachedAnyThreshold = exchange -> failures.get() >= eventsBackoffFailuresThreshold ||
-            idles.get() >= eventsBackoffIddlesThreshold;
+            idles.get() >= eventsBackoffIdlesThreshold;
 
     final Predicate backoffCountBiggerThanZero = exchange -> backoffCount.get() > 0;
 

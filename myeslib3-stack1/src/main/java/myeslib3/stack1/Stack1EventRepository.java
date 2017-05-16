@@ -10,9 +10,9 @@ import myeslib3.core.UnitOfWork;
 import myeslib3.core.Version;
 import myeslib3.core.model.Command;
 import myeslib3.core.model.Event;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.core.stack.ProjectionData;
 import myeslib3.core.stack.VersionData;
-import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.stack1.jdbi.LocalDateTimeMapper;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -35,9 +35,9 @@ import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 
-public class Stack1WriteModelRepository implements WriteModelRepository {
+public class Stack1EventRepository implements EventRepository {
 
-  static final Logger logger = LoggerFactory.getLogger(Stack1WriteModelRepository.class);
+  static final Logger logger = LoggerFactory.getLogger(Stack1EventRepository.class);
 
   static final String getUowSql = "select * from units_of_work where uow_id = :uow_id ";
 
@@ -66,7 +66,7 @@ public class Stack1WriteModelRepository implements WriteModelRepository {
 
   private final TypeToken<List<Event>> listTypeToken = new TypeToken<List<Event>>() {};
 
-  public Stack1WriteModelRepository(String aggregateRootName, @NonNull Gson gson, @NonNull DBI dbi) {
+  public Stack1EventRepository(String aggregateRootName, @NonNull Gson gson, @NonNull DBI dbi) {
     this.aggregateRootName = aggregateRootName;
     this.gson = gson;
     this.dbi = dbi;

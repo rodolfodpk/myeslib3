@@ -4,12 +4,12 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import myeslib3.core.Version;
 import myeslib3.core.model.Event;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.core.stack.Snapshot;
 import myeslib3.core.stack.VersionData;
-import myeslib3.core.stack.WriteModelRepository;
+import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerId;
-import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerActivated;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
@@ -46,7 +46,7 @@ public class Stack1SnapshotReaderTest {
   BiFunction<Event, Customer, Customer> stateTransitionFn;
 
   @Mock
-  WriteModelRepository dao;
+  EventRepository dao;
 
   Cache<CustomerId, VersionData> cache;
 

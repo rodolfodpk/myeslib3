@@ -13,7 +13,7 @@ public class EventsPollingCronRoute extends RouteBuilder {
 	final String eventsCronPooling;
 
 	public EventsPollingCronRoute(@NonNull String eventsChannelId,
-																@NonNull @Named("events_cron_polling") String eventsCronPooling) {
+																@NonNull @Named("events.cron.polling") String eventsCronPooling) {
 		this.eventsChannelId = eventsChannelId;
 		this.eventsCronPooling = eventsCronPooling;
   }

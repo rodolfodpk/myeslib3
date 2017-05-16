@@ -12,12 +12,12 @@ import java.util.List;
 import static myeslib3.stack1.routes.HeadersConstants.*;
 import static myeslib3.stack1.routes.StringHelper.*;
 
-public class CommandRestPostSyncRoute<A extends AggregateRoot> extends RouteBuilder {
+public class CommandRestRoute<A extends AggregateRoot> extends RouteBuilder {
 
 	final Class<A> aggregateRootClass;
 	final List<Class<?>> commandsClasses;
 
-  public CommandRestPostSyncRoute(@NonNull Class<A> aggregateRootClass, @NonNull List<Class<?>> commandsClasses) {
+  public CommandRestRoute(@NonNull Class<A> aggregateRootClass, @NonNull List<Class<?>> commandsClasses) {
     this.aggregateRootClass = aggregateRootClass;
     this.commandsClasses = commandsClasses;
   }

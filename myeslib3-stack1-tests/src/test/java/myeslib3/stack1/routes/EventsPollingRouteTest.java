@@ -2,12 +2,11 @@ package myeslib3.stack1.routes;
 
 import lombok.val;
 import myeslib3.core.model.EventsProjector;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.core.stack.ProjectionData;
-import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.aggregates.customer.CustomerId;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
-import myeslib3.example1.utils.config.BoundedContextConfig;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -17,7 +16,6 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.assertj.core.api.AssertionsForInterfaceTypes;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
@@ -37,29 +35,27 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   @EndpointInject(uri = "mock:result")
   MockEndpoint resultEndpoint;
 
-  @Mock
-  BoundedContextConfig config;
+  int events_max_rows_query = 10;
+  int events_backoff_failures_threshold = 3;
+  int events_backoff_idle_threshold = 3;
+  int events_backoff_multiplier = 2;
 
   @Before
   public void init() throws Exception {
     MockitoAnnotations.initMocks(this);
-    when(config.events_max_rows_query()).thenReturn(10);
-    when(config.events_backoff_failures_threshold()).thenReturn(3);
-    when(config.events_backoff_iddle_threshold()).thenReturn(3);
-    when(config.events_backoff_multiplier()).thenReturn(2);
   }
 
   @Test
   public void single_events_list() throws Exception {
 
-    val repoMock = mock(WriteModelRepository.class, withSettings().verboseLogging());
+    val repoMock = mock(EventRepository.class, withSettings().verboseLogging());
     val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
-            config.events_backoff_failures_threshold(),
-            config.events_backoff_iddle_threshold(),
-            config.events_backoff_multiplier(),
-            config.events_max_rows_query());
+            events_backoff_failures_threshold,
+            events_backoff_idle_threshold,
+            events_backoff_multiplier,
+            events_max_rows_query);
     context.addRoutes(route);
     val uowId = "uow#1";
     val aggregateRootId = "id-1";
@@ -90,14 +86,14 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   @Test
   public void when_failure_it_must_increase_failures() throws Exception {
 
-    val repoMock = mock(WriteModelRepository.class); // , withSettings().verboseLogging());
+    val repoMock = mock(EventRepository.class); // , withSettings().verboseLogging());
     val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
-            config.events_backoff_failures_threshold(),
-            config.events_backoff_iddle_threshold(),
-            config.events_backoff_multiplier(),
-            config.events_max_rows_query());
+            events_backoff_failures_threshold,
+            events_backoff_idle_threshold,
+            events_backoff_multiplier,
+            events_max_rows_query);
     context.addRoutes(route);
 
     when(eventDaoMock.getLastUowSeq())
@@ -117,14 +113,14 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   @Test
   public void when_idle_it_must_increase_idles() throws Exception {
 
-    val repoMock = mock(WriteModelRepository.class); // , withSettings().verboseLogging());
+    val repoMock = mock(EventRepository.class); // , withSettings().verboseLogging());
     val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
-            config.events_backoff_failures_threshold(),
-            config.events_backoff_iddle_threshold(),
-            config.events_backoff_multiplier(),
-            config.events_max_rows_query());
+            events_backoff_failures_threshold,
+            events_backoff_idle_threshold,
+            events_backoff_multiplier,
+            events_max_rows_query);
     context.addRoutes(route);
 
     when(eventDaoMock.getLastUowSeq()).thenReturn(0L);
@@ -146,14 +142,14 @@ public class EventsPollingRouteTest extends CamelTestSupport {
   @Test
   public void after_3_failures_it_must_skip_2_pools_and_then_work() throws Exception {
 
-    val repoMock = mock(WriteModelRepository.class); //, withSettings().verboseLogging());
+    val repoMock = mock(EventRepository.class); //, withSettings().verboseLogging());
     val eventDaoMock = mock(EventsProjector.class, withSettings().verboseLogging());
     when(eventDaoMock.getEventsChannelId()).thenReturn(eventsChannelId);
     val route = new EventsPollingRoute(repoMock, eventDaoMock,
-            config.events_backoff_failures_threshold(),
-            config.events_backoff_iddle_threshold(),
-            config.events_backoff_multiplier(),
-            config.events_max_rows_query());
+            events_backoff_failures_threshold,
+            events_backoff_idle_threshold,
+            events_backoff_multiplier,
+            events_max_rows_query);
     context.addRoutes(route);
 
     val uowId = "uow#1";

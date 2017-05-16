@@ -33,20 +33,6 @@
             <artifactId>myeslib3-stack1</artifactId>
         </dependency>
 
-        <!-- config -->
-
-        <dependency>
-            <groupId>org.aeonbits.owner</groupId>
-            <artifactId>owner-java8</artifactId>
-        </dependency>
-
-        <!-- jooq optional? -->
-
-        <dependency>
-            <groupId>org.jooq</groupId>
-            <artifactId>jooq</artifactId>
-        </dependency>
-
     </dependencies>
 
 

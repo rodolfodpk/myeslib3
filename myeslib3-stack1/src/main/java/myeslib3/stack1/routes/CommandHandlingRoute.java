@@ -9,9 +9,9 @@ import myeslib3.core.model.AggregateRoot;
 import myeslib3.core.model.AggregateRootCmdHandler;
 import myeslib3.core.model.AggregateRootId;
 import myeslib3.core.model.Command;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.core.stack.Snapshot;
 import myeslib3.core.stack.SnapshotReader;
-import myeslib3.core.stack.WriteModelRepository;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
@@ -33,12 +33,12 @@ public class CommandHandlingRoute<ID extends AggregateRootId, A extends Aggregat
   final Class<A> aggregateRootClass;
   final SnapshotReader<ID, A> snapshotReader;
   final AggregateRootCmdHandler<A> handler;
-  final WriteModelRepository writeModelRepo;
+  final EventRepository writeModelRepo;
   final Gson gson ;
   final IdempotentRepository<String> idempotentRepo;
 
   public CommandHandlingRoute(@NonNull Class<A> aggregateRootClass, @NonNull SnapshotReader<ID, A> snapshotReader,
-                              @NonNull AggregateRootCmdHandler<A> handler, @NonNull WriteModelRepository writeModelRepo,
+                              @NonNull AggregateRootCmdHandler<A> handler, @NonNull EventRepository writeModelRepo,
                               @NonNull Gson gson, @NonNull IdempotentRepository<String> idempotentRepo) {
     this.aggregateRootClass = aggregateRootClass;
     this.snapshotReader = snapshotReader;

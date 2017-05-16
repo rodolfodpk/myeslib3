@@ -7,14 +7,14 @@ import lombok.val;
 import myeslib3.core.UnitOfWork;
 import myeslib3.core.Version;
 import myeslib3.core.model.Command;
+import myeslib3.core.stack.EventRepository;
 import myeslib3.core.stack.Snapshot;
 import myeslib3.core.stack.SnapshotReader;
-import myeslib3.core.stack.WriteModelRepository;
 import myeslib3.example1.Example1Module;
+import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.Customer;
 import myeslib3.example1.aggregates.customer.CustomerCmdHandler;
 import myeslib3.example1.aggregates.customer.CustomerId;
-import myeslib3.example1.aggregates.CustomerModule;
 import myeslib3.example1.aggregates.customer.commands.CreateCustomerCmd;
 import myeslib3.example1.aggregates.customer.events.CustomerCreated;
 import org.apache.camel.EndpointInject;
@@ -61,13 +61,13 @@ public class CommandHandlingRouteTest extends CamelTestSupport {
   @Mock
   SnapshotReader<CustomerId, Customer> snapshotReader;
   @Mock
-  WriteModelRepository writeModelRepository;
+  EventRepository eventRepository;
 
   @Before
   public void init() throws Exception {
     injector.injectMembers(this);
     MockitoAnnotations.initMocks(this);
-    val route = new CommandHandlingRoute<>(Customer.class, snapshotReader, commandHandlerFn, writeModelRepository, gson,
+    val route = new CommandHandlingRoute<>(Customer.class, snapshotReader, commandHandlerFn, eventRepository, gson,
             new MemoryIdempotentRepository());
     context.addRoutes(route);
   }
@@ -77,7 +77,7 @@ public class CommandHandlingRouteTest extends CamelTestSupport {
   }
 
   @Test
-  public void valid_command_must_return_valid_unit_of_work() throws WriteModelRepository.DbConcurrencyException, InterruptedException {
+  public void valid_command_must_return_valid_unit_of_work() throws EventRepository.DbConcurrencyException, InterruptedException {
 
     val customerId = new CustomerId("customer#1");
 
@@ -97,7 +97,7 @@ public class CommandHandlingRouteTest extends CamelTestSupport {
 
     ArgumentCaptor<UnitOfWork> argument = ArgumentCaptor.forClass(UnitOfWork.class);
 
-    verify(writeModelRepository).append(argument.capture());
+    verify(eventRepository).append(argument.capture());
 
     val resultingUow = argument.getValue();
 
@@ -105,7 +105,7 @@ public class CommandHandlingRouteTest extends CamelTestSupport {
     assertEquals(resultingUow.getEvents(), expectedUow.getEvents());
     assertEquals(resultingUow.getVersion(), expectedUow.getVersion());
 
-    verifyNoMoreInteractions(snapshotReader, writeModelRepository);
+    verifyNoMoreInteractions(snapshotReader, eventRepository);
 
     val expectedBody = gson.toJson(resultingUow);
 
@@ -137,7 +137,7 @@ public class CommandHandlingRouteTest extends CamelTestSupport {
 
     verify(snapshotReader).getSnapshot(eq(customerId));
 
-    verifyNoMoreInteractions(snapshotReader, writeModelRepository);
+    verifyNoMoreInteractions(snapshotReader, eventRepository);
 
     val expectedBody = gson.toJson(Arrays.asList("customer already created"), List.class);
 
