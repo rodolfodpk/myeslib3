@@ -69,7 +69,9 @@ public class EventsPollingRouteTest extends CamelTestSupport {
 
     when(repoMock.getAllSince(eq(0L), eq(10))).thenReturn(tuplesList);
 
-    resultEndpoint.expectedBodiesReceived(tuplesList);
+//    resultEndpoint.expectedBodiesReceived(tuplesList);
+
+    resultEndpoint.expectedMessageCount(1);
 
     template.sendBody(true);
 
@@ -80,6 +82,10 @@ public class EventsPollingRouteTest extends CamelTestSupport {
     verify(repoMock).getAllSince(eq(0L), eq(10));
 
     verifyNoMoreInteractions(repoMock);
+
+    final List<ProjectionData> result = resultEndpoint.getExchanges().get(0).getIn().getBody(List.class);
+
+    assertEquals(result,  tuplesList);
 
   }
 
@@ -200,7 +206,7 @@ public class EventsPollingRouteTest extends CamelTestSupport {
       public void configure() throws Exception {
         from("direct:start")
                 .toF("direct:pool-events-%s", eventsChannelId)
-                .log("*** from pooling: ${body}")
+                .log("*** from pooling -> type: ${body.getClass().getName()} value: ${body}")
                 .to("mock:result");
       }
     };
