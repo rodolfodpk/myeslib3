@@ -8,6 +8,8 @@ import java.util.List;
 
 @Value
 public class VersionedEvents {
+
   Version version;
   List<Event> events;
+
 }
