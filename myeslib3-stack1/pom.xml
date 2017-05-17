@@ -5,9 +5,8 @@
 
     <parent>
         <groupId>rodolfodpk</groupId>
-        <artifactId>myeslib3-bom</artifactId>
+        <artifactId>myeslib3</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../myeslib3-bom</relativePath>
     </parent>
 
     <artifactId>myeslib3-stack1</artifactId>
@@ -27,13 +26,6 @@
         <dependency>
             <groupId>io.javaslang</groupId>
             <artifactId>javaslang</artifactId>
-        </dependency>
-
-        <!-- log -->
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
         </dependency>
 
         <!-- guice -->
